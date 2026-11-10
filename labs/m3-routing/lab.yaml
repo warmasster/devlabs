@@ -1,0 +1,113 @@
+# M3 · Dos routers FRR y dos hosts. Misión guiada y luego un boss con un fallo escondido.
+#   h1 (10.0.1.10) — r1 — 10.0.12.0/30 — r2 — h2 (10.0.2.10)
+id: m3-routing
+titulo: Conecta dos redes con OSPF
+motor: topologia
+pool: 1
+terminales: [h1, r1, r2, h2]
+topologia:
+  nodes:
+    r1:
+      kind: linux
+      image: relavops/frr:1
+      sysctls: { net.ipv4.ip_forward: 1 }
+      binds: ["frr/daemons:/etc/frr/daemons", "frr/vtysh.conf:/etc/frr/vtysh.conf", "r1.conf:/etc/frr/frr.conf"]
+    r2:
+      kind: linux
+      image: relavops/frr:1
+      sysctls: { net.ipv4.ip_forward: 1 }
+      binds: ["frr/daemons:/etc/frr/daemons", "frr/vtysh.conf:/etc/frr/vtysh.conf", "r2.conf:/etc/frr/frr.conf"]
+    h1:
+      kind: linux
+      image: relavops/base:1
+    h2:
+      kind: linux
+      image: relavops/base:1
+      exec: ["ip addr add 10.0.2.10/24 dev eth1", "ip route replace default via 10.0.2.1"]
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+      mtu: 1500   # Containerlab pone 9500 por defecto; 1500 es lo realista
+    - endpoints: ["r1:eth2", "r2:eth1"]
+      mtu: 1500   # Containerlab pone 9500 por defecto; 1500 es lo realista
+    - endpoints: ["r2:eth2", "h2:eth1"]
+      mtu: 1500   # Containerlab pone 9500 por defecto; 1500 es lo realista
+preparar:
+  # Espera a que FRR esté arriba en los dos routers.
+  - { nodo: r1, script: "for i in $(seq 50); do vtysh -c 'show version' >/dev/null 2>&1 && exit 0; sleep 0.2; done; exit 1" }
+  - { nodo: r2, script: "for i in $(seq 50); do vtysh -c 'show version' >/dev/null 2>&1 && exit 0; sleep 0.2; done; exit 1" }
+mision:
+  - id: ip
+    titulo: Dale una IP a h1
+    texto: En **h1**, pon la IP `10.0.1.10/24` a la interfaz `eth1`.
+    pista: ip addr add 10.0.1.10/24 dev eth1
+    nodo: h1
+    xp: 10
+    check: { nodo: h1, script: "ip -4 addr show dev eth1 | grep -q 'inet 10.0.1.10/24'" }
+  - id: gw
+    titulo: Ruta por defecto
+    texto: Todo lo que no sea de tu red, mándalo a r1 (`10.0.1.1`).
+    pista: ip route add default via 10.0.1.1
+    nodo: h1
+    xp: 10
+    check: { nodo: h1, script: "ip route | grep -q '^default via 10.0.1.1'" }
+  - id: ping-r1
+    titulo: ¿Llegas a tu router?
+    texto: Haz ping a `10.0.1.1` desde h1.
+    pista: ping -c2 10.0.1.1
+    nodo: h1
+    xp: 10
+    check: { nodo: h1, script: "grep -q 'ping.*10.0.1.1' /root/.bash_history && ping -c1 -W0.3 10.0.1.1 >/dev/null" }
+  - id: ospf
+    titulo: Activa OSPF en r1
+    texto: En **r1**, entra en `vtysh` y anuncia sus dos redes (`10.0.1.0/24` y `10.0.12.0/30`) en el área 0. r2 ya está configurado.
+    pista: "vtysh → conf t → router ospf → network 10.0.1.0/24 area 0 → network 10.0.12.0/30 area 0"
+    nodo: r1
+    xp: 25
+    check: { nodo: r1, script: "vtysh -c 'show ip route 10.0.2.0/24 json' | grep -q '\"protocol\":\"ospf\"'" }
+  - id: ping-h2
+    titulo: De punta a punta
+    texto: Desde h1, haz ping a h2 (`10.0.2.10`), que está dos routers más allá.
+    pista: ping -c2 10.0.2.10
+    nodo: h1
+    xp: 20
+    check: { nodo: h1, script: "grep -q 'ping.*10.0.2.10' /root/.bash_history && ping -c1 -W0.5 10.0.2.10 >/dev/null" }
+boss:
+  titulo: "Boss: «tras el mantenimiento de anoche, h2 no responde»"
+  texto: Alguien ha tocado algo. Sin guía. Encuentra qué está roto y arréglalo. Las pistas cuestan XP.
+  xp: 60
+  check:
+    - { nodo: h1, script: "ping -c1 -W0.5 10.0.2.10 >/dev/null" }
+    - { nodo: r1, script: "vtysh -c 'show ip ospf neighbor' | grep -q Full" }
+  fallos:
+    - id: mtu
+      romper:
+        - { nodo: r2, script: "ip link set eth1 mtu 1400 && vtysh -c 'clear ip ospf process' >/dev/null" }
+      pistas:
+        - { coste: 5, texto: "r1 ya no aprende la red 10.0.2.0/24. Mira sus vecinos OSPF: `vtysh -c 'show ip ospf neighbor'`." }
+        - { coste: 10, texto: "El vecino no llega a Full: los dos lados no se ponen de acuerdo en el tamaño máximo de paquete. Compara `ip link show` del enlace en r1 y en r2." }
+        - { coste: 20, texto: "En r2: `ip link set eth1 mtu 1500`." }
+      solucion: "La MTU de r2 eth1 era 1400 y la de r1 1500. OSPF no forma adyacencia si la MTU no coincide (se queda en ExStart)."
+    - id: ruta-h2
+      romper:
+        - { nodo: h2, script: "ip route del default" }
+      pistas:
+        - { coste: 5, texto: "OSPF está bien. Lanza `tcpdump -ni eth1 icmp` en h2 mientras haces ping desde h1: ¿llegan las peticiones?" }
+        - { coste: 10, texto: "La petición llega pero la respuesta no sale. ¿Sabe h2 cómo volver a 10.0.1.0/24? Mira `ip route` en h2." }
+        - { coste: 20, texto: "En h2: `ip route add default via 10.0.2.1`." }
+      solucion: "A h2 le faltaba la ruta por defecto: recibía el ping pero no sabía por dónde contestar."
+    - id: interfaz
+      romper:
+        - { nodo: r2, script: "ip link set eth2 down" }
+      pistas:
+        - { coste: 5, texto: "r1 ya no tiene ruta a 10.0.2.0/24: alguien dejó de anunciarla. ¿Quién es el que la anuncia?" }
+        - { coste: 10, texto: "Mira el estado de las interfaces de r2: `ip -br link`." }
+        - { coste: 20, texto: "En r2: `ip link set eth2 up`." }
+      solucion: "La interfaz eth2 de r2 estaba caída: sin interfaz no hay red conectada que anunciar."
+    - id: area
+      romper:
+        - { nodo: r2, script: "vtysh -c 'conf t' -c 'router ospf' -c 'no network 10.0.12.0/30 area 0' -c 'network 10.0.12.0/30 area 0.0.0.1'" }
+      pistas:
+        - { coste: 5, texto: "En r1, `show ip ospf neighbor` está vacío, pero el enlace funciona: `ping 10.0.12.2` responde." }
+        - { coste: 10, texto: "Dos routers solo son vecinos OSPF si están en la misma área en ese enlace. Mira `show running-config` en r2." }
+        - { coste: 20, texto: "En r2 (vtysh): `conf t` → `router ospf` → `no network 10.0.12.0/30 area 0.0.0.1` → `network 10.0.12.0/30 area 0`." }
+      solucion: "r2 tenía el enlace con r1 en el área 1 y r1 en el área 0: áreas distintas, no hay adyacencia."

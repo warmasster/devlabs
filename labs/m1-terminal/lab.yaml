@@ -1,0 +1,38 @@
+# M1 · Terminal nativa: un Debian real con PTY, para pasar la batería de pruebas.
+id: m1-terminal
+titulo: Terminal nativa
+motor: contenedor
+pool: 2
+nodos:
+  - nombre: lab
+    imagen: relavops/base:1
+    memoria: 256m
+    cpus: 1
+    pids: 256
+preparar:
+  - nodo: lab
+    script: |
+      # Historial de ejemplo para probar Ctrl+R
+      printf '%s\n' 'echo "hola desde el historial"' 'ls -la /etc' 'ping -c 3 127.0.0.1' 'htop' > /root/.bash_history
+      printf 'Línea con acentos: áéíóú ñ Ñ ü\nEmojis: 🚀 🐧 ✅ 🔥\nCajas: ┌─┬─┐ │ ├─┼─┤ └─┴─┘\n' > /root/prueba-utf8.txt
+mision:
+  - id: tab
+    titulo: TAB completa
+    texto: Escribe `cat /etc/os-r` y pulsa TAB.
+    xp: 5
+    check: { nodo: lab, script: "grep -q 'cat /etc/os-release' /root/.bash_history" }
+  - id: ctrlc
+    titulo: Ctrl+C corta
+    texto: Lanza `sleep 100` y córtalo con Ctrl+C.
+    xp: 5
+    check: { nodo: lab, script: "grep -q '^sleep 100' /root/.bash_history && ! pgrep -x sleep >/dev/null" }
+  - id: ctrlz
+    titulo: Ctrl+Z y fg
+    texto: Lanza `sleep 200`, suspéndelo con Ctrl+Z, recupéralo con `fg` y córtalo.
+    xp: 5
+    check: { nodo: lab, script: "grep -q '^fg' /root/.bash_history" }
+  - id: vim
+    titulo: Entra y sal de vim
+    texto: Abre `vim /tmp/hola.txt`, escribe algo, guarda y sal con `:wq`.
+    xp: 10
+    check: { nodo: lab, script: "test -s /tmp/hola.txt && ! pgrep -x vim >/dev/null" }

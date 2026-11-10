@@ -1,0 +1,82 @@
+{
+  "motor": "ghostty",
+  "fecha": "2026-11-03T19:20:37.345Z",
+  "latencia": {
+    "eco_p50": null,
+    "tecla_p50": 8.399999856948853,
+    "tecla_p95": 19,
+    "muestras": 18
+  },
+  "items": {
+    "tab": {
+      "ok": true,
+      "ms": 152
+    },
+    "ctrlc": {
+      "ok": true,
+      "ms": 932,
+      "nota": "sleep cortado y prompt de vuelta en 251 ms"
+    },
+    "ctrld": {
+      "ok": true,
+      "ms": 847
+    },
+    "ctrlz": {
+      "ok": true,
+      "ms": 1019
+    },
+    "readline": {
+      "ok": true,
+      "ms": 467
+    },
+    "ctrlw": {
+      "ok": true,
+      "ms": 82,
+      "nota": "bash recibe Ctrl+W; en Chrome/Edge real requiere modo inmersivo (comprobar a mano)"
+    },
+    "tui": {
+      "ok": false,
+      "nota": "no se ve /GNU nano/ en pantalla",
+      "pantalla": [
+        "root@lab:~# vim /tmp/v.txt",
+        "root@lab:~# xt",
+        "bash: xt: orden no encontrada",
+        "root@lab:~#"
+      ]
+    },
+    "resize": {
+      "ok": true,
+      "ms": 1224,
+      "nota": "105 → 60 columnas, el PTY lo ve igual"
+    },
+    "pegar": {
+      "ok": true,
+      "ms": 3003,
+      "nota": "3000 líneas (≈170 KB) pegadas con md5 idéntico; copia por selección OK"
+    },
+    "clicderecho": {
+      "ok": true,
+      "ms": 1153,
+      "nota": "pega sin selección y copia con selección"
+    },
+    "utf8": {
+      "ok": true,
+      "ms": 568
+    },
+    "scroll": {
+      "ok": true,
+      "ms": 3148,
+      "nota": "2000 líneas en el historial; 6.7 líneas por muesca de rueda"
+    },
+    "persist": {
+      "ok": true,
+      "ms": 949
+    }
+  },
+  "_antes": {
+    "eco_p50": null,
+    "tecla_p50": null,
+    "tecla_p95": null,
+    "muestras": 0
+  }
+}

@@ -1,0 +1,31 @@
+# relavops en Mac con Lima (sin probar todavía: no hay Mac en el muestrario).
+#   brew install lima
+#   limactl start --name relavops instalador/lima-relavops.yaml
+#   abre http://localhost:8080
+# vz + virtiofs es lo más rápido en Apple Silicon. La virtualización anidada (para las microVMs
+# de Firecracker) requiere chip M3 o posterior y macOS 15+; si no, esos labs quedan "solo cloud".
+vmType: vz
+nestedVirtualization: true
+rosetta: { enabled: false }
+cpus: 4
+memory: 6GiB
+disk: 40GiB
+images:
+  - location: https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img
+    arch: aarch64
+  - location: https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img
+    arch: x86_64
+mounts:
+  - location: "~"
+    writable: false
+mountType: virtiofs
+portForwards:
+  - guestPort: 8080
+    hostPort: 8080
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      # Se usa la copia del repo montada desde el Mac (ajusta la ruta si lo tienes en otro sitio).
+      RELAVOPS_ORIGEN=$(ls -d /Users/*/relavops 2>/dev/null | head -1) bash "$RELAVOPS_ORIGEN/instalador/install.sh"

@@ -1,0 +1,124 @@
+# 0.0 · Tutorial de la plataforma. Una sola máquina para aprender a moverse por la pantalla.
+id: n0-0-tutorial
+titulo: Tu primera máquina
+motor: contenedor
+pool: 1
+nodos:
+  - nombre: mi-servidor
+    rol: un Linux de verdad, solo para ti
+    imagen: relavops/base:1
+    memoria: 256m
+    cpus: 1
+preparar:
+  - nodo: mi-servidor
+    script: |
+      # El código de salida del último comando queda en /run/.rc (lo enseña la lección).
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      cat > /usr/local/bin/responde <<'EOF'
+      #!/bin/sh
+      [ $# -ge 2 ] || { echo "uso: responde <pregunta> <respuesta>"; exit 1; }
+      mkdir -p /root/.respuestas; k=$1; shift
+      printf '%s\n' "$*" > "/root/.respuestas/$k"; echo "Apuntado. $k = $*"
+      EOF
+      chmod +x /usr/local/bin/responde
+      cat > /root/bienvenida.txt <<'EOF'
+       _   _       _
+      | | | | ___ | | __ _
+      | |_| |/ _ \| |/ _` |
+      |  _  | (_) | | (_| |
+      |_| |_|\___/|_|\__,_|
+
+      Este texto vive en un fichero dentro de tu máquina.
+      Lo has leído con cat, que enseña lo que hay dentro de un fichero.
+      Nada de lo que hagas aquí puede romper tu ordenador.
+      EOF
+      echo "nota de prueba" > /root/notas.txt
+sondas:
+  - { id: ultimo@mi-servidor, nodo: mi-servidor, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
+  - { id: rc@mi-servidor, nodo: mi-servidor, script: "cat /run/.rc 2>/dev/null" }
+  - id: cat@mi-servidor
+    nodo: mi-servidor
+    script: |
+      # Si el último comando fue un cat sencillo, enseña lo mismo en la lección. Solo lee: nada de eval.
+      c=$(tail -n 1 /root/.bash_history 2>/dev/null)
+      case "$c" in *[\;\|\&\>\<\$\`]*) exit 0 ;; "cat "*) ;; *) exit 0 ;; esac
+      d=$(readlink /proc/$(pgrep -n -x bash)/cwd 2>/dev/null); cd "${d:-/root}" || exit 0
+      head -c 3000 -- $(printf '%s' "${c#cat }" | sed 's#~#/root#g') 2>&1
+mision:
+  - id: echo
+    titulo: Tu primer comando
+    texto: Escribe `echo hola` y pulsa Enter.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^echo ' /root/.bash_history" }
+  - id: cat
+    titulo: Leer un fichero
+    texto: Escribe `cat bienvenida.txt`.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^cat +(/root/|~/)?bienvenida.txt' /root/.bash_history" }
+  - id: ls
+    titulo: Ver qué hay
+    texto: Escribe `ls`.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^ls' /root/.bash_history" }
+  - id: error
+    titulo: Equivocarse a propósito
+    texto: Escribe `adios`, que no existe.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^adios' /root/.bash_history" }
+  - id: responde
+    titulo: Contestar al lab
+    texto: Escribe `responde nombre` seguido de tu nombre.
+    xp: 10
+    check: { nodo: mi-servidor, script: "test -s /root/.respuestas/nombre" }
+  - id: echo2
+    titulo: Otro echo
+    texto: ""
+    xp: 5
+    check:
+      nodo: mi-servidor
+      script: |
+        [ "$(grep -c '^echo ' /root/.bash_history)" -ge 2 ]
+  - id: clear
+    titulo: Limpiar la terminal
+    texto: ""
+    xp: 5
+    check:
+      nodo: mi-servidor
+      script: |
+        grep -qE '^clear' /root/.bash_history
+boss:
+  titulo: La búsqueda del tesoro
+  texto: Alguien ha escondido un código en una carpeta llamada `tesoro`. Cada fichero te dice dónde mirar después. Cuando tengas el código, escribe `responde codigo` y el código.
+  xp: 40
+  check:
+    - { nodo: mi-servidor, script: 'test -f /run/.codigo && test "$(cat /root/.respuestas/codigo 2>/dev/null)" = "$(cat /run/.codigo)"' }
+  fallos:
+    - id: cadena
+      romper:
+        - nodo: mi-servidor
+          script: |
+            c=$(shuf -n1 -e PIRATA-7 LORO-21 ANCLA-44 BRUJULA-9); echo "$c" > /run/.codigo
+            mkdir -p /root/tesoro
+            echo "Aquí no está. Lee mapa.txt" > /root/tesoro/empieza-aqui.txt
+            echo "Casi. Lee cofre.txt" > /root/tesoro/mapa.txt
+            echo "El código es $c" > /root/tesoro/cofre.txt
+      pistas:
+        - { coste: 0, texto: "Mira qué hay dentro con `ls tesoro`." }
+        - { coste: 5, texto: "Para leer uno, `cat tesoro/empieza-aqui.txt`." }
+      solucion: Tres ficheros, uno detrás de otro. Con `ls` ves qué hay y con `cat` lees cada uno.
+    - id: oculto
+      romper:
+        - nodo: mi-servidor
+          script: |
+            c=$(shuf -n1 -e FARO-3 ISLA-58 VELERO-16); echo "$c" > /run/.codigo
+            mkdir -p /root/tesoro
+            echo "El código está en un fichero que no se ve con ls a secas. Prueba ls -a" > /root/tesoro/leeme.txt
+            echo "El código es $c" > /root/tesoro/.escondido.txt
+      pistas:
+        - { coste: 0, texto: "Empieza con `ls tesoro` y lee lo que encuentres." }
+        - { coste: 5, texto: "Los ficheros que empiezan por un punto no salen con `ls`. Salen con `ls -a`." }
+      solucion: El código estaba en `.escondido.txt`. Los nombres que empiezan por punto son ficheros ocultos y `ls -a` los enseña.

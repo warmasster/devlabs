@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>relavops · el curso</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1180px; margin: 0 auto; padding: 18px 16px 60px; }
+    .arriba { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; }
+    .continuar { display: flex; flex-direction: column; gap: 8px; background: linear-gradient(135deg, color-mix(in srgb, var(--acento) 16%, var(--panel)), var(--panel)); }
+    .continuar .eti { font: 700 12px var(--mono); color: var(--acento); letter-spacing: 0.06em; }
+    .continuar h2 { font-size: 26px !important; margin: 0 !important; }
+    .continuar p { margin: 0; color: var(--suave); }
+    .cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .cifras div { background: var(--panel-2); border-radius: var(--radio); padding: 10px 6px; text-align: center; }
+    .cifras b { display: block; font: 800 22px var(--mono); }
+    .cifras span { font-size: 12px; color: var(--suave); }
+    .cinturones { display: flex; gap: 6px; margin: 18px 0 6px; overflow-x: auto; padding-bottom: 4px; }
+    .cint { flex: 1; min-width: 92px; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 8px; font-size: 13px; }
+    .cint .tira { height: 8px; border-radius: 3px; margin-bottom: 6px; opacity: 0.35; }
+    .cint.ganado .tira { opacity: 1; box-shadow: 0 0 12px currentColor; }
+    .cint .p { color: var(--suave); font: 12px var(--mono); }
+    .fase-t { font: 700 13px var(--mono); color: var(--suave); letter-spacing: 0.08em; margin: 34px 0 8px; text-transform: uppercase; }
+    .nivel { margin: 14px 0 22px; }
+    .nivel-cab { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .nivel-cab .cinta { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font: 800 18px var(--mono); color: #111; flex: none; }
+    .nivel-cab h2 { margin: 0; font-size: 21px; }
+    .nivel-cab p { margin: 2px 0 0; color: var(--suave); font-size: 14px; }
+    .nivel-cab .tags { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+    .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 10px; }
+    .mod { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 5px; padding: 12px; transition: transform 0.15s, border-color 0.15s; position: relative; }
+    a.mod:hover { transform: translateY(-2px); border-color: var(--acento); }
+    .mod .id { font: 700 12px var(--mono); color: var(--acento); display: flex; gap: 6px; align-items: center; }
+    .mod h3 { margin: 0 !important; font-size: 16px !important; color: var(--texto) !important; text-transform: none !important; letter-spacing: 0 !important; }
+    .mod .t { font-size: 13px; color: var(--suave); }
+    .mod .estado { display: flex; gap: 4px; margin-top: auto; padding-top: 6px; }
+    .mod .estado span { font: 700 11px var(--mono); padding: 1px 6px; border-radius: var(--radio-s); border: 1px solid var(--borde); color: var(--suave); }
+    .mod .estado span.si { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, var(--borde)); }
+    .mod.forja { opacity: 0.55; border-style: dashed; }
+    .mod.forja .id { color: var(--suave); }
+    .mod.completo { border-color: color-mix(in srgb, var(--ok) 55%, var(--borde)); }
+    .mod .side { position: absolute; top: 10px; right: 10px; font-size: 11px; color: var(--xp); }
+    .arcade { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+    .juego { text-decoration: none; color: inherit; display: flex; gap: 12px; align-items: center; }
+    .juego:hover { border-color: var(--acento); }
+    .juego .ic { font-size: 28px; color: var(--acento); }
+    .juego small { color: var(--suave); display: block; }
+    @media (max-width: 900px) { .arriba { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <h1><a href="/" title="La portada de relavops" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:0.45em"><i data-ic="terminal"></i> relavops</a></h1>
+    <span class="espacio"></span>
+    <a class="btn" href="/arcade"><i data-ic="gamepad-2"></i> Arcade</a>
+    <span id="ajustes"></span>
+  </header>
+  <main>
+    <div class="mapa-isla" id="mapa-isla"></div>
+    <div class="solo-clasico">
+    <div class="arriba">
+      <a class="panel continuar" id="continuar" style="text-decoration:none;color:inherit"></a>
+      <div class="panel">
+        <div class="cifras">
+          <div><b id="c-xp" style="color:var(--xp)">0</b><span>XP</span></div>
+          <div><b id="c-racha">0</b><span id="c-racha-t">días de racha</span></div>
+          <div><b id="c-bosses">0</b><span>bosses</span></div>
+        </div>
+        <p style="font-size:13px;color:var(--suave);margin:10px 0 0">Cada 7 días con actividad ganas un comodín que cubre un día sin entrar. Nunca pierdes progreso.</p>
+      </div>
+    </div>
+    <div class="cinturones" id="cinturones"></div>
+    <div id="niveles"></div>
+    </div>
+    <div class="fase-t">Arcade · calentamientos de 60 segundos</div>
+    <div class="arcade" id="arcade"></div>
+  </main>
+  <script type="module" src="/src/curso/mapa.ts"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Arranque de un nodo de juego: sshd siempre; el resto de servicios los enciende el juego.
+/usr/sbin/sshd
+exec /usr/local/bin/maquina # el PID 1 que no muere (imagenes/base/maquina)

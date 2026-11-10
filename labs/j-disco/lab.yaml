@@ -1,0 +1,14 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-disco
+titulo: Disco en llamas
+motor: contenedor
+pool: 0
+juego: true
+nodos:
+- nombre: servidor
+  imagen: relavops/juego:1
+  memoria: 512m
+  pids: 512
+  tmpfs:
+    /var/log: 256m
+mision: []

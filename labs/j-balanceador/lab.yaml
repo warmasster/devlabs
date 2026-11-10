@@ -1,0 +1,61 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-balanceador
+titulo: Balanceador bajo fuego
+motor: topologia
+pool: 0
+juego: true
+terminales:
+- lb
+topologia:
+  nodes:
+    lb:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.7.1.1/30 dev eth1
+      - ip addr add 10.7.2.1/30 dev eth2
+      - ip addr add 10.7.3.1/30 dev eth3
+      - ip addr add 10.7.4.1/30 dev eth4
+      - sh -c 'printf "%s\n" "10.7.1.2 web1" "10.7.2.2 web2" "10.7.3.2 web3" "10.7.4.2 cliente" >> /etc/hosts'
+    web1:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.7.1.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.7.1.1 lb" >> /etc/hosts'
+    web2:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.7.2.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.7.2.1 lb" >> /etc/hosts'
+    web3:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.7.3.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.7.3.1 lb" >> /etc/hosts'
+    cliente:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.7.4.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.7.4.1 lb" >> /etc/hosts'
+  links:
+  - endpoints:
+    - lb:eth1
+    - web1:eth1
+    mtu: 1500
+  - endpoints:
+    - lb:eth2
+    - web2:eth1
+    mtu: 1500
+  - endpoints:
+    - lb:eth3
+    - web3:eth1
+    mtu: 1500
+  - endpoints:
+    - lb:eth4
+    - cliente:eth1
+    mtu: 1500
+mision: []

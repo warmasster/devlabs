@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M2 · Qué pasa al hacer ping</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; padding: 14px; max-width: 1400px; margin: 0 auto; }
+    #lienzo { width: 100%; height: auto; display: block; background: #12151d; border: 1px solid var(--borde); border-radius: var(--radio); }
+    .guion { font-size: 18px; line-height: 1.55; min-height: 92px; }
+    .guion b { color: var(--acento); }
+    .opciones { display: grid; gap: 8px; margin-top: 10px; }
+    .opciones button { text-align: left; padding: 10px 14px; font-size: 15px; }
+    .opciones button.correcta { border-color: var(--ok); color: var(--ok); }
+    .opciones button.incorrecta { border-color: var(--mal); color: var(--mal); }
+    .controles { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+    .tarjeta table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .tarjeta td { padding: 4px 0; border-bottom: 1px dashed var(--borde); }
+    .tarjeta td:first-child { color: var(--suave); width: 42%; }
+    .tarjeta td:last-child { font-family: var(--mono); }
+    .cambio { color: var(--aviso); }
+    .term-lab { height: 260px; margin-top: 12px; display: none; }
+    .term-lab.visible { display: block; }
+    .crudo { font: 12px/1.4 var(--mono); color: var(--suave); white-space: pre-wrap; max-height: 140px; overflow: auto; margin: 8px 0 0; }
+    .pie { color: var(--suave); font-size: 13px; padding: 0 14px 20px; max-width: 1400px; margin: 0 auto; }
+    .progreso-lec { display: flex; gap: 4px; margin-bottom: 10px; }
+    .progreso-lec span { flex: 1; height: 6px; border-radius: var(--radio); background: var(--panel-2); }
+    .progreso-lec span.ya { background: var(--acento); }
+    @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1>M2 · ¿Qué pasa cuando haces <code>ping</code>?</h1>
+    <span class="criterio">El dibujo se mueve con paquetes capturados en tu lab, no con un dibujo fijo. Criterio: menos de 1 MB sin la voz.</span>
+    <span class="espacio"></span>
+    <span id="ajustes"></span>
+  </header>
+  <main>
+    <section>
+      <div class="progreso-lec" id="progreso"></div>
+      <svg id="lienzo" viewBox="0 0 900 430" role="img" aria-label="Diagrama de la red: h1, r1 y h2"></svg>
+      <div class="panel" style="margin-top:12px">
+        <div class="guion" id="guion" aria-live="polite"></div>
+        <div class="opciones" id="opciones"></div>
+        <div class="controles">
+          <button class="btn" id="atras"><i data-ic="chevron-left"></i> Atrás</button>
+          <button class="btn primario" id="siguiente">Empezar <i data-ic="play"></i></button>
+          <span class="pildora" id="estado-lab">preparando tu lab…</span>
+          <span class="espacio" style="flex:1"></span>
+          <button class="btn" id="grabada" title="Usa una captura real guardada si no tienes lab">Usar captura grabada</button>
+        </div>
+        <div class="terminal-caja term-lab" id="caja-term"><div class="term" id="term"></div></div>
+      </div>
+    </section>
+    <aside style="display:flex;flex-direction:column;gap:12px">
+      <div class="panel tarjeta">
+        <h2>El paquete</h2>
+        <table id="tarjeta"><tr><td colspan="2" style="color:var(--suave)">Aún no ha pasado nada por el cable.</td></tr></table>
+        <pre class="crudo" id="crudo" title="Línea real de tcpdump"></pre>
+      </div>
+      <div class="panel">
+        <h2>Puntuación de predicciones</h2>
+        <div id="aciertos" style="font-size:28px;font-weight:700">0 / 0</div>
+        <p class="detalle" style="color:var(--suave);font-size:13px;margin:4px 0 0">Acertar o fallar da igual: predecir antes de mirar es lo que hace que se quede.</p>
+      </div>
+    </aside>
+  </main>
+  <p class="pie" id="pie"></p>
+  <script type="module" src="/src/m2.ts"></script>
+</body>
+</html>

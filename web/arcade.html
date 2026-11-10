@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arcade · relavops</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 900px; margin: 0 auto; padding: 22px 16px 50px; }
+    .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .menu a { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 6px; transition: transform 0.15s; }
+    .menu a:hover { transform: translateY(-3px); border-color: var(--acento); }
+    .menu .ic { font-size: 32px; color: var(--acento); }
+    .menu p { margin: 0; color: var(--suave); font-size: 14px; }
+    .hud { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .hud .big { font: 800 26px var(--mono); }
+    .tiempo { flex: 1; min-width: 160px; }
+    .combo { color: var(--xp); font: 800 20px var(--mono); }
+    .reto { text-align: center; padding: 30px 16px; }
+    .reto .q { font: 700 40px var(--mono); margin: 10px 0 6px; word-break: break-all; }
+    .reto .s { color: var(--suave); font-size: 16px; }
+    .entrada { font: 700 26px var(--mono); width: 100%; max-width: 520px; text-align: center; padding: 10px; background: var(--panel-2); color: var(--texto); border: 2px solid var(--borde); border-radius: var(--radio); outline: none; }
+    .entrada:focus { border-color: var(--acento); }
+    .sacude { animation: sacude 0.35s; border-color: var(--mal) !important; }
+    @keyframes sacude { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .capas { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 18px; }
+    .capas button { padding: 12px 4px; font-size: 13px; }
+    .capas b { display: block; font: 800 20px var(--mono); }
+    .cadenas { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; text-align: left; margin-top: 16px; }
+    .cadenas h3 { margin: 0 0 6px !important; }
+    .cad { font: 15px var(--mono); padding: 5px 8px; border-radius: var(--radio-s); margin-bottom: 4px; background: var(--panel-2); border: 1px solid var(--borde); white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+    .cad.bien { border-color: var(--ok); color: var(--ok); }
+    .cad.mal { border-color: var(--mal); color: var(--mal); }
+    .fin { text-align: center; padding: 30px; }
+    .fin .pts { font: 800 56px var(--mono); color: var(--xp); }
+    .ultimo { margin-top: 14px; color: var(--suave); font-size: 15px; min-height: 1.5em; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/curso">← Mapa</a>
+    <h1 id="titulo"><i data-ic="gamepad-2"></i> Arcade</h1>
+    <span class="espacio"></span>
+    <span id="ajustes"></span>
+  </header>
+  <main id="main"></main>
+  <script type="module" src="/src/curso/arcade.ts"></script>
+</body>
+</html>

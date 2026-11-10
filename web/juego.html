@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es" data-tema="neon">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Examen final</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    #hud { display: flex; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--borde); flex-wrap: wrap; }
+    #hud h1 { font-size: 18px; margin: 0; }
+    .vida { display: flex; align-items: center; gap: 8px; min-width: 220px; }
+    .vida .barra-hud { flex: 1; height: 14px; background: var(--panel-2); border: 1px solid var(--borde); border-radius: var(--radio-s); overflow: hidden; }
+    .vida .barra-hud div { height: 100%; transition: width 0.3s, background 0.3s; }
+    #reloj { font: 700 18px var(--mono); }
+    #puntos { font: 700 16px var(--mono); color: var(--xp); }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { font-size: 12px; padding: 3px 8px; border-radius: var(--radio-s); border: 1px solid; }
+    .chip.buff { color: var(--ok); border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+    .chip.debuff { color: var(--mal); border-color: var(--mal); background: color-mix(in srgb, var(--mal) 12%, transparent); animation: latido 1.2s infinite; }
+    .chip.comando { color: var(--xp); border-color: var(--xp); background: color-mix(in srgb, var(--xp) 12%, transparent); font-family: var(--mono); }
+    @keyframes latido { 50% { opacity: 0.55; } }
+    main { flex: 1; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 12px; padding: 12px; min-height: 0; }
+    .izq { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    #mapa { width: 100%; background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); }
+    #mapa .nodo { cursor: pointer; transition: filter 0.3s; }
+    #mapa .nodo.jugador path:first-child { stroke-width: 4; }
+    #mapa .nodo.boss { filter: drop-shadow(0 0 10px var(--mal)); }
+    #mapa .nodo.caido { opacity: 0.4; }
+    #mapa .nodo.ok { filter: drop-shadow(0 0 8px var(--ok)); }
+    #mapa .nodo.mal { filter: drop-shadow(0 0 8px var(--mal)); }
+    #mapa .nodo.visitado text:first-of-type { fill: var(--ok); }
+    #mapa .enl.cortado path { stroke: var(--mal) !important; stroke-dasharray: 6 6; }
+    #mapa .enl.lento path { stroke: var(--aviso) !important; }
+    #mapa .ico { transition: transform 0.6s cubic-bezier(.5,1.6,.4,1), opacity 0.3s; }
+    .paneles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 0; flex: 1; }
+    #medidores { display: grid; gap: 8px; align-content: start; }
+    #medidores .linea { display: grid; grid-template-columns: 110px 1fr 70px; gap: 8px; align-items: center; font-size: 13px; }
+    #medidores .barra-hud { height: 12px; background: var(--panel-2); border-radius: var(--radio-s); overflow: hidden; border: 1px solid var(--borde); }
+    #medidores .barra-hud div { height: 100%; transition: width 0.4s; }
+    #medidores b { font-family: var(--mono); text-align: right; }
+    #log { list-style: none; margin: 0; padding: 0; overflow: auto; font-size: 14px; max-height: 100%; }
+    #log li { padding: 5px 6px; border-bottom: 1px dashed var(--borde); border-radius: var(--radio-s); }
+    #log li .t { color: var(--suave); font: 12px var(--mono); margin-right: 4px; }
+    #log li.bien { color: var(--ok); } #log li.mal { color: var(--mal); } #log li.boss { color: var(--mal); font-weight: 700; }
+    .panel.scroll { overflow: auto; min-height: 0; }
+    .der { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+    .terminales { flex: 1; position: relative; min-height: 0; }
+    .terminales .terminal-caja { position: absolute; inset: 0; display: none; }
+    .terminales .terminal-caja.activa { display: block; }
+    .capa { position: fixed; inset: 0; background: color-mix(in srgb, var(--fondo) 88%, transparent); display: grid; place-items: center; z-index: 40; padding: 16px; }
+    .capa[hidden] { display: none; }
+    .capa .panel { max-width: 720px; width: 100%; }
+    .capa h2 { font-size: 26px; margin: 0 0 4px; }
+    .grande-txt { font: 800 54px var(--mono); text-align: center; }
+    .difs { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+    @media (max-width: 1000px) { main { grid-template-columns: 1fr; } body { overflow: auto; height: auto; } .terminales { min-height: 420px; } }
+  </style>
+</head>
+<body>
+  <header id="hud">
+    <a class="volver" href="/juegos" style="color:var(--suave);text-decoration:none">← Juegos</a>
+    <h1 id="titulo">Examen</h1>
+    <span class="pildora" id="nivel"></span>
+    <div class="vida"><i data-ic="heart"></i> <div class="barra-hud"><div id="vida-barra" style="width:100%"></div></div><b id="vida">100</b></div>
+    <span id="reloj">00:00</span>
+    <span id="puntos">0 pts</span>
+    <div class="chips" id="chips"></div>
+  </header>
+  <main>
+    <section class="izq">
+      <svg id="mapa" viewBox="0 0 900 360" role="img" aria-label="Mapa de la red del juego"></svg>
+      <div class="paneles">
+        <div class="panel scroll"><h2>Estado</h2><div id="medidores"></div></div>
+        <div class="panel scroll"><h2>Narrador</h2><ul id="log"></ul></div>
+      </div>
+    </section>
+    <section class="der">
+      <div class="pestanas" id="pestanas"></div>
+      <div class="terminales" id="terminales"></div>
+    </section>
+  </main>
+  <div class="capa" id="intro">
+    <div class="panel">
+      <span class="pildora" id="intro-nivel"></span>
+      <h2 id="intro-titulo"></h2>
+      <div id="intro-reglas"></div>
+      <div class="difs">
+        <button class="btn" data-dif="facil"><i data-ic="smile"></i> Fácil</button>
+        <button class="btn" data-dif="normal" aria-pressed="true"><i data-ic="angry"></i> Normal</button>
+        <button class="btn" data-dif="pesadilla"><i data-ic="skull"></i> Pesadilla</button>
+      </div>
+      <button class="btn primario grande" id="empezar"><i data-ic="play"></i> Empezar examen</button>
+      <p style="color:var(--suave);font-size:13px">Todo es real: contenedores de verdad, ssh de verdad, lag de verdad (<code>tc netem</code>). Prueba de concepto.</p>
+    </div>
+  </div>
+  <div class="capa" id="cargando" hidden><div class="grande-txt" id="cargando-txt">…</div></div>
+  <div class="capa" id="fin" hidden>
+    <div class="panel"><h2 id="fin-titulo"></h2><div id="fin-texto"></div>
+      <button class="btn primario" id="otra"><i data-ic="rotate-cw"></i> Otra vez</button> <a class="btn" href="/juegos">Elegir otro juego</a></div>
+  </div>
+  <script type="module" src="/src/juego.ts"></script>
+</body>
+</html>

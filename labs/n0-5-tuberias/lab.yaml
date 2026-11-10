@@ -1,0 +1,143 @@
+# 0.5 · Texto y tuberías: interrogar logs reales con grep, awk, sort, uniq y jq.
+id: n0-5-tuberias
+titulo: Interrogatorio a un access.log
+motor: contenedor
+pool: 1
+nodos:
+  - nombre: lab
+    imagen: relavops/base:1
+    memoria: 256m
+    cpus: 1
+preparar:
+  - nodo: lab
+    script: |
+      cat > /usr/local/bin/responde <<'EOF'
+      #!/bin/sh
+      [ $# -ge 2 ] || { echo "uso: responde <pregunta> <respuesta>"; exit 1; }
+      mkdir -p /root/.respuestas; k=$1; shift
+      printf '%s\n' "$*" > "/root/.respuestas/$k"; echo "Apuntado: $k = $*"
+      EOF
+      chmod +x /usr/local/bin/responde
+      mkdir -p /var/log/nginx /var/log/app /srv /usr/local/lib/lab
+      cat > /usr/local/lib/lab/genlog.py <<'EOF'
+      import random, sys, json, gzip
+      modo = sys.argv[1]
+      R = random.Random()
+      def ip(): return f"{R.choice([10,172,192,81,88,213])}.{R.randint(0,255)}.{R.randint(0,255)}.{R.randint(1,254)}"
+      rutas = ['/', '/productos', '/carrito', '/api/stock', '/img/logo.png', '/css/main.css', '/contacto', '/blog/devops']
+      uas = ['Mozilla/5.0 (X11; Linux x86_64)', 'Mozilla/5.0 (Windows NT 10.0)', 'curl/8.5.0', 'Googlebot/2.1']
+      def linea(i, ruta, est, metodo='GET', t=0):
+          return f'{i} - - [03/Nov/2026:{10 + t // 3600:02d}:{t // 60 % 60:02d}:{t % 60:02d} +0100] "{metodo} {ruta} HTTP/1.1" {est} {R.randint(200, 9000)} "-" "{R.choice(uas)}"'
+      if modo == 'access':
+          tops = [ip() for _ in range(11)]
+          cuentas = [640, 590, 520, 470, 430, 380, 330, 290, 250, 210, 170]
+          ips = []
+          for a, c in zip(tops, cuentas): ips += [a] * c
+          resto = [ip() for _ in range(150)]
+          while len(ips) < 6000: ips.append(R.choice(resto))
+          R.shuffle(ips)
+          for k, a in enumerate(ips):
+              est = R.choices([200, 304, 404, 500, 301], [80, 8, 7, 2, 3])[0]
+              print(linea(a, R.choice(rutas), est, t=k))
+          sys.exit()
+      atacante, legit = ip(), ip()
+      open('/run/.atacante', 'w').write(atacante + '\n')
+      ev = []
+      for _ in range(420): ev.append((atacante, '/login', 401, 'POST'))
+      for _ in range(1100): ev.append((legit, R.choice(rutas), 200, 'GET'))
+      gente = [ip() for _ in range(120)]
+      for _ in range(2400):
+          g = R.choice(gente)
+          ev.append((g, '/login', R.choice([200, 200, 401]), 'POST') if R.random() < 0.1 else (g, R.choice(rutas), 200, 'GET'))
+      R.shuffle(ev)
+      if modo == 'json':
+          with open('/var/log/app/eventos.jsonl', 'w') as f:
+              for k, (a, r, e, m) in enumerate(ev):
+                  f.write(json.dumps({'ts': f'2026-11-03T10:{k // 60 % 60:02d}:{k % 60:02d}', 'ip': a, 'metodo': m, 'ruta': r, 'estado': e, 'ms': R.randint(2, 300)}) + '\n')
+      else:
+          dest = '/var/log/nginx/auth.log' if modo == 'combined' else '/var/log/nginx/access.log.2.gz'
+          txt = '\n'.join(linea(a, r, e, m, k) for k, (a, r, e, m) in enumerate(ev)) + '\n'
+          if dest.endswith('.gz'):
+              with gzip.open(dest, 'wt') as f: f.write(txt)
+              with open('/var/log/nginx/access.log.1', 'w') as f:
+                  f.write('\n'.join(linea(ip(), R.choice(rutas), 200, t=k) for k in range(2000)) + '\n')
+          else:
+              open(dest, 'w').write(txt)
+      EOF
+      python3 /usr/local/lib/lab/genlog.py access > /var/log/nginx/access.log
+      cat > /usr/local/bin/sincroniza <<'EOF'
+      #!/bin/sh
+      for i in $(seq 1 23); do
+        case $i in 6|14|19) echo "ERROR: no se pudo copiar lote-$i (timeout)" >&2 ;; *) echo "OK lote-$i copiado" ;; esac
+      done
+      EOF
+      chmod +x /usr/local/bin/sincroniza
+      python3 -c "
+      import json, random
+      R = random.Random(11)
+      nombres = ['ana','luis','eva','marta','jorge','iker','noa','leo','sara','pablo']
+      u = [{'id': i, 'nombre': f'{R.choice(nombres)}{i}', 'rol': R.choice(['admin','dev','dev','lectura','lectura']), 'activo': R.random() < 0.7} for i in range(1, 51)]
+      json.dump(u, open('/srv/usuarios.json','w'), indent=2)"
+mision:
+  - id: e404
+    titulo: ¿Cuántos 404?
+    texto: "En `/var/log/nginx/access.log`, el código de estado es la columna 9. Cuenta las peticiones que dieron **404** y contesta con `responde 404` y el número."
+    pista: awk '$9 == 404' /var/log/nginx/access.log | wc -l
+    xp: 10
+    check: { nodo: lab, script: 'test "$(cat /root/.respuestas/404 2>/dev/null)" = "$(awk "\$9 == 404" /var/log/nginx/access.log | wc -l)"' }
+  - id: topip
+    titulo: ¿Quién pide más?
+    texto: La IP con más peticiones. Contesta con `responde ip` y la IP.
+    pista: "cut -d' ' -f1 access.log | sort | uniq -c | sort -rn | head -1"
+    xp: 15
+    check: { nodo: lab, script: 'test "$(cat /root/.respuestas/ip 2>/dev/null)" = "$(cut -d" " -f1 /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -1 | awk "{print \$2}")"' }
+  - id: top10
+    titulo: El top 10, a un fichero
+    texto: "Guarda en `~/top10.txt` las 10 IPs que más piden, de más a menos (con o sin el número delante)."
+    pista: "… | sort -rn | head -10 > ~/top10.txt"
+    xp: 15
+    check:
+      nodo: lab
+      script: |
+        esperado=$(cut -d" " -f1 /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -10 | awk '{print $2}')
+        [ -f /root/top10.txt ] && [ "$(awk 'NF {print $NF}' /root/top10.txt)" = "$esperado" ]
+  - id: stderr
+    titulo: Solo los errores
+    texto: "`sincroniza` escupe líneas buenas y errores. Guarda **solo los errores** en `~/errores.log` (los OK deben seguir saliendo por pantalla)."
+    pista: sincroniza 2> ~/errores.log
+    xp: 15
+    check: { nodo: lab, script: '[ -f /root/errores.log ] && [ "$(grep -c ERROR /root/errores.log)" -eq 3 ] && ! grep -q "^OK" /root/errores.log' }
+  - id: jq
+    titulo: JSON sin miedo (jq)
+    texto: "`/srv/usuarios.json` es una lista de usuarios. Cuenta los que son `admin` **y** están activos y contesta con `responde admins`."
+    pista: jq '[.[] | select(.rol == "admin" and .activo)] | length' /srv/usuarios.json
+    xp: 15
+    check: { nodo: lab, script: 'test "$(cat /root/.respuestas/admins 2>/dev/null)" = "$(jq "[.[] | select(.rol == \"admin\" and .activo)] | length" /srv/usuarios.json)"' }
+boss:
+  titulo: "Ataque en curso"
+  texto: "Alguien está probando contraseñas contra `/login`, que contesta **401** cuando fallan. Encuentra su IP en algún log de `/var/log` y entrégala con `responde atacante`. Cuidado, hay una IP con muchísimo tráfico que es un cliente legítimo."
+  xp: 60
+  check:
+    - { nodo: lab, script: 'test -f /run/.atacante && test "$(cat /root/.respuestas/atacante 2>/dev/null)" = "$(cat /run/.atacante)"' }
+  fallos:
+    - id: combined
+      romper:
+        - { nodo: lab, script: "rm -f /root/.respuestas/atacante; python3 /usr/local/lib/lab/genlog.py combined" }
+      pistas:
+        - { coste: 5, texto: "Mira qué hay nuevo con `ls -lt /var/log/nginx`." }
+        - { coste: 10, texto: "Filtra primero las 401 a /login y después cuenta IPs. `grep 'POST /login' f | awk '$9 == 401 {print $1}' | sort | uniq -c | sort -rn | head -3`" }
+      solucion: "Había que filtrar antes de contar. La IP con más tráfico daba 200 y el atacante era la que acumulaba cientos de 401 en /login."
+    - id: json
+      romper:
+        - { nodo: lab, script: "rm -f /root/.respuestas/atacante; python3 /usr/local/lib/lab/genlog.py json" }
+      pistas:
+        - { coste: 5, texto: "Esta vez el log es de la aplicación y está en JSON, una línea por evento. Mira `ls /var/log/app`." }
+        - { coste: 10, texto: "jq lee JSON línea a línea. `jq -r 'select(.ruta == \"/login\" and .estado == 401) | .ip' f | sort | uniq -c | sort -rn | head -3`" }
+      solucion: "Con jq se seleccionan la ruta /login y el estado 401, se saca la IP y se cuenta."
+    - id: rotado
+      romper:
+        - { nodo: lab, script: "rm -f /root/.respuestas/atacante; python3 /usr/local/lib/lab/genlog.py rotado" }
+      pistas:
+        - { coste: 5, texto: "El log actual está limpio. Los logs rotan, así que mira los antiguos con `ls -l /var/log/nginx`." }
+        - { coste: 10, texto: "Los `.gz` se leen sin descomprimir con `zcat` (o `zgrep`)." }
+      solucion: "El ataque estaba en un log antiguo y comprimido. `zcat access.log.2.gz` y la tubería de siempre."

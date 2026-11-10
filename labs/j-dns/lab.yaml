@@ -1,0 +1,39 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-dns
+titulo: DNS envenenado
+motor: topologia
+pool: 0
+juego: true
+terminales:
+- cliente
+topologia:
+  nodes:
+    cliente:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.6.1.1/30 dev eth1
+      - ip addr add 10.6.2.1/30 dev eth2
+      - sh -c 'printf "%s\n" "10.6.1.2 dns" "10.6.2.2 tienda" >> /etc/hosts'
+    dns:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.6.1.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.6.1.1 cliente" >> /etc/hosts'
+    tienda:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.6.2.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.6.2.1 cliente" >> /etc/hosts'
+  links:
+  - endpoints:
+    - cliente:eth1
+    - dns:eth1
+    mtu: 1500
+  - endpoints:
+    - cliente:eth2
+    - tienda:eth1
+    mtu: 1500
+mision: []

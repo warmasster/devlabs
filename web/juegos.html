@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es" data-tema="neon">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exámenes finales</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1150px; margin: 0 auto; padding: 18px 16px 40px; }
+    .hero h1 { font-size: 30px; margin: 4px 0; }
+    .hero p { color: var(--suave); max-width: 780px; }
+    .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; margin-top: 14px; }
+    .j { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: transform 0.15s, border-color 0.15s; }
+    .j:hover { transform: translateY(-3px); border-color: var(--acento); }
+    .j .emoji { font-size: 34px; color: var(--acento); }
+    .j h2 { margin: 0; font-size: 19px; }
+    .j p { margin: 0; color: var(--suave); font-size: 14px; }
+    .j .mecanicas { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
+    .tag { font-size: 12px; padding: 2px 7px; border-radius: var(--radio-s); border: 1px solid var(--borde); color: var(--suave); }
+    .j.destacado { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento), 0 0 30px color-mix(in srgb, var(--acento) 25%, transparent); }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1><i data-ic="gamepad-2"></i> Exámenes finales</h1>
+    <span class="espacio"></span>
+    <span class="pildora aviso">Pruebas de concepto</span>
+  </header>
+  <main>
+    <section class="hero">
+      <h1>Cada sección acaba con un juego</h1>
+      <p>Nada de preguntas tipo test: el examen es sobrevivir. Todo pasa en contenedores reales, con comandos reales: el lag es <code>tc netem</code>, el atacante es un <code>ssh</code> de verdad y el disco se llena de verdad. Son pruebas de concepto: el bucle de juego funciona, el contenido es corto.</p>
+    </section>
+    <div class="rejilla" id="rejilla"></div>
+  </main>
+  <script type="module">
+    import './src/estilo.css';
+    import './src/iconos';
+    document.documentElement.dataset.tema = 'neon';
+    const JUEGOS = [
+      { id: 'persecucion', e: '«ic:ghost»', t: 'La persecución', n: 'Nivel 2 · Redes', d: 'Un boss te persigue por la red. Huye saltando con ssh; donde pisa mete lag y jitter reales, te borra IPs y te corta la sesión si te pilla. Los cofres dan comandos nuevos.', m: ['ssh', 'ip addr', 'tc netem', 'mapa en vivo', 'buffs/debuffs'], dest: true },
+      { id: 'disco', e: '«ic:flame»', t: 'Disco en llamas', n: 'Nivel 0 · Linux', d: 'Algo está llenando el disco a toda velocidad. Encuéntralo y páralo antes del 100 %. En cada ola se esconde mejor: proceso renombrado, carpeta oculta y fichero borrado pero abierto.', m: ['df/du', 'ps', 'kill', 'lsof +L1', 'olas'] },
+      { id: 'asedio', e: '«ic:castle»', t: 'Asedio', n: 'Nivel 1 · Administración', d: 'Un atacante real hace fuerza bruta contra tu sshd, entra con una contraseña débil, planta una llave trasera y cambia de IP cuando le bloqueas.', m: ['passwd', 'authorized_keys', 'iptables', 'logs de auth'] },
+      { id: 'dns', e: '«ic:skull»', t: 'DNS envenenado', n: 'Nivel 2 · DNS', d: 'Los clientes no llegan a la tienda. Alguien envenena /etc/hosts, cambia el resolver y falsea el registro en dnsmasq. Cada segundo sin resolver son ventas perdidas.', m: ['dig', '/etc/hosts', 'resolv.conf', 'dnsmasq'] },
+      { id: 'balanceador', e: '«ic:scale»', t: 'Balanceador bajo fuego', n: 'Nivel 3 · Proxies y balanceo', d: 'Nginx con tres backends y tráfico real. El boss mata uno, mete 1,5 s de latencia en otro y tumba el propio nginx. Mantén el SLO por encima del 95 %.', m: ['nginx', 'upstream', 'timeouts', 'tc', 'SLO'] },
+      { id: 'contenedores', e: '«ic:container»', t: 'Contenedores rebeldes', n: 'Nivel 4 · Contenedores', d: 'Docker dentro de un contenedor de sistema. Aparecen un minero que se come la CPU, un tragón de RAM y un zombi que se reinicia sin parar. Que no se derrita el host.', m: ['docker ps/stats', 'kill', 'update --cpus', 'restart policy'] },
+      { id: 'quorum', e: '«ic:vote»', t: 'Quórum', n: 'Nivel 7 · Sistemas distribuidos', d: 'Un clúster etcd de 3 nodos y un boss que corta la red entre ellos con iptables. Sin mayoría no hay escrituras: encuentra las particiones y devuelve el quórum.', m: ['etcdctl', 'iptables', 'Raft', 'líder'] },
+    ];
+    document.getElementById('rejilla').innerHTML = JUEGOS.map((j) => `<a class="panel j ${j.dest ? 'destacado' : ''}" href="/juego?id=${j.id}">
+      <span class="emoji">${j.e}</span><span class="pildora">${j.n}</span><h2>${j.t}</h2><p>${j.d}</p>
+      <div class="mecanicas">${j.m.map((x) => `<span class="tag">${x}</span>`).join('')}</div></a>`).join('');
+  </script>
+</body>
+</html>

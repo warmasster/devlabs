@@ -1,0 +1,55 @@
+{
+ "fecha": "2026-11-02T23:57:20+01:00",
+ "host": {
+  "cpus": 16,
+  "ram_gb": 15.5,
+  "kernel": "6.18.54.1-microsoft-standard-WSL2",
+  "cpu": "Intel(R) Core(TM) i5-14400F",
+  "entorno": "WSL2 sobre Windows 11 (virtualización anidada para Firecracker)"
+ },
+ "motores": [
+  {
+   "motor": "contenedor",
+   "n": 20,
+   "ram_total_mb": 194,
+   "ram_por_lab_mb": 9.7,
+   "cgroup_mediana_mb": 4.0,
+   "arranque_ms": 180,
+   "disco_escrito": "0B (virtual 476MB)"
+  },
+  {
+   "motor": "sistema",
+   "n": 6,
+   "ram_total_mb": 245,
+   "ram_por_lab_mb": 40.8,
+   "cgroup_mediana_mb": 45.2,
+   "arranque_ms": 1748,
+   "disco_escrito": "276kB (virtual 763MB)"
+  },
+  {
+   "motor": "topologia",
+   "n": 6,
+   "nodos_por_lab": 4,
+   "ram_total_mb": 325,
+   "ram_por_lab_mb": 54.2,
+   "arranque_ms": 662,
+   "disco_escrito": "78.4kB (virtual 227MB) 0B (virtual 476MB) 0B (virtual 476MB) 78.4kB (virtual 227MB) "
+  },
+  {
+   "motor": "microvm",
+   "n": 10,
+   "mem_invitado_mb": 256,
+   "ram_total_mb": 1130,
+   "ram_por_lab_mb": 113.0,
+   "rss_mediana_mb": 109.3,
+   "arranque_ms": 1269,
+   "disco_cow_mb": 1.0,
+   "snapshot_ms": 245,
+   "snapshot_mem_mb": 256,
+   "snapshot_mem_zstd_mb": 30,
+   "restaurar_ms": 11,
+   "rss_tras_restaurar_mb": 19.8,
+   "origen": "firecracker-ci/v1.15/x86_64/vmlinux-6.1.155 firecracker-ci/v1.15/x86_64/ubuntu-24.04.squashfs"
+  }
+ ]
+}

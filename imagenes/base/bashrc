@@ -1,0 +1,13 @@
+# El tmux de la plataforma (socket "relavops") es invisible: si el alumno lanza
+# su propio tmux, no debe ver el aviso de "sesiones anidadas".
+case "${TMUX:-}" in */relavops,*) unset TMUX TMUX_PANE ;; esac
+
+# Prompt claro y con color; historial grande y compartido entre reconexiones.
+if [ -n "$PS1" ]; then
+  [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+  PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
+  HISTSIZE=10000; HISTFILESIZE=20000
+  shopt -s histappend checkwinsize
+  PROMPT_COMMAND='history -a'
+  alias ls='ls --color=auto' ll='ls -lah --color=auto' grep='grep --color=auto'
+fi

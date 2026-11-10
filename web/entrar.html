@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#17123a" />
+  <title>Entrar o crear cuenta · relavops</title>
+  <meta name="description" content="Entra en relavops o crea tu cuenta gratis para aprender Linux, redes y DevOps con una máquina de verdad en cada lección. Si tienes el código de una clase, entras con él." />
+  <link rel="canonical" href="https://relavops.org/entrar" />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/icono-192.png" type="image/png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/icono-180.png" />
+</head>
+<body class="en">
+  <div class="en-pagina">
+    <section class="en-escena" aria-hidden="true">
+      <canvas class="en-red"></canvas>
+      <div class="en-marca"><span class="en-logo">relavops</span><span class="en-cursor"></span></div>
+      <p class="en-lema">Linux, redes y DevOps con máquinas de verdad. Escribes un comando y la lección ve lo que pasa.</p>
+      <div class="en-term">
+        <div class="en-term-cab"><i></i><i></i><i></i><span>tu-pc ~ relavops</span></div>
+        <div class="en-term-cuerpo"></div>
+      </div>
+    </section>
+
+    <main class="en-lado">
+      <div class="en-tarjeta" id="tarjeta">
+        <div class="en-pestanas" role="tablist">
+          <span class="en-pestana-fondo"></span>
+          <button role="tab" id="p-entrar" aria-selected="true" aria-controls="v-entrar">Entrar</button>
+          <button role="tab" id="p-alta" aria-selected="false" aria-controls="v-alta">Crear cuenta</button>
+        </div>
+
+        <!-- Entrar -->
+        <form class="en-vista" id="v-entrar" role="tabpanel" aria-labelledby="p-entrar" novalidate>
+          <h1>Hola otra vez</h1>
+          <p class="en-sub">Entra con tu nombre de usuario o tu correo.</p>
+          <label class="en-campo">
+            <span>Usuario o correo</span>
+            <input name="usuario" autocomplete="username" autocapitalize="off" spellcheck="false" required />
+          </label>
+          <label class="en-campo">
+            <span>Contraseña</span>
+            <div class="en-con-ojo">
+              <input name="clave" type="password" autocomplete="current-password" required />
+              <button type="button" class="en-ojo" aria-label="Enseñar la contraseña"></button>
+            </div>
+          </label>
+          <div class="en-fila">
+            <label class="en-interruptor"><input type="checkbox" name="recordar" checked /><span></span> Recordarme en este equipo</label>
+            <button type="button" class="en-enlace" id="olvido">He olvidado la contraseña</button>
+          </div>
+          <p class="en-error" role="alert" hidden></p>
+          <button class="en-boton" type="submit"><span>Entrar</span></button>
+          <p class="en-pie">Si es tu primera vez, <button type="button" class="en-enlace" data-ir="alta">crea tu cuenta</button>.</p>
+        </form>
+
+        <!-- Crear cuenta, paso 1: cómo vas a usarlo -->
+        <div class="en-vista" id="v-alta" role="tabpanel" aria-labelledby="p-alta" hidden>
+          <div class="en-paso" id="paso-tipo">
+            <h1>Crea tu cuenta</h1>
+            <p class="en-sub">Dinos cómo vas a usar relavops. Se puede cambiar luego.</p>
+            <div class="en-tipos">
+              <button type="button" class="en-tipo" data-tipo="libre">
+                <svg viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="28" rx="5" /><path d="M4 48h56l-5 6H9z" /><path class="en-tipo-acento" d="M20 28l5-5 5 5M34 30h10" /></svg>
+                <b>Voy por mi cuenta</b><small>A tu ritmo, con tu correo.</small>
+              </button>
+              <button type="button" class="en-tipo" data-tipo="clase">
+                <svg viewBox="0 0 64 64"><path d="M8 20h48v8a5 5 0 0 0 0 10v8H8v-8a5 5 0 0 0 0-10z" /><path class="en-tipo-acento" d="M26 26v14M34 26v14M42 26v14" /></svg>
+                <b>Tengo un código de clase</b><small>Te lo da tu profe. El correo es opcional.</small>
+              </button>
+              <button type="button" class="en-tipo" data-tipo="profe">
+                <svg viewBox="0 0 64 64"><rect x="6" y="10" width="52" height="34" rx="4" /><path d="M24 44l-6 12M40 44l6 12" /><path class="en-tipo-acento" d="M14 34l9-9 7 6 12-13" /></svg>
+                <b>Soy profe</b><small>Crea clases y sigue a tus alumnos.</small>
+              </button>
+            </div>
+            <p class="en-error" id="alta-cerrada" hidden></p>
+            <p class="en-pie">Si ya tienes cuenta, <button type="button" class="en-enlace" data-ir="entrar">entra con ella</button>.</p>
+          </div>
+
+          <!-- Crear cuenta, paso 2: los datos -->
+          <form class="en-paso" id="paso-datos" hidden novalidate>
+            <button type="button" class="en-volver" id="volver">Volver</button>
+            <h1 id="alta-titulo">Tus datos</h1>
+            <p class="en-sub" id="alta-sub"></p>
+
+            <label class="en-campo" data-solo="clase">
+              <span>Código de clase</span>
+              <div class="en-con-estado">
+                <input name="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EFGH" maxlength="9" />
+                <i class="en-estado"></i>
+              </div>
+              <small class="en-ayuda" data-de="codigo">Son ocho letras y números. Te lo da tu profe.</small>
+            </label>
+            <div class="en-clase" id="clase-vista" hidden></div>
+
+            <label class="en-campo">
+              <span>Nombre de usuario</span>
+              <div class="en-con-estado">
+                <input name="nombre" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="24" />
+                <i class="en-estado"></i>
+              </div>
+              <small class="en-ayuda" data-de="nombre">Con él entras. De 3 a 24 letras, sin tildes ni espacios.</small>
+            </label>
+
+            <label class="en-campo">
+              <span id="correo-label">Correo</span>
+              <div class="en-con-estado">
+                <input name="correo" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" />
+                <i class="en-estado"></i>
+              </div>
+              <small class="en-ayuda" data-de="correo">Para recuperar la cuenta si olvidas la contraseña.</small>
+            </label>
+
+            <label class="en-campo">
+              <span>Contraseña</span>
+              <div class="en-con-ojo">
+                <input name="clave" type="password" autocomplete="new-password" />
+                <button type="button" class="en-ojo" aria-label="Enseñar la contraseña"></button>
+              </div>
+              <div class="en-fuerza" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              <small class="en-ayuda" data-de="clave">8 caracteres o más. Una frase corta es fácil de recordar y difícil de adivinar.</small>
+            </label>
+
+            <input class="en-trampa" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <label class="en-interruptor"><input type="checkbox" name="recordar" checked /><span></span> Recordarme en este equipo</label>
+            <p class="en-nota" id="nota-profe" hidden>Un admin revisa las cuentas de profe. Mientras tanto entras como alumno.</p>
+            <p class="en-error" role="alert" hidden></p>
+            <button class="en-boton" type="submit"><span>Crear cuenta</span></button>
+          </form>
+        </div>
+
+        <!-- Olvidé la contraseña -->
+        <form class="en-vista" id="v-olvido" hidden novalidate>
+          <button type="button" class="en-volver" data-ir="entrar">Volver</button>
+          <h1>Recupera tu cuenta</h1>
+          <div id="olvido-con-correo">
+            <p class="en-sub">Escribe el correo de tu cuenta y te mandamos un enlace para poner otra contraseña.</p>
+            <label class="en-campo"><span>Correo</span><input name="correo" type="email" autocomplete="email" /></label>
+            <p class="en-error" role="alert" hidden></p>
+            <p class="en-bien" hidden>Si hay una cuenta con ese correo, te llega un enlace en un momento. Mira también en spam.</p>
+            <button class="en-boton" type="submit"><span>Mandar el enlace</span></button>
+          </div>
+          <div id="olvido-sin-correo" hidden>
+            <p class="en-sub">Pide a tu profe o a quien lleva relavops que te ponga una contraseña nueva. Si tu cuenta es de una clase, tu profe puede hacerlo desde su panel.</p>
+          </div>
+        </form>
+
+        <!-- Contraseña nueva (enlace del correo) -->
+        <form class="en-vista" id="v-nueva" hidden novalidate>
+          <h1>Contraseña nueva</h1>
+          <p class="en-sub">Elige la contraseña que vas a usar a partir de ahora.</p>
+          <label class="en-campo">
+            <span>Contraseña nueva</span>
+            <div class="en-con-ojo">
+              <input name="clave" type="password" autocomplete="new-password" />
+              <button type="button" class="en-ojo" aria-label="Enseñar la contraseña"></button>
+            </div>
+            <div class="en-fuerza" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          </label>
+          <p class="en-error" role="alert" hidden></p>
+          <button class="en-boton" type="submit"><span>Guardar y entrar</span></button>
+        </form>
+
+        <div class="en-vista" id="v-sin" hidden>
+          <h1>Este servidor no usa cuentas</h1>
+          <p class="en-sub">labd está en marcha sin la opción de cuentas, así que no hace falta entrar.</p>
+          <a class="en-boton" href="/curso"><span>Ir al curso</span></a>
+        </div>
+      </div>
+      <p class="en-legal">relavops guarda tu nombre, tu correo y tu progreso para que puedas seguir donde lo dejaste. Nada más.</p>
+    </main>
+  </div>
+  <script type="module" src="/src/cuenta/entrar.ts"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# M2 · ¿Qué pasa cuando haces ping? h1 — r1 — h2, ya configurados.
+# La lección captura con tcpdump en cada salida de interfaz y anima los paquetes reales.
+id: m2-ping
+titulo: Qué pasa cuando haces ping
+motor: topologia
+pool: 1
+terminales: [h1]
+topologia:
+  nodes:
+    h1:
+      kind: linux
+      image: relavops/base:1
+      exec: ["ip addr add 10.0.1.10/24 dev eth1", "ip route replace default via 10.0.1.1"]
+    r1:
+      kind: linux
+      image: relavops/base:1
+      sysctls: { net.ipv4.ip_forward: 1 }
+      exec: ["ip addr add 10.0.1.1/24 dev eth1", "ip addr add 10.0.2.1/24 dev eth2"]
+    h2:
+      kind: linux
+      image: relavops/base:1
+      exec: ["ip addr add 10.0.2.10/24 dev eth1", "ip route replace default via 10.0.2.1"]
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+      mtu: 1500   # Containerlab pone 9500 por defecto; 1500 es lo realista
+    - endpoints: ["r1:eth2", "h2:eth1"]
+      mtu: 1500   # Containerlab pone 9500 por defecto; 1500 es lo realista
+preparar:
+  - { nodo: h1, script: "ip -6 addr flush dev eth1; sysctl -qw net.ipv6.conf.all.disable_ipv6=1 || true" }
+captura:
+  - { nodo: h1, interfaz: eth1 }
+  - { nodo: r1, interfaz: eth1 }
+  - { nodo: r1, interfaz: eth2 }
+  - { nodo: h2, interfaz: eth1 }
+acciones:
+  olvidar-arp:
+    - { nodo: h1, script: "ip neigh flush all" }
+    - { nodo: r1, script: "ip neigh flush all" }
+    - { nodo: h2, script: "ip neigh flush all" }
+mision:
+  - id: ping
+    titulo: Haz ping a h2
+    texto: En h1, escribe `ping -c1 10.0.2.10`.
+    xp: 10
+    check: { nodo: h1, script: "grep -q 'ping .*10.0.2.10' /root/.bash_history" }

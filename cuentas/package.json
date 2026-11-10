@@ -1,0 +1,19 @@
+{
+  "name": "relavops-cuentas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "tipos": "wrangler types",
+    "comprobar": "tsc --noEmit",
+    "migrar:local": "wrangler d1 migrations apply relavops --local",
+    "migrar": "wrangler d1 migrations apply relavops --remote",
+    "desplegar": "tsc --noEmit && wrangler deploy",
+    "claves": "node scripts/claves.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "wrangler": "^4.158.0"
+  }
+}

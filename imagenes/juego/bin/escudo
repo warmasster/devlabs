@@ -1,0 +1,7 @@
+#!/bin/sh
+# Comando desbloqueable: limpia el lag de este servidor y te protege un rato.
+if [ ! -f /etc/relavops/escudo-ok ]; then
+  echo "escudo: comando bloqueado. Búscalo en algún cofre."; exit 1
+fi
+touch /run/escudo
+printf '\033[1;32m[escudo] Escudo activado en %s: el lag se va y el boss no te toca durante 20 s.\033[0m\n' "$(hostname)"

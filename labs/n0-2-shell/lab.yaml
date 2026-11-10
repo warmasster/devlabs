@@ -1,0 +1,146 @@
+# 0.2 · La shell: atajos de readline, señales y trabajos, con comprobación real.
+id: n0-2-shell
+titulo: Manos en la shell
+motor: contenedor
+pool: 1
+nodos:
+  - nombre: lab
+    imagen: relavops/base:1
+    memoria: 256m
+    cpus: 1
+preparar:
+  - nodo: lab
+    script: |
+      cat > /usr/local/bin/responde <<'EOF'
+      #!/bin/sh
+      [ $# -ge 2 ] || { echo "uso: responde <pregunta> <respuesta>"; exit 1; }
+      mkdir -p /root/.respuestas; k=$1; shift
+      printf '%s\n' "$*" > "/root/.respuestas/$k"; echo "Apuntado: $k = $*"
+      EOF
+      ln -s /usr/local/bin/responde /usr/local/bin/entrega 2>/dev/null
+      chmod +x /usr/local/bin/responde
+      mkdir -p /root/.ok
+      # 1) Ctrl+R: un comando con un código, enterrado en 400 líneas de historial.
+      codigo="K$(od -An -N2 -tu2 /dev/urandom | tr -d ' ')-QX"
+      echo "$codigo" > /run/.codigo
+      python3 - "$codigo" <<'EOF' > /root/.bash_history
+      import random, sys
+      random.seed(7)
+      cmds = ['ls -la', 'cd /var/log', 'tail -n 50 syslog', 'df -h', 'free -m', 'ps aux | grep nginx', 'systemctl status nginx', 'vim /etc/hosts', 'git status', 'docker ps', 'ping -c 3 10.0.0.1', 'cat /etc/os-release', 'du -sh *', 'top', 'journalctl -xe']
+      lineas = [random.choice(cmds) for _ in range(400)]
+      lineas.insert(137, f'desbloquea --codigo {sys.argv[1]}')
+      print('\n'.join(lineas))
+      EOF
+      cat > /usr/local/bin/desbloquea <<'EOF'
+      #!/bin/sh
+      if [ "$2" = "$(cat /run/.codigo)" ]; then touch /root/.ok/ctrlr; echo "Código correcto. Puerta abierta."; else echo "Código incorrecto. Búscalo en tu historial (Ctrl+R desbloquea)."; exit 1; fi
+      EOF
+      # 2) TAB: una ruta larguísima.
+      d="/srv/proyectos/cliente-acme/informes-trimestrales-2026/borrador-final-de-verdad-v7-ESTE-SI"
+      mkdir -p "$d" /srv/proyectos/cliente-acme/informes-trimestrales-2025 /srv/proyectos/cliente-acme/facturas
+      palabra=$(shuf -n1 -e pingüino tornillo cometa brújula linterna)
+      echo "La palabra clave es: $palabra" > "$d/clave.txt"; echo "$palabra" > /run/.palabra
+      # 3) Ctrl+C: una cuenta atrás que se entera de SIGINT.
+      cat > /usr/local/bin/cuenta-atras <<'EOF'
+      #!/bin/bash
+      trap 'touch /root/.ok/ctrlc; echo; echo "¡SIGINT recibido! Cortado a tiempo."; exit 130' INT
+      for i in $(seq 100 -1 1); do printf '\rAutodestrucción en %3d s… (para esto)' "$i"; sleep 1; done
+      echo; echo "BOOM. (Era Ctrl+C)"
+      EOF
+      # 4) Ctrl+Z, bg y kill: una compilación larga.
+      cat > /usr/local/bin/compilar <<'EOF'
+      #!/bin/bash
+      echo "Compilando el kernel… (tarda 10 minutos; no esperes)"
+      for i in $(seq 1 600); do echo "paso $i" >> /tmp/compilar.log; sleep 1; done
+      EOF
+      chmod +x /usr/local/bin/*
+      # 5) Ctrl+D: python apunta cuándo sale.
+      printf 'import atexit, pathlib\natexit.register(lambda: pathlib.Path("/root/.ok/ctrld").touch())\n' > /etc/pystart.py
+      echo 'export PYTHONSTARTUP=/etc/pystart.py' > /etc/profile.d/lab.sh
+mision:
+  - id: ctrlr
+    titulo: El código perdido
+    texto: Hace semanas alguien ejecutó `desbloquea --codigo …`. No escribas el código, recupéralo del historial con **Ctrl+R**, teclea `desbl` y pulsa Enter.
+    xp: 15
+    check: { nodo: lab, script: "test -f /root/.ok/ctrlr" }
+  - id: tab
+    titulo: La ruta imposible
+    texto: "Dentro de `/srv/proyectos/` hay un `clave.txt` en una carpeta con un nombre larguísimo. Léelo a base de **TAB** y contesta con `responde clave` y la palabra."
+    pista: cat /srv/pro⇥cl⇥inf⇥2026⇥⇥
+    xp: 15
+    check: { nodo: lab, script: 'test "$(cat /root/.respuestas/clave 2>/dev/null)" = "$(cat /run/.palabra)"' }
+  - id: ctrlc
+    titulo: Para la autodestrucción
+    texto: Lanza `cuenta-atras` y córtala con **Ctrl+C**.
+    xp: 10
+    check: { nodo: lab, script: "test -f /root/.ok/ctrlc" }
+  - id: bg
+    titulo: Manda la compilación al fondo
+    texto: Lanza `compilar`. Suspéndelo con **Ctrl+Z**, y con `bg` déjalo trabajando detrás mientras recuperas el prompt. Mira con `jobs`.
+    xp: 15
+    check:
+      nodo: lab
+      script: |
+        p=$(ps -eo pid=,stat=,args= | awk '$2 !~ /^Z/ && index($0, "/usr/local/bin/" "compilar") {print $1; exit}'); [ -n "$p" ] || exit 1
+        case "$(ps -o stat= -p "$p")" in T*) exit 1;; esac
+        grep -qE '^bg( |$|%)' /root/.bash_history
+  - id: kill
+    titulo: Y ahora termínala
+    texto: Termina la compilación del fondo usando su número de trabajo, no su PID.
+    pista: jobs   y luego   kill %1
+    xp: 10
+    check: { nodo: lab, script: "grep -qE '^bg' /root/.bash_history && grep -qE '^kill +%' /root/.bash_history && ! ps -eo stat=,args= | grep -v '^Z' | grep -q '[/]usr/local/bin/compilar'" }
+  - id: ctrld
+    titulo: Sal de python sin escribir exit
+    texto: Abre `python3`, calcula `2**100` y sal con **Ctrl+D**.
+    xp: 10
+    check: { nodo: lab, script: "test -f /root/.ok/ctrld" }
+boss:
+  titulo: "Atrapado en el visor"
+  texto: "Un compañero te deja una nota. Dice que ejecutes `revisa` y que dentro está la palabra del incidente. Encuéntrala, sal del programa sin cerrar la pestaña y entrégala con `entrega palabra` y la palabra."
+  xp: 50
+  check:
+    - { nodo: lab, script: "test -x /run/boss-check.sh && /run/boss-check.sh" }
+  fallos:
+    - id: less
+      romper:
+        - nodo: lab
+          script: |
+            p=$(shuf -n1 -e ARCOIRIS-77 VOLCAN-12 GLACIAR-90 TIFON-33); echo "$p" > /run/.clave
+            python3 -c "import random,sys; random.seed(3); l=[f'{i:05d} INFO petición atendida en {random.randint(3,90)} ms' for i in range(6000)]; l[4321]='04321 CRIT INCIDENTE: palabra='+sys.argv[1]; print('\n'.join(l))" "$p" > /var/log/servicio.log
+            printf '#!/bin/sh\nexec less /var/log/servicio.log\n' > /usr/local/bin/revisa; chmod +x /usr/local/bin/revisa
+            printf '#!/bin/sh\ntest "$(cat /root/.respuestas/palabra 2>/dev/null)" = "$(cat /run/.clave)" && ! pgrep -x less >/dev/null\n' > /run/boss-check.sh; chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 5, texto: "Estás en `less`. Para buscar, escribe `/` seguido del texto y Enter. `n` salta a la siguiente." }
+        - { coste: 10, texto: "Busca `/CRIT` o `/INCIDENTE`." }
+        - { coste: 10, texto: "Para salir de less, `q`." }
+      solucion: "En less, `/texto` busca, `n` va al siguiente y `q` sale. Es el mismo visor que usan `man` y `git log`."
+    - id: vim
+      romper:
+        - nodo: lab
+          script: |
+            p=$(shuf -n1 -e NEBULOSA-41 RELAMPAGO-08 TORMENTA-56); echo "$p" > /run/.clave
+            python3 -c "import sys; l=['# configuración heredada, no tocar']+[f'opcion_{i} = {i*7%13}' for i in range(900)]; l[612]='# INCIDENTE palabra='+sys.argv[1]; print('\n'.join(l))" "$p" > /etc/heredada.conf
+            printf '#!/bin/sh\nexec vim -R /etc/heredada.conf\n' > /usr/local/bin/revisa; chmod +x /usr/local/bin/revisa
+            printf '#!/bin/sh\ntest "$(cat /root/.respuestas/palabra 2>/dev/null)" = "$(cat /run/.clave)" && ! pgrep -x vim >/dev/null\n' > /run/boss-check.sh; chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 5, texto: "Estás en vim, en solo lectura. En modo normal, `/INCIDENTE` y Enter busca." }
+        - { coste: 10, texto: "Si escribiste algo sin querer, pulsa Esc y luego `:q!` y Enter. Sales sin guardar." }
+      solucion: "En vim, Esc vuelve a NORMAL, `/` busca y `:q!` sale sin guardar."
+    - id: follow
+      romper:
+        - nodo: lab
+          script: |
+            p=$(shuf -n1 -e CICLON-19 AURORA-64 MAREMOTO-27); echo "$p" > /run/.clave
+            cat > /usr/local/sbin/escupe-logs <<EOF
+            #!/bin/sh
+            i=0; while true; do i=\$((i+1)); if [ \$((i % 15)) -eq 0 ]; then echo "\$(date +%T) CRIT INCIDENTE palabra=$p"; else echo "\$(date +%T) INFO latido \$i"; fi; sleep 0.3; done >> /var/log/vivo.log
+            EOF
+            chmod +x /usr/local/sbin/escupe-logs; : > /var/log/vivo.log
+            setsid nohup /usr/local/sbin/escupe-logs >/dev/null 2>&1 &
+            printf '#!/bin/sh\nexec less +F /var/log/vivo.log\n' > /usr/local/bin/revisa; chmod +x /usr/local/bin/revisa
+            printf '#!/bin/sh\ntest "$(cat /root/.respuestas/palabra 2>/dev/null)" = "$(cat /run/.clave)" && ! pgrep -x less >/dev/null\n' > /run/boss-check.sh; chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 5, texto: "Es `less` siguiendo el fichero en vivo, como `tail -f`. No deja buscar hasta que lo paras." }
+        - { coste: 10, texto: "Ctrl+C detiene el seguimiento (no sale de less). Luego `q` para salir." }
+      solucion: "`less +F` sigue el fichero en vivo. Ctrl+C lo para (se queda en less) y `q` sale. `F` vuelve a seguir."

@@ -1,0 +1,70 @@
+/* Mi cuenta y el panel del profe. Usan el estilo del curso (los dos modos) y añaden lo suyo. */
+.cp-main { max-width: 1100px; margin: 0 auto; padding: 22px 16px 70px; display: grid; gap: 16px; }
+.cp-cargando { color: var(--suave); }
+.cp-rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+.cp-perfil { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.cp-perfil .rv-avatar { width: 72px; height: 72px; font-size: 32px; }
+.cp-perfil h2 { margin: 0 !important; font-size: 26px !important; }
+.cp-perfil p { margin: 4px 0 0; color: var(--suave); }
+.cp-etis { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.cp-form { display: grid; gap: 10px; }
+.cp-form label { display: grid; gap: 5px; font-size: 14px; color: var(--suave); }
+.cp-form input, .cp-form textarea, .cp-form select, .cp-in { font: inherit; font-size: 15px; color: var(--texto); background: var(--panel-2); border: 1px solid var(--borde);
+  border-radius: var(--radio-s); padding: 9px 11px; width: 100%; }
+.cp-form input:focus, .cp-form textarea:focus, .cp-in:focus { outline: 2px solid var(--acento); outline-offset: 1px; }
+.cp-form textarea { min-height: 120px; font-family: var(--mono); resize: vertical; }
+.cp-fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cp-fila > .cp-in { flex: 1; min-width: 160px; }
+.cp-msg { margin: 0; font-size: 14px; }
+.cp-msg.bien { color: var(--ok); }
+.cp-msg.mal { color: var(--mal); }
+.cp-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cp-lista li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; background: var(--panel-2); border-radius: var(--radio-s); }
+.cp-lista li > div { flex: 1; min-width: 0; }
+.cp-lista small { color: var(--suave); display: block; }
+.cp-peligro { border-color: color-mix(in srgb, var(--mal) 45%, var(--borde)) !important; }
+.cp-peligro h2 { color: var(--mal); }
+.cp-suave { color: var(--suave); font-size: 14px; margin: 0; }
+
+/* Panel del profe */
+.pf { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; align-items: start; }
+.pf-clases { display: grid; gap: 8px; position: sticky; top: 12px; }
+.pf-clase { display: grid; gap: 2px; text-align: left; cursor: pointer; padding: 12px 14px; font: inherit; color: var(--texto); background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); }
+.pf-clase:hover { border-color: var(--acento); }
+.pf-clase[aria-current='true'] { border-color: var(--acento); background: color-mix(in srgb, var(--acento) 10%, var(--panel)); }
+.pf-clase small { color: var(--suave); }
+.pf-vacio { text-align: center; padding: 40px 20px; }
+.pf-vacio h2 { font-size: 22px !important; }
+.pf-cab { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; justify-content: space-between; }
+.pf-cab h2 { margin: 0 !important; font-size: 24px !important; }
+.pf-codigo { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 14px 16px; border-radius: var(--radio); background: var(--panel-2); border: 1px dashed var(--borde); }
+.pf-codigo .num { font: 800 30px var(--mono); letter-spacing: 0.1em; color: var(--acento); }
+.pf-codigo small { display: block; color: var(--suave); }
+.pf-cifras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.pf-cifras div { background: var(--panel-2); border-radius: var(--radio); padding: 12px; text-align: center; }
+.pf-cifras b { display: block; font: 800 24px var(--mono); }
+.pf-cifras span { font-size: 12px; color: var(--suave); }
+.pf-tabla-caja { overflow-x: auto; border: 1px solid var(--borde); border-radius: var(--radio); }
+.pf-tabla { border-collapse: collapse; width: 100%; font-size: 14px; }
+.pf-tabla th, .pf-tabla td { padding: 8px 10px; border-bottom: 1px solid var(--borde); text-align: left; white-space: nowrap; }
+.pf-tabla th { font: 700 12px var(--mono); color: var(--suave); background: var(--panel-2); position: sticky; top: 0; }
+.pf-tabla th.mod { text-align: center; }
+.pf-tabla td.mod { text-align: center; padding: 6px 4px; }
+.pf-tabla tbody tr:hover { background: color-mix(in srgb, var(--acento) 6%, transparent); }
+.pf-tabla .nombre { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.pf-tabla .nombre .rv-avatar { width: 26px; height: 26px; font-size: 12px; }
+.pf-vivo { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 30%, transparent); animation: pf-late 1.6s infinite; flex: none; }
+@keyframes pf-late { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--ok) 0%, transparent); } }
+.pf-celda { display: inline-flex; gap: 2px; }
+.pf-celda i { width: 9px; height: 18px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--borde); }
+.pf-celda i.si { background: var(--ok); border-color: var(--ok); }
+.pf-celda i.si.b { background: var(--xp); border-color: var(--xp); }
+.pf-leyenda { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--suave); align-items: center; }
+.pf-leyenda .pf-celda i { height: 12px; }
+.pf-cuentas { font-family: var(--mono); font-size: 14px; }
+.pf-cuentas td { white-space: nowrap; }
+@media (max-width: 860px) { .pf { grid-template-columns: 1fr; } .pf-clases { position: static; } .pf-cifras { grid-template-columns: repeat(2, 1fr); } }
+@media print {
+  body > *:not(main), .pf-clases, .pf-no-imprimir { display: none !important; }
+  .pf { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,14 @@
+#!/bin/bash
+# El proceso principal de la máquina, su PID 1. Si terminara, Docker apagaría la máquina entera, y
+# antes bastaba un `pkill sleep` del alumno para eso, porque el principal era un sleep infinity.
+#
+# - Ignora las señales que le llegan (y como PID 1, el kernel no deja matarlo desde dentro).
+# - Espera con un sleep infinity hijo suyo. Si alguien lo mata, lanza otro y sigue.
+# - Como PID 1, recoge a los procesos huérfanos que terminan, así no se quedan como zombis.
+# labd lo usa como PID 1 en las imágenes con la etiqueta relavops.init=maquina (ver pool.go).
+trap '' TERM INT HUP QUIT USR1 USR2
+while :; do
+  # El sleep con las señales normales, para que un kill sobre él funcione como el alumno espera.
+  env --default-signal sleep infinity &
+  wait $!
+done

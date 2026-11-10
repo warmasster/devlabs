@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Muestrario relavops</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+    .hero h1 { font-size: 30px; margin: 8px 0 6px; }
+    .hero p { color: var(--suave); max-width: 760px; margin: 0 0 18px; }
+    .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    .pieza { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s, transform 0.15s; }
+    .pieza:hover { border-color: var(--acento); transform: translateY(-2px); }
+    .pieza .num { font: 800 13px var(--mono); color: var(--acento); }
+    .pieza h2 { margin: 0; font-size: 19px; }
+    .pieza .pregunta { color: var(--suave); font-size: 14px; margin: 0; }
+    .pieza .crit { font-size: 13px; border-top: 1px dashed var(--borde); padding-top: 8px; margin-top: auto; }
+    .pieza .estado { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pie { color: var(--suave); font-size: 13px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <h1><i data-ic="flask-conical"></i> relavops · muestrario</h1>
+    <span class="espacio"></span>
+    <span class="pildora" id="servidor">conectando…</span>
+    <span id="ajustes"></span>
+  </header>
+  <main>
+    <section class="hero">
+      <h1>Seis piezas antes de construir la plataforma</h1>
+      <p>Cada pieza responde a una pregunta de riesgo y tiene un criterio de aceptación. Si lo ves cumplirse, das el OK a esa parte. Todo lo que ves corre en tu máquina: labs reales en contenedores, topologías y microVMs.</p>
+    </section>
+    <div class="rejilla">
+      <a class="panel pieza" href="/m1">
+        <span class="num">M1</span><h2><i data-ic="keyboard"></i> Terminal nativa</h2>
+        <p class="pregunta">¿Se puede tener en el navegador una terminal que se sienta como la de tu portátil?</p>
+        <div class="estado" id="e-m1"></div>
+        <div class="crit">Pasa la batería (TAB, Ctrl+C/D/R/Z, vim, htop, tmux, pegar, UTF-8, reconexión) y no se nota retardo.</div>
+      </a>
+      <a class="panel pieza" href="/m2">
+        <span class="num">M2</span><h2><i data-ic="radar"></i> Lección interactiva</h2>
+        <p class="pregunta">¿Puede la teoría dibujarse con paquetes reales de tu lab y pesar casi nada?</p>
+        <div class="estado" id="e-m2"></div>
+        <div class="crit">La animación sale de paquetes capturados en tu lab. Menos de 1 MB sin voz.</div>
+      </a>
+      <a class="panel pieza" href="/m3">
+        <span class="num">M3</span><h2><i data-ic="shield"></i> Lab con boss y XP</h2>
+        <p class="pregunta">¿Se valida cada paso solo, al instante, y engancha?</p>
+        <div class="estado" id="e-m3"></div>
+        <div class="crit">Cada paso se valida en menos de 1 s con feedback; el lab arranca en menos de 3 s.</div>
+      </a>
+      <a class="panel pieza" href="/m4">
+        <span class="num">M4</span><h2><i data-ic="headphones"></i> Prueba de voces</h2>
+        <p class="pregunta">¿Qué voz no "resetea" en cada punto y suena a profe con energía?</p>
+        <div class="estado" id="e-m4"></div>
+        <div class="crit">Eliges a ciegas; el texto se resalta sincronizado con el audio.</div>
+      </a>
+      <a class="panel pieza" href="/m5">
+        <span class="num">M5</span><h2><i data-ic="chart-column"></i> Densidad y coste</h2>
+        <p class="pregunta">¿Cuántos alumnos caben en 8 y 16 GB? ¿Cuánto cuesta el cloud?</p>
+        <div class="estado" id="e-m5"></div>
+        <div class="crit">Números medidos, no estimados, para fijar requisitos y precio.</div>
+      </a>
+      <a class="panel pieza" href="/m6">
+        <span class="num">M6</span><h2><i data-ic="package"></i> Self-host en un comando</h2>
+        <p class="pregunta">¿Puede cualquiera montárselo en su máquina sin tocar nada?</p>
+        <div class="estado" id="e-m6"></div>
+        <div class="crit">De cero a primer lab en menos de 10 minutos, sin configurar nada.</div>
+      </a>
+    </div>
+    <h2 style="margin:28px 0 10px">Y además</h2>
+    <div class="rejilla">
+      <a class="panel pieza" href="/curso" style="border-color:var(--acento)">
+        <span class="num">EL CURSO</span><h2><i data-ic="terminal"></i> relavops: 9 cinturones</h2>
+        <p class="pregunta">El temario entero en un mapa. Nivel 0 jugable: 9 lecciones animadas, 9 labs reales con boss y 4 juegos de arcade.</p>
+        <div class="crit">Gancho → predice → teoría que se toca → lab con comprobación → boss con fallo al azar → cierre.</div>
+      </a>
+      <a class="panel pieza" href="/juegos">
+        <span class="num">NUEVO</span><h2><i data-ic="gamepad-2"></i> Exámenes finales</h2>
+        <p class="pregunta">7 juegos de prueba, uno por sección: huir de un boss por ssh, salvar un disco, defender un sshd…</p>
+        <div class="crit">Todo real: contenedores, ssh, iptables, <code>tc netem</code>. Pruebas de concepto.</div>
+      </a>
+      <a class="panel pieza" href="/disenos">
+        <span class="num">NUEVO</span><h2><i data-ic="palette"></i> Sistemas de diseño</h2>
+        <p class="pregunta">4 temas (Pizarra, Fósforo, Neón, Papel), colores cambiables y esquinas a tu gusto.</p>
+        <div class="crit">Se aplica a todo el muestrario y se guarda en tu navegador.</div>
+      </a>
+    </div>
+    <p class="pie">Decisiones técnicas e incoherencias resueltas: <code>docs/decisiones-tecnicas.md</code> en el proyecto.</p>
+  </main>
+  <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

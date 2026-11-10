@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M4 · Prueba de voces</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+    .intro { color: var(--suave); }
+    .clip { display: grid; gap: 10px; }
+    .clip.sonando { border-color: var(--acento); }
+    .fila { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .letra { font: 800 28px var(--mono); width: 46px; height: 46px; display: grid; place-items: center; border-radius: var(--radio); background: var(--panel-2); }
+    .play { width: 46px; height: 46px; border-radius: 50%; font-size: 18px; padding: 0; }
+    .barra-audio { flex: 1; min-width: 120px; height: 8px; background: var(--panel-2); border-radius: var(--radio); overflow: hidden; cursor: pointer; }
+    .barra-audio div { height: 100%; width: 0; background: var(--acento); }
+    .texto { line-height: 1.8; font-size: 16px; }
+    .texto span { padding: 1px 2px; border-radius: var(--radio-s); transition: background 0.08s; }
+    .texto span.ya { color: var(--suave); }
+    .texto span.ahora { background: #2b4a75; color: #fff; }
+    .notas { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; color: var(--suave); }
+    .estrellas button { background: none; border: 0; font-size: 20px; cursor: pointer; color: #3a4155; padding: 0 1px; }
+    .estrellas button.on { color: var(--aviso); }
+    .estrellas button.on .ic { fill: currentColor; }
+    .revelado { font-size: 14px; background: var(--panel-2); border-radius: var(--radio); padding: 8px 12px; }
+    table.res { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.res th, table.res td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--borde); }
+    table.res th { color: var(--suave); font-weight: 600; }
+    select { background: var(--panel-2); color: var(--texto); border: 1px solid var(--borde); border-radius: var(--radio); padding: 4px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1>M4 · Prueba de voces a ciegas</h1>
+    <span class="criterio">Criterio: eliges una voz sin saber cuál es; la elegida no "resetea" la entonación en cada punto y el texto se resalta sincronizado.</span>
+    <span class="espacio"></span>
+    <span id="ajustes"></span>
+  </header>
+  <main>
+    <p class="intro" id="intro">Cargando muestras…</p>
+    <div class="fila">
+      <label class="pildora">Velocidad
+        <select id="velocidad"><option>0.8</option><option>0.9</option><option selected>1</option><option>1.1</option><option>1.25</option><option>1.5</option></select>
+      </label>
+      <label class="pildora"><input type="checkbox" id="mostrar-version" checked /> mostrar qué texto es</label>
+      <span style="flex:1"></span>
+      <button class="btn" id="copiar"><i data-ic="clipboard"></i> Copiar mis notas</button>
+      <button class="btn primario" id="revelar"><i data-ic="eye"></i> Revelar modelos</button>
+    </div>
+    <div id="clips" style="display:grid;gap:12px"></div>
+    <div class="panel" id="resumen" hidden></div>
+  </main>
+  <script type="module" src="/src/m4.ts"></script>
+</body>
+</html>

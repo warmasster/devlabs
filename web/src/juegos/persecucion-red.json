@@ -1,0 +1,164 @@
+{
+ "enlaces": [
+  [
+   "base",
+   "alfa"
+  ],
+  [
+   "base",
+   "delta"
+  ],
+  [
+   "alfa",
+   "bravo"
+  ],
+  [
+   "alfa",
+   "delta"
+  ],
+  [
+   "bravo",
+   "charlie"
+  ],
+  [
+   "delta",
+   "eco"
+  ],
+  [
+   "eco",
+   "charlie"
+  ],
+  [
+   "charlie",
+   "salida"
+  ],
+  [
+   "eco",
+   "bravo"
+  ]
+ ],
+ "ips": {
+  "base": [
+   {
+    "if": "eth1",
+    "ip": "10.9.1.1",
+    "vecino": "alfa",
+    "ip_vecino": "10.9.1.2"
+   },
+   {
+    "if": "eth2",
+    "ip": "10.9.2.1",
+    "vecino": "delta",
+    "ip_vecino": "10.9.2.2"
+   }
+  ],
+  "alfa": [
+   {
+    "if": "eth1",
+    "ip": "10.9.1.2",
+    "vecino": "base",
+    "ip_vecino": "10.9.1.1"
+   },
+   {
+    "if": "eth2",
+    "ip": "10.9.3.1",
+    "vecino": "bravo",
+    "ip_vecino": "10.9.3.2"
+   },
+   {
+    "if": "eth3",
+    "ip": "10.9.4.1",
+    "vecino": "delta",
+    "ip_vecino": "10.9.4.2"
+   }
+  ],
+  "bravo": [
+   {
+    "if": "eth1",
+    "ip": "10.9.3.2",
+    "vecino": "alfa",
+    "ip_vecino": "10.9.3.1"
+   },
+   {
+    "if": "eth2",
+    "ip": "10.9.5.1",
+    "vecino": "charlie",
+    "ip_vecino": "10.9.5.2"
+   },
+   {
+    "if": "eth3",
+    "ip": "10.9.9.2",
+    "vecino": "eco",
+    "ip_vecino": "10.9.9.1"
+   }
+  ],
+  "charlie": [
+   {
+    "if": "eth1",
+    "ip": "10.9.5.2",
+    "vecino": "bravo",
+    "ip_vecino": "10.9.5.1"
+   },
+   {
+    "if": "eth2",
+    "ip": "10.9.7.2",
+    "vecino": "eco",
+    "ip_vecino": "10.9.7.1"
+   },
+   {
+    "if": "eth3",
+    "ip": "10.9.8.1",
+    "vecino": "salida",
+    "ip_vecino": "10.9.8.2"
+   }
+  ],
+  "delta": [
+   {
+    "if": "eth1",
+    "ip": "10.9.2.2",
+    "vecino": "base",
+    "ip_vecino": "10.9.2.1"
+   },
+   {
+    "if": "eth2",
+    "ip": "10.9.4.2",
+    "vecino": "alfa",
+    "ip_vecino": "10.9.4.1"
+   },
+   {
+    "if": "eth3",
+    "ip": "10.9.6.1",
+    "vecino": "eco",
+    "ip_vecino": "10.9.6.2"
+   }
+  ],
+  "eco": [
+   {
+    "if": "eth1",
+    "ip": "10.9.6.2",
+    "vecino": "delta",
+    "ip_vecino": "10.9.6.1"
+   },
+   {
+    "if": "eth2",
+    "ip": "10.9.7.1",
+    "vecino": "charlie",
+    "ip_vecino": "10.9.7.2"
+   },
+   {
+    "if": "eth3",
+    "ip": "10.9.9.1",
+    "vecino": "bravo",
+    "ip_vecino": "10.9.9.2"
+   }
+  ],
+  "salida": [
+   {
+    "if": "eth1",
+    "ip": "10.9.8.2",
+    "vecino": "charlie",
+    "ip_vecino": "10.9.8.1"
+   }
+  ]
+ }
+}

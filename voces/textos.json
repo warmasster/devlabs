@@ -1,0 +1,10 @@
+{
+  "leccion": "M2 · ¿Qué pasa cuando haces ping?",
+  "tal_cual": "h1 (10.0.1.10) quiere hacer ping a h2 (10.0.2.10), que está en otra red. Compara con su máscara /24: no es de su red, así que el paquete va al gateway, r1. Para meterlo en una trama Ethernet necesita la MAC de r1, y aún no la sabe. Por eso lo primero que sale por el cable no es un ping, sino una pregunta ARP a toda la red: «¿quién tiene 10.0.1.1?». r1 contesta solo a h1 con su MAC, h1 la apunta en su tabla ARP y, ahora sí, envía el ping con TTL 64.",
+  "guion": "Vale, mira esto. Hache uno quiere hacerle ping a hache dos. Pero ojo: hache dos vive en otra red. ¿Y cómo lo sabe hache uno? Muy fácil: compara la dirección con su máscara, la barra veinticuatro, y ve que no es de su barrio. Así que el paquete tiene que ir al router, a erre uno. Y aquí viene lo bueno. Para mandarle algo a erre uno por el cable, hache uno necesita su dirección mac... y no la tiene. ¿Qué hace entonces? Pregunta a gritos, a toda la red: ¿quién tiene la diez, cero, uno, uno? Eso es arp. Erre uno contesta solo a hache uno, hache uno se apunta la mac, y ahora sí: sale el ping, con un te te ele de sesenta y cuatro.",
+  "diccionario": {
+    "h1": "hache uno", "h2": "hache dos", "r1": "erre uno", "TTL": "te te ele", "ARP": "arp", "MAC": "mac",
+    "/24": "barra veinticuatro", "10.0.1.1": "diez, cero, uno, uno", "kubectl": "cube control", "nginx": "engine equis", "etcd": "e te ce de", "sudo": "su du"
+  },
+  "estilo": "Mujer de unos treinta años, profesora de informática de España, acento castellano neutro. Habla con entusiasmo y energía, ritmo ágil pero claro, como explicando algo emocionante a alguien listo que se aburre rápido. Sonríe al hablar."
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M5 · Densidad y coste</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+    th { color: var(--suave); font-weight: 600; }
+    td.n { font-family: var(--mono); text-align: right; white-space: nowrap; }
+    .cap { display: grid; grid-template-columns: 170px 1fr 70px; gap: 8px; align-items: center; margin: 6px 0; font-size: 14px; }
+    .cap .b { height: 18px; background: var(--panel-2); border-radius: var(--radio-s); overflow: hidden; }
+    .cap .b div { height: 100%; background: linear-gradient(90deg, var(--acento), var(--xp)); }
+    .cap b { font-family: var(--mono); text-align: right; }
+    .calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .calc label { display: grid; gap: 4px; font-size: 13px; color: var(--suave); }
+    .calc input, .calc select { background: var(--panel-2); color: var(--texto); border: 1px solid var(--borde); border-radius: var(--radio); padding: 7px; font: inherit; }
+    .gordo { font: 800 32px var(--mono); }
+    .nota { color: var(--suave); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1>M5 · Densidad y coste</h1>
+    <span class="criterio">Medido en esta máquina con labs reales: cuántos caben, cuánto tardan en arrancar y cuánto disco gasta cada alumno.</span>
+    <span class="espacio"></span>
+  </header>
+  <main>
+    <div class="panel"><h2>Qué se midió</h2><p class="nota" id="host">Cargando…</p></div>
+    <div class="panel"><h2>Por lab</h2><table id="tabla"></table></div>
+    <div class="panel">
+      <h2>¿Cuántos labs a la vez caben?</h2>
+      <p class="nota">RAM útil = RAM total − 1,5 GB para el sistema y la plataforma, al 85 % para dejar margen. Sin KSM ni globo de memoria (darían más).</p>
+      <div id="capacidad"></div>
+    </div>
+    <div class="panel">
+      <h2>Calculadora de coste del cloud gestionado</h2>
+      <div class="calc">
+        <label>Servidor dedicado: RAM (GB)<input id="c-ram" type="number" value="128" min="8" /></label>
+        <label>Precio al mes (€) — pon el de tu proveedor<input id="c-precio" type="number" value="100" min="1" /></label>
+        <label>Mezcla de labs
+          <select id="c-mezcla">
+            <option value="basico">Niveles 0–3 (contenedores y topologías)</option>
+            <option value="medio" selected>Mezcla típica (60 % básico, 30 % sistema, 10 % microVM)</option>
+            <option value="pesado">Niveles 4–7 (sistema y microVM)</option>
+          </select>
+        </label>
+        <label>Alumnos activos a la vez por cada 100 de pago<input id="c-conc" type="number" value="15" min="1" max="100" /></label>
+        <label>Núcleos del servidor<input id="c-nucleos" type="number" value="32" min="1" /></label>
+        <label>Supuesto: un alumno trabajando gasta × la RAM en reposo<input id="c-factor" type="number" value="4" min="1" step="0.5" /></label>
+        <label>Supuesto: alumnos activos por núcleo<input id="c-pornucleo" type="number" value="4" min="1" /></label>
+      </div>
+      <p style="margin:14px 0 0">Caben <span class="gordo" id="r-labs">–</span> labs activos a la vez (<span id="r-limite"></span>) → unos <span class="gordo" id="r-alumnos">–</span> alumnos de pago por servidor → <span class="gordo" id="r-coste">–</span> por alumno y mes de hierro.</p>
+      <p class="nota">Las cifras de RAM medidas son del lab en reposo. Los dos supuestos (consumo trabajando y alumnos por núcleo) hay que medirlos en la beta con alumnos reales; hasta entonces este número es orientativo. Con hibernación, un alumno inactivo no ocupa RAM, solo disco.</p>
+    </div>
+  </main>
+  <script type="module" src="/src/m5.ts"></script>
+</body>
+</html>

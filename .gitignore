@@ -1,0 +1,16 @@
+# Secretos que no se suben a ningún sitio
+instalador/secretos/
+cuentas/.dev.vars
+cuentas/.wrangler/
+node_modules/
+
+# Lo escribe web/seo en cada compilación
+web/generado/
+
+# Generado al compilar. Ver index.md
+dist/
+web/dist/
+web/test-results/
+labd/webdist/
+labd/labsdist/
+.wrangler/

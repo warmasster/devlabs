@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Cuentas de relavops: registro, entrada, clases, progreso, latidos de los servidores y panel de admin.
+  // Vive delante del VPS en las rutas de abajo. El resto de relavops.org lo sirve labd.
+  "name": "relavops-cuentas",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "relavops.org/api/cuenta/*", "zone_name": "relavops.org" },
+    { "pattern": "relavops.org/api/clases*", "zone_name": "relavops.org" },
+    { "pattern": "relavops.org/api/admin/*", "zone_name": "relavops.org" },
+    { "pattern": "relavops.org/api/nodos/*", "zone_name": "relavops.org" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "relavops",
+      "database_id": "63de4e48-ce85-44f0-bf94-779bf84d9e86",
+      "migrations_dir": "migraciones"
+    }
+  ],
+  // Frenos por IP. Son aproximados y por ubicación de Cloudflare, así que van holgados.
+  "ratelimits": [
+    { "name": "FRENO_ENTRAR", "namespace_id": "7101", "simple": { "limit": 10, "period": 60 } },
+    { "name": "FRENO_ALTA", "namespace_id": "7102", "simple": { "limit": 6, "period": 60 } },
+    { "name": "FRENO_MIRAR", "namespace_id": "7103", "simple": { "limit": 90, "period": 60 } },
+    { "name": "FRENO_CORREO", "namespace_id": "7104", "simple": { "limit": 3, "period": 60 } }
+  ],
+  // Envío de correo (confirmar el correo y cambiar la contraseña). Necesita Workers Paid y dar de alta
+  // relavops.org en Email Service. Ver LEEME.md. Mientras esté comentado, esas funciones salen apagadas.
+  // "send_email": [{ "name": "EMAIL" }],
+  "vars": {
+    "URL_BASE": "https://relavops.org",
+    // Otros dominios desde los que se puede entrar (el de antes, mientras cambia el DNS). Separados por comas.
+    "ORIGENES_EXTRA": "lab.crafthosts.org",
+    "CORREO_DE": "hola@relavops.org",
+    "VUELTAS": "100000"
+  },
+  // Limpieza diaria: métricas viejas, sesiones caducadas, órdenes sin entregar.
+  "triggers": { "crons": ["17 4 * * *"] },
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M6 · Self-host</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+    pre { background: #0b0d12; border: 1px solid var(--borde); border-radius: var(--radio); padding: 12px; overflow: auto; font: 14px/1.5 var(--mono); margin: 6px 0 0; }
+    .so { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .linea { display: grid; grid-template-columns: 220px 1fr 70px; gap: 8px; align-items: center; font-size: 14px; margin: 5px 0; }
+    .linea .b { height: 16px; background: var(--panel-2); border-radius: var(--radio-s); overflow: hidden; }
+    .linea .b div { height: 100%; background: var(--acento); }
+    .linea b { font-family: var(--mono); text-align: right; }
+    .gordo { font: 800 40px var(--mono); }
+    .nota { color: var(--suave); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1>M6 · Self-host en un comando</h1>
+    <span class="criterio">Criterio: de cero a primer lab en menos de 10 minutos, sin tocar configuración.</span>
+    <span class="espacio"></span>
+  </header>
+  <main>
+    <div class="panel" id="medido"><h2>Prueba real</h2><p class="nota">Aún no se ha medido.</p></div>
+    <div class="so">
+      <div class="panel"><h2><i data-ic="terminal"></i> Linux</h2><p class="nota">Ubuntu/Debian con systemd. Las microVMs necesitan KVM.</p>
+        <pre>sudo bash instalador/install.sh</pre><p class="nota">Con release publicada: <code>curl -fsSL …/install.sh | sudo sh</code></p></div>
+      <div class="panel"><h2><i data-ic="app-window"></i> Windows 10/11</h2><p class="nota">Crea su propia distro WSL2 «relavops» y no toca las tuyas. Las microVMs funcionan gracias a la virtualización anidada de WSL2 en Windows 11.</p>
+        <pre>powershell -ExecutionPolicy Bypass -File instalador\install.ps1</pre><p class="nota">Se quita con <code>wsl --unregister relavops</code>.</p></div>
+      <div class="panel"><h2><i data-ic="apple"></i> Mac</h2><p class="nota">VM Linux con Lima (vz + virtiofs). MicroVMs solo en M3 o posterior con macOS 15+. <b>Sin probar todavía.</b></p>
+        <pre>brew install lima
+limactl start --name relavops instalador/lima-relavops.yaml</pre></div>
+    </div>
+    <div class="panel"><h2>Por qué no basta un <code>docker compose up</code></h2>
+      <p class="nota">Sysbox, Containerlab y Firecracker se instalan en el host (runtime de Docker, red y KVM), algo que un compose no puede hacer. Por eso el instalador es un script, y el mismo <code>install.sh</code> sirve para Linux, para WSL y para Lima.</p></div>
+  </main>
+  <script type="module">
+    import './src/estilo.css';
+    import './src/iconos';
+    const r = await fetch('/instalacion/resultado.json', { cache: 'no-store' }).then((x) => (x.ok ? x.json() : null)).catch(() => null);
+    if (r) {
+      const max = Math.max(...r.fases.map((f) => f.s));
+      document.getElementById('medido').innerHTML = `<h2>Prueba real · ${r.entorno}</h2>
+        <p>De cero a primer lab: <span class="gordo">${Math.floor(r.total_s / 60)} min ${r.total_s % 60} s</span> ${r.total_s < 600 ? '«ic:circle-check»' : '«ic:triangle-alert»'}</p>
+        ${r.fases.map((f) => `<div class="linea"><span>${f.nombre}</span><div class="b"><div style="width:${(100 * f.s) / max}%"></div></div><b>${f.s} s</b></div>`).join('')}
+        <p class="nota">${r.nota ?? ''}</p>`;
+    }
+  </script>
+</body>
+</html>

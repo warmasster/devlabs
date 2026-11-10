@@ -1,0 +1,77 @@
+{
+  "motor": "xterm",
+  "fecha": "2026-11-03T21:23:23.615Z",
+  "latencia": {
+    "eco_p50": null,
+    "tecla_p50": 1.1000000005587935,
+    "tecla_p95": 1.300000000745058,
+    "muestras": 18
+  },
+  "items": {
+    "tab": {
+      "ok": true,
+      "ms": 155
+    },
+    "ctrlc": {
+      "ok": true,
+      "ms": 1065,
+      "nota": "sleep cortado y prompt de vuelta en 315 ms"
+    },
+    "ctrld": {
+      "ok": true,
+      "ms": 1260
+    },
+    "ctrlz": {
+      "ok": true,
+      "ms": 1106
+    },
+    "readline": {
+      "ok": true,
+      "ms": 414
+    },
+    "ctrlw": {
+      "ok": true,
+      "ms": 79,
+      "nota": "bash recibe Ctrl+W; en Chrome/Edge real requiere modo inmersivo (comprobar a mano)"
+    },
+    "tui": {
+      "ok": true,
+      "ms": 2830,
+      "nota": "vim, nano, less, man, htop (clic de ratón) y tmux anidado"
+    },
+    "resize": {
+      "ok": true,
+      "ms": 1330,
+      "nota": "118 → 68 columnas, el PTY lo ve igual"
+    },
+    "pegar": {
+      "ok": true,
+      "ms": 3389,
+      "nota": "3000 líneas (≈170 KB) pegadas con md5 idéntico; copia por selección OK"
+    },
+    "clicderecho": {
+      "ok": true,
+      "ms": 1126,
+      "nota": "pega sin selección y copia con selección"
+    },
+    "utf8": {
+      "ok": true,
+      "ms": 764
+    },
+    "scroll": {
+      "ok": true,
+      "ms": 1798,
+      "nota": "2000 líneas en el historial; 3.0 líneas por muesca de rueda"
+    },
+    "persist": {
+      "ok": true,
+      "ms": 1218
+    }
+  },
+  "_antes": {
+    "eco_p50": null,
+    "tecla_p50": null,
+    "tecla_p95": null,
+    "muestras": 0
+  }
+}

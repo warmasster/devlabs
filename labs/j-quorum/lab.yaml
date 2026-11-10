@@ -1,0 +1,54 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-quorum
+titulo: Quórum
+motor: topologia
+pool: 0
+juego: true
+terminales:
+- etcd1
+topologia:
+  nodes:
+    etcd1:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.5.1.1/30 dev eth1
+      - ip addr add 10.5.2.1/30 dev eth2
+      - sh -c 'printf "%s\n" "10.5.1.2 etcd2" "10.5.2.2 etcd3" "10.5.0.2 etcd2" "10.5.0.3 etcd3" >> /etc/hosts'
+      - ip addr add 10.5.0.1/32 dev lo
+      - ip route add 10.5.0.2/32 via 10.5.1.2
+      - ip route add 10.5.0.3/32 via 10.5.2.2
+    etcd2:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.5.1.2/30 dev eth1
+      - ip addr add 10.5.3.1/30 dev eth2
+      - sh -c 'printf "%s\n" "10.5.1.1 etcd1" "10.5.3.2 etcd3" "10.5.0.1 etcd1" "10.5.0.3 etcd3" >> /etc/hosts'
+      - ip addr add 10.5.0.2/32 dev lo
+      - ip route add 10.5.0.1/32 via 10.5.1.1
+      - ip route add 10.5.0.3/32 via 10.5.3.2
+    etcd3:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.5.2.2/30 dev eth1
+      - ip addr add 10.5.3.2/30 dev eth2
+      - sh -c 'printf "%s\n" "10.5.2.1 etcd1" "10.5.3.1 etcd2" "10.5.0.1 etcd1" "10.5.0.2 etcd2" >> /etc/hosts'
+      - ip addr add 10.5.0.3/32 dev lo
+      - ip route add 10.5.0.1/32 via 10.5.2.1
+      - ip route add 10.5.0.2/32 via 10.5.3.1
+  links:
+  - endpoints:
+    - etcd1:eth1
+    - etcd2:eth1
+    mtu: 1500
+  - endpoints:
+    - etcd1:eth2
+    - etcd3:eth1
+    mtu: 1500
+  - endpoints:
+    - etcd2:eth2
+    - etcd3:eth2
+    mtu: 1500
+mision: []

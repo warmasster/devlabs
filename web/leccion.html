@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lección · relavops</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .cabecera { padding: 10px 18px; }
+    .progreso { flex: 1; min-width: 160px; max-width: 420px; display: flex; align-items: center; gap: 8px; }
+    .progreso .barra { flex: 1; }
+    .lc { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(400px, 1fr); }
+    /* Lección: centro izquierda */
+    .lc-izq { overflow-y: auto; padding: 18px clamp(14px, 3vw, 44px) 60px; scroll-behavior: smooth; }
+    .lc-hechos { display: flex; gap: 3px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+    .lc-hecho { display: inline-flex; align-items: center; gap: 4px; font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--borde); background: var(--panel); color: var(--suave); cursor: pointer; max-width: 260px; flex: none; }
+    .lc-hecho.hecho:not(.actual) { color: var(--ok); padding: 3px 6px; }
+    .lc-hecho span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lc-hecho.actual { border-color: var(--acento); color: var(--texto); }
+    .lc-tarjeta { max-width: 860px; margin: 0 auto; background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 20px 22px; animation: entra 0.35s ease-out; }
+    @keyframes entra { from { opacity: 0; transform: translateY(10px); } }
+    :root[data-movimiento='0'] .lc-tarjeta { animation: none; }
+    .lc-tarjeta header h2 { font-size: 26px; margin: 2px 0 14px; line-height: 1.2; }
+    .lc-n { font: 700 12px var(--mono); color: var(--acento); letter-spacing: 0.05em; }
+    .lc-cuerpo { display: flex; flex-direction: column; gap: 16px; }
+    .lc-pie { display: flex; align-items: center; gap: 12px; margin-top: 20px; padding-top: 14px; border-top: 1px dashed var(--borde); }
+    .lc-seguir { font-size: 16px; padding: 9px 20px; }
+    .lc-tapado { padding: 14px; border: 1px dashed var(--borde); border-radius: var(--radio); color: var(--suave); font-size: 14px; }
+    .lc-cambio { max-width: 860px; margin: 0 auto 10px; padding: 8px 12px; border-radius: var(--radio); background: color-mix(in srgb, var(--xp) 14%, var(--panel)); color: var(--xp); font-weight: 600; }
+    .lc-fin p { font-size: 18px; }
+    /* Lab: derecha */
+    /* El marco del lab no se mueve ni hace scroll: cabecera de una línea, hueco fijo para las máquinas y la terminal ocupa el resto. */
+    .lc-der { overflow: hidden; border-left: 1px solid var(--borde); display: flex; flex-direction: column; min-height: 0; background: color-mix(in srgb, var(--fondo) 70%, var(--panel)); }
+    .pl-lab { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 0; }
+    .pl-lab[hidden] { display: none; }
+    .pl-cab { display: flex; align-items: center; gap: 8px; height: 36px; flex: none; }
+    .pl-tit { flex: 1; min-width: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-cab .btn, .pl-cab .pildora { flex: none; white-space: nowrap; }
+    .pl-nuevo, .pl-inmersivo { padding: 4px 9px; }
+    .lc-der:fullscreen { background: var(--fondo); }
+    .pl-maquinas { display: flex; gap: 6px; flex-wrap: wrap; min-height: 98px; flex: none; }
+    .pl-maquinas .w-maquina { min-width: 120px; padding: 8px; height: 98px; overflow: hidden; }
+    .pl-maquinas .w-maq-rol { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-pestanas { display: flex; gap: 6px; }
+    .pl-pestanas:empty { display: none; }
+    .pl-terms { flex: 1; position: relative; min-height: 160px; }
+    .pl-terms .terminal-caja { position: absolute; inset: 0; display: none; }
+    .pl-terms .terminal-caja.activa { display: block; }
+    .pl-sin { padding: 24px; text-align: center; }
+    .pl-aviso { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radio); background: color-mix(in srgb, var(--aviso, #d29922) 16%, var(--panel)); font-size: 14px; }
+    .pl-aviso[hidden] { display: none; }
+    .pl-aviso span { flex: 1; }
+    .pl-cerrada { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; gap: 12px; padding: 24px; text-align: center; background: color-mix(in srgb, var(--fondo) 88%, transparent); }
+    .foco .lc-hechos, .foco .cabecera .pildora:not(#xp) { display: none; }
+    @media (max-width: 1000px) {
+      body { height: auto; overflow: auto; }
+      .lc { grid-template-columns: 1fr; }
+      .lc-izq { overflow: visible; }
+      .lc-der { border-left: 0; border-top: 1px solid var(--borde); min-height: 520px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/curso">← Mapa</a>
+    <h1 id="titulo">Lección</h1>
+    <span class="pildora" id="cinturon"></span>
+    <div class="progreso" id="progreso"><div class="barra"><div id="barra-prog" style="width:0%"></div></div><span class="pildora" id="cuenta"></span></div>
+    <span class="espacio"></span>
+    <span class="pildora" id="xp" style="color:var(--xp)">0 XP</span>
+    <button class="btn" id="foco" title="Esconde lo que no es la tarea actual"><i data-ic="eye-off"></i> Foco</button>
+    <span id="ajustes"></span>
+  </header>
+  <main class="lc">
+    <section class="lc-izq" id="izq">
+      <nav class="lc-hechos" id="hechos"></nav>
+      <div id="paso"></div>
+    </section>
+    <aside class="lc-der" id="panel"></aside>
+  </main>
+  <script type="module" src="/src/curso/leccion.ts"></script>
+</body>
+</html>

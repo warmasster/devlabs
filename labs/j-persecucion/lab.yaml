@@ -1,0 +1,101 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-persecucion
+titulo: La persecución
+motor: topologia
+pool: 1
+juego: true
+terminales:
+- base
+topologia:
+  nodes:
+    base:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.1.1/30 dev eth1
+      - ip addr add 10.9.2.1/30 dev eth2
+      - sh -c 'printf "%s\n" "10.9.1.2 alfa" "10.9.2.2 delta" >> /etc/hosts'
+    alfa:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.1.2/30 dev eth1
+      - ip addr add 10.9.3.1/30 dev eth2
+      - ip addr add 10.9.4.1/30 dev eth3
+      - sh -c 'printf "%s\n" "10.9.1.1 base" "10.9.3.2 bravo" "10.9.4.2 delta" >> /etc/hosts'
+    bravo:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.3.2/30 dev eth1
+      - ip addr add 10.9.5.1/30 dev eth2
+      - ip addr add 10.9.9.2/30 dev eth3
+      - sh -c 'printf "%s\n" "10.9.3.1 alfa" "10.9.5.2 charlie" "10.9.9.1 eco" >> /etc/hosts'
+    charlie:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.5.2/30 dev eth1
+      - ip addr add 10.9.7.2/30 dev eth2
+      - ip addr add 10.9.8.1/30 dev eth3
+      - sh -c 'printf "%s\n" "10.9.5.1 bravo" "10.9.7.1 eco" "10.9.8.2 salida" >> /etc/hosts'
+    delta:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.2.2/30 dev eth1
+      - ip addr add 10.9.4.2/30 dev eth2
+      - ip addr add 10.9.6.1/30 dev eth3
+      - sh -c 'printf "%s\n" "10.9.2.1 base" "10.9.4.1 alfa" "10.9.6.2 eco" >> /etc/hosts'
+    eco:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.6.2/30 dev eth1
+      - ip addr add 10.9.7.1/30 dev eth2
+      - ip addr add 10.9.9.1/30 dev eth3
+      - sh -c 'printf "%s\n" "10.9.6.1 delta" "10.9.7.2 charlie" "10.9.9.2 bravo" >> /etc/hosts'
+    salida:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.9.8.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.9.8.1 charlie" >> /etc/hosts'
+  links:
+  - endpoints:
+    - base:eth1
+    - alfa:eth1
+    mtu: 1500
+  - endpoints:
+    - base:eth2
+    - delta:eth1
+    mtu: 1500
+  - endpoints:
+    - alfa:eth2
+    - bravo:eth1
+    mtu: 1500
+  - endpoints:
+    - alfa:eth3
+    - delta:eth2
+    mtu: 1500
+  - endpoints:
+    - bravo:eth2
+    - charlie:eth1
+    mtu: 1500
+  - endpoints:
+    - delta:eth3
+    - eco:eth1
+    mtu: 1500
+  - endpoints:
+    - eco:eth2
+    - charlie:eth2
+    mtu: 1500
+  - endpoints:
+    - charlie:eth3
+    - salida:eth1
+    mtu: 1500
+  - endpoints:
+    - eco:eth3
+    - bravo:eth3
+    mtu: 1500
+mision: []

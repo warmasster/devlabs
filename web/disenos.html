@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistemas de diseño</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 1200px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+    .temas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    .tema { cursor: pointer; border: 2px solid transparent; border-radius: var(--radio); padding: 12px; text-align: left; font: inherit; }
+    .tema[aria-pressed='true'] { outline: 2px solid var(--acento); outline-offset: 2px; }
+    .tema b { display: block; font-size: 16px; margin-bottom: 2px; }
+    .tema span { font-size: 13px; opacity: 0.8; }
+    .tema .muestras { display: flex; gap: 4px; margin-top: 10px; }
+    .tema .muestras i { width: 22px; height: 22px; border-radius: var(--radio-s); display: block; }
+    .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end; }
+    .controles label { display: grid; gap: 4px; font-size: 13px; color: var(--suave); }
+    .controles input[type=color] { width: 100%; height: 38px; border: 1px solid var(--borde); border-radius: var(--radio-s); background: var(--panel-2); padding: 2px; cursor: pointer; }
+    .fila { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+    .galeria { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+    input.campo, select.campo { background: var(--panel-2); color: var(--texto); border: 1px solid var(--borde); border-radius: var(--radio-s); padding: 8px 10px; font: inherit; }
+    input.campo:focus { outline: 2px solid var(--acento); outline-offset: 1px; }
+    .interruptor { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+    .interruptor i { width: 38px; height: 22px; background: var(--panel-2); border: 1px solid var(--borde); border-radius: 99px; position: relative; transition: background 0.15s; }
+    .interruptor i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--suave); transition: left 0.15s, background 0.15s; }
+    .interruptor input { display: none; }
+    .interruptor input:checked + i { background: var(--acento); }
+    .interruptor input:checked + i::after { left: 18px; background: var(--sobre-acento); }
+    .aviso-caja { border-left: 4px solid var(--c); background: var(--panel-2); padding: 10px 12px; border-radius: var(--radio-s); font-size: 14px; margin: 6px 0; }
+    .hud { display: grid; gap: 8px; }
+    .hud .linea { display: grid; grid-template-columns: 70px 1fr 50px; gap: 8px; align-items: center; font-size: 13px; }
+    .hud .barra-hud { height: 12px; background: var(--panel-2); border-radius: var(--radio-s); overflow: hidden; border: 1px solid var(--borde); }
+    .hud .barra-hud div { height: 100%; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { font-size: 12px; padding: 3px 8px; border-radius: var(--radio-s); border: 1px solid; display: inline-flex; gap: 5px; align-items: center; }
+    .chip.buff { color: var(--ok); border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+    .chip.debuff { color: var(--mal); border-color: var(--mal); background: color-mix(in srgb, var(--mal) 12%, transparent); }
+    .chip.comando { color: var(--xp); border-color: var(--xp); background: color-mix(in srgb, var(--xp) 12%, transparent); font-family: var(--mono); }
+    .mini-term { background: var(--term-fondo); color: var(--term-texto); font: 13px/1.5 var(--mono); padding: 10px 12px; border-radius: var(--radio); border: 1px solid var(--borde); }
+    .mini-term .p { color: var(--ok); }
+    .mini-term .a { color: var(--acento); }
+    pre.tokens { background: var(--term-fondo); color: var(--term-texto); padding: 12px; border-radius: var(--radio); overflow: auto; font: 12px/1.5 var(--mono); max-height: 240px; }
+    .pestanas-demo { display: flex; border-bottom: 1px solid var(--borde); }
+    .pestanas-demo button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--suave); padding: 8px 14px; font: inherit; cursor: pointer; }
+    .pestanas-demo button[aria-selected='true'] { color: var(--texto); border-bottom-color: var(--acento); }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1><i data-ic="palette"></i> Sistemas de diseño</h1>
+    <span class="criterio">Elige un tema y cambia los colores: se aplica a todo el muestrario (se guarda en este navegador).</span>
+    <span class="espacio"></span>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>Temas</h2>
+      <div class="temas" id="temas"></div>
+    </section>
+    <section class="panel">
+      <h2>Colores y esquinas a tu gusto</h2>
+      <div class="controles">
+        <label>Acento<input type="color" data-var="acento" /></label>
+        <label>Éxito<input type="color" data-var="ok" /></label>
+        <label>Aviso<input type="color" data-var="aviso" /></label>
+        <label>Peligro<input type="color" data-var="mal" /></label>
+        <label>XP / magia<input type="color" data-var="xp" /></label>
+        <label>Esquinas: <b id="radio-v">6 px</b><input type="range" id="radio" min="0" max="14" step="1" /></label>
+        <button class="btn" id="restablecer"><i data-ic="rotate-ccw"></i> Colores del tema</button>
+      </div>
+    </section>
+    <div class="galeria">
+      <section class="panel">
+        <h2>Botones</h2>
+        <div class="fila"><button class="btn primario">Primario</button><button class="btn secundario">Secundario</button><button class="btn">Normal</button><button class="btn fantasma">Fantasma</button></div>
+        <div class="fila"><button class="btn exito"><i data-ic="check"></i> Éxito</button><button class="btn peligro"><i data-ic="swords"></i> Peligro</button><button class="btn" disabled>Desactivado</button><button class="btn" aria-pressed="true">Activo</button></div>
+        <div class="fila"><button class="btn primario grande"><i data-ic="play"></i> Empezar misión</button><button class="btn peque">pequeño</button><button class="btn peque secundario"><i data-ic="lightbulb"></i> Pista −5 XP</button></div>
+      </section>
+      <section class="panel">
+        <h2>Etiquetas y estados</h2>
+        <div class="fila"><span class="pildora">neutra</span><span class="pildora ok">conectado</span><span class="pildora aviso">reconectando</span><span class="pildora mal">caído</span><span class="pildora" style="color:var(--xp);border-color:var(--xp)">+25 XP</span></div>
+        <div class="aviso-caja" style="--c:var(--acento)">ℹ️ Consejo: <code>ip -br a</code> te enseña todas tus IP de un vistazo.</div>
+        <div class="aviso-caja" style="--c:var(--ok)"><i data-ic="circle-check"></i> Paso validado en 12 ms.</div>
+        <div class="aviso-caja" style="--c:var(--aviso)"><i data-ic="triangle-alert"></i> El boss está a 2 saltos.</div>
+        <div class="aviso-caja" style="--c:var(--mal)"><i data-ic="skull"></i> Te ha alcanzado: tu conexión ssh se ha cortado.</div>
+      </section>
+      <section class="panel">
+        <h2>Formularios</h2>
+        <div class="fila"><input class="campo" placeholder="Tu nombre de hacker" /><select class="campo"><option>Fácil</option><option selected>Normal</option><option>Pesadilla</option></select></div>
+        <div class="fila"><label class="interruptor"><input type="checkbox" checked /><i></i> Sonido</label><label class="interruptor"><input type="checkbox" /><i></i> Modo foco</label></div>
+        <div class="pestanas-demo"><button aria-selected="true">h1</button><button>r1</button><button>r2</button><button>h2</button></div>
+      </section>
+      <section class="panel">
+        <h2>HUD de juego</h2>
+        <div class="hud">
+          <div class="linea"><span><i data-ic="heart"></i> Vida</span><div class="barra-hud"><div style="width:70%;background:var(--ok)"></div></div><b>70</b></div>
+          <div class="linea"><span><i data-ic="ghost"></i> Boss</span><div class="barra-hud"><div style="width:40%;background:var(--mal)"></div></div><b>2 saltos</b></div>
+          <div class="linea"><span><i data-ic="sparkles"></i> XP</span><div class="barra-hud"><div style="width:55%;background:linear-gradient(90deg,var(--acento),var(--xp))"></div></div><b>550</b></div>
+        </div>
+        <h3>Efectos activos</h3>
+        <div class="chips"><span class="chip debuff"><i data-ic="snail"></i> Lag 300 ms</span><span class="chip debuff">〰 Jitter ±150 ms</span><span class="chip buff"><i data-ic="shield"></i> Escudo 20 s</span><span class="chip buff"><i data-ic="zap"></i> Boss lento</span><span class="chip comando">+ nmap</span><span class="chip comando">+ escudo</span></div>
+      </section>
+      <section class="panel">
+        <h2>Terminal y texto</h2>
+        <div class="mini-term"><span class="p">root@base</span>:<span class="a">~</span># ssh srv2<br>Bienvenido a <b>srv2</b> · <i data-ic="gift"></i> cofre disponible: <span class="a">abrir-cofre</span><br><span class="p">root@srv2</span>:<span class="a">~</span># _</div>
+        <p style="margin:12px 0 0">Texto normal con <code>código</code>, <kbd>Ctrl</kbd>+<kbd>C</kbd> y un <a href="#">enlace</a>. <span style="color:var(--suave)">Texto secundario.</span></p>
+      </section>
+      <section class="panel">
+        <h2>Recompensa</h2>
+        <div class="fila"><button class="btn primario" id="probar-xp">Probar +10 XP</button><button class="btn exito" id="probar-boss">Probar boss vencido</button></div>
+        <div class="barra" style="margin-top:12px"><div style="width:64%"></div></div>
+        <p style="color:var(--suave);font-size:13px;margin:6px 0 0">Te faltan 2 pasos para el cinturón naranja.</p>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>Tokens de este diseño</h2>
+      <p style="color:var(--suave);font-size:13px;margin:0 0 8px">Cópialos para llevar el diseño a otro sitio.</p>
+      <pre class="tokens" id="tokens"></pre>
+      <button class="btn" id="copiar"><i data-ic="clipboard"></i> Copiar tokens</button>
+    </section>
+  </main>
+  <script type="module" src="/src/disenos.ts"></script>
+</body>
+</html>

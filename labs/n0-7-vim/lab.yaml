@@ -1,0 +1,148 @@
+# 0.7 · Editores: speedrun de vim con ficheros reales y la config que no carga.
+id: n0-7-vim
+titulo: Speedrun de vim
+motor: contenedor
+pool: 1
+nodos:
+  - nombre: lab
+    imagen: relavops/base:1
+    memoria: 256m
+    cpus: 1
+preparar:
+  - nodo: lab
+    script: |
+      mkdir -p /root/vim && cd /root/vim
+      printf 'Hloa mudno, esto es vim.\n' > saludo.txt
+      python3 -c "
+      import random
+      R = random.Random(5)
+      tareas = ['revisar backups', 'rotar logs', 'actualizar nginx', 'probar restauración', 'documentar runbook', 'limpiar /tmp', 'renovar certificado', 'revisar alertas', 'subir parche', 'cerrar ticket']
+      l = [f'- {t}' for t in tareas + tareas[:5]]
+      for k in [2, 6, 9, 11, 14]: l.insert(k, '- BORRAR esta línea')
+      open('lista.txt', 'w').write('\n'.join(l) + '\n')"
+      cat > config.ini <<'EOF'
+      [base_de_datos]
+      host = localhost
+      replica = localhost
+      ; el resto apunta también a localhost
+      [cache]
+      host = localhost
+      puerto = 6379
+      [colas]
+      host = localhost
+      [metricas]
+      host = localhost
+      push = http://localhost:9091
+      EOF
+      printf '127.0.0.1 localhost\n10.0.0.10 web\n10.0.0.20 db\n' > hosts.txt
+      printf '[plantilla]\nnombre = \nrol = \nactivo = sí\n' > servidores.ini
+      # La herramienta del boss: valida la config de la app.
+      mkdir -p /etc/app
+      cat > /usr/local/bin/app-check <<'EOF'
+      #!/usr/bin/env python3
+      import json, configparser, sys
+      try:
+          c = json.load(open('/etc/app/config.json'))
+      except json.JSONDecodeError as e:
+          sys.exit(f'config.json: {e.msg} (línea {e.lineno}, columna {e.colno})')
+      for k, t in [('nombre', str), ('puerto', int), ('debug', bool), ('backends', list)]:
+          if not isinstance(c.get(k), t): sys.exit(f'config.json: "{k}" falta o no es {t.__name__}')
+      if c['puerto'] != 8080 or len(c['backends']) != 3: sys.exit('config.json: puerto o backends cambiados (deben ser 8080 y 3)')
+      p = configparser.ConfigParser(strict=True)
+      try:
+          p.read('/etc/app/app.ini')
+      except configparser.Error as e:
+          sys.exit(f'app.ini: {e}')
+      if p.get('servidor', 'workers', fallback=None) != '4' or p.get('log', 'nivel', fallback=None) != 'info':
+          sys.exit('app.ini: faltan [servidor] workers = 4 o [log] nivel = info')
+      print('Configuración válida. La app arrancaría.')
+      EOF
+      chmod +x /usr/local/bin/app-check
+      cat > /etc/app/config.json <<'EOF'
+      {
+        "nombre": "tienda",
+        "puerto": 8080,
+        "debug": false,
+        "backends": ["10.0.0.11", "10.0.0.12", "10.0.0.13"]
+      }
+      EOF
+      printf '[servidor]\nworkers = 4\ntimeout = 30\n\n[log]\nnivel = info\n' > /etc/app/app.ini
+mision:
+  - id: saludo
+    titulo: Arregla dos erratas
+    texto: "Abre `vim ~/vim/saludo.txt` y deja «Hola mundo, esto es vim.». Con `x` borras una letra y con `i` escribes. Guarda con `:wq`."
+    xp: 10
+    check: { nodo: lab, script: 'grep -qx "Hola mundo, esto es vim." /root/vim/saludo.txt && ! pgrep -x vim >/dev/null' }
+  - id: borrar
+    titulo: Fuera las líneas BORRAR
+    texto: "En `~/vim/lista.txt` hay 5 líneas con BORRAR. Quítalas con `dd` (o con `:g/BORRAR/d` si vas de pro)."
+    xp: 10
+    check: { nodo: lab, script: '! grep -q BORRAR /root/vim/lista.txt && [ "$(wc -l < /root/vim/lista.txt)" -eq 15 ]' }
+  - id: sustituir
+    titulo: Reemplazo global
+    texto: "En `~/vim/config.ini`, cambia **todos** los `localhost` por `db.interna` de una vez."
+    pista: ":%s/localhost/db.interna/g"
+    xp: 15
+    check: { nodo: lab, script: '! grep -q localhost /root/vim/config.ini && [ "$(grep -o db.interna /root/vim/config.ini | wc -l)" -eq 7 ]' }
+  - id: anadir
+    titulo: Una línea al final
+    texto: "Añade al final de `~/vim/hosts.txt` la línea `10.0.0.50 cache`. `G` va al final y `o` abre una línea debajo."
+    xp: 10
+    check: { nodo: lab, script: '[ "$(tail -n1 /root/vim/hosts.txt)" = "10.0.0.50 cache" ] && [ "$(wc -l < /root/vim/hosts.txt)" -eq 4 ]' }
+  - id: copiar
+    titulo: Duplica el bloque
+    texto: "En `~/vim/servidores.ini`, copia el bloque de 4 líneas y pégalo debajo, hasta tener 2 `[plantilla]`. Con `4yy` copias 4 líneas, y con `G` y `p` las pegas al final."
+    xp: 15
+    check: { nodo: lab, script: '[ "$(grep -c "^\[plantilla\]" /root/vim/servidores.ini)" -eq 2 ] && [ "$(grep -c "^activo = sí" /root/vim/servidores.ini)" -eq 2 ]' }
+boss:
+  titulo: "La config que no carga"
+  texto: "Alguien editó la configuración de la app a mano y ya no arranca. `app-check` te dice qué falla. Arréglalo en vim (o nano) **sin borrar nada que deba estar**, hasta que diga «Configuración válida»."
+  xp: 60
+  check:
+    - { nodo: lab, script: "test -f /run/.boss && app-check >/dev/null 2>&1" }
+  fallos:
+    - id: json-coma
+      romper:
+        - nodo: lab
+          script: |
+            touch /run/.boss
+            cat > /etc/app/config.json <<'EOF'
+            {
+              // la tienda principal
+              "nombre": "tienda",
+              "puerto": 8080,
+              "debug": false,
+              "backends": ["10.0.0.11", "10.0.0.12", "10.0.0.13",],
+            }
+            EOF
+      pistas:
+        - { coste: 5, texto: "JSON no admite comentarios ni comas al final de una lista u objeto." }
+        - { coste: 10, texto: "Son tres cosas. La línea `//`, la coma tras el último backend y la coma tras el `]`. Con `dd` y `x` basta." }
+      solucion: JSON estricto no admite comentarios ni comas finales. `app-check` decía la línea y columna exactas.
+    - id: json-tipos
+      romper:
+        - nodo: lab
+          script: |
+            touch /run/.boss
+            cat > /etc/app/config.json <<'EOF'
+            {
+              "nombre": "tienda",
+              "puerto": "8080",
+              "debug": "false",
+              "backends": "10.0.0.11, 10.0.0.12, 10.0.0.13"
+            }
+            EOF
+      pistas:
+        - { coste: 5, texto: "Ahora el JSON es válido, pero los tipos no. Un número entre comillas es un texto." }
+        - { coste: 10, texto: "`puerto` sin comillas, `debug` sin comillas porque true y false no las llevan, y `backends` como lista, `[\"a\", \"b\", \"c\"]`." }
+      solucion: "\"8080\" es texto y 8080 es número; \"false\" es texto y false es booleano. Y una lista va entre corchetes."
+    - id: ini
+      romper:
+        - nodo: lab
+          script: |
+            touch /run/.boss
+            printf 'workers = 4\ntimeout = 30\n\n[log]\nnivel = debug\nnivel = info\n' > /etc/app/app.ini
+      pistas:
+        - { coste: 5, texto: "Lee el error de `app-check`. Un INI necesita una sección `[algo]` antes de la primera clave." }
+        - { coste: 10, texto: "Añade `[servidor]` arriba (`gg` y `O`) y deja un solo `nivel = info` en `[log]`." }
+      solucion: "Faltaba la cabecera `[servidor]` y había una clave duplicada. Los parsers estrictos no adivinan."

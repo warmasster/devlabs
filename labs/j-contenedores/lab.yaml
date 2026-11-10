@@ -1,0 +1,12 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-contenedores
+titulo: Contenedores rebeldes
+motor: sistema
+pool: 0
+juego: true
+nodos:
+- nombre: host
+  imagen: relavops/dind:1
+  memoria: 1g
+  pids: 2048
+mision: []

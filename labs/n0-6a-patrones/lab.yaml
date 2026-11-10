@@ -1,0 +1,78 @@
+# 0.6 · Lab de lección. Lo que encuentras con grep y lo que cambias con sed aparece en la lección al momento.
+id: n0-6a-patrones
+titulo: Buscar por la forma
+motor: contenedor
+pool: 1
+nodos:
+  - { nombre: lab, rol: tu máquina, imagen: "relavops/base:1", memoria: 256m, cpus: 1 }
+preparar:
+  - nodo: lab
+    script: |
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      mkdir -p /root/textos
+      cat > /root/textos/log.txt <<'EOF'
+      ERROR disco lleno en /var
+      INFO arranque correcto
+      WARN poca memoria, último ERROR ignorado
+      ERROR no responde 10.0.0.20
+      INFO 3 usuarios conectados
+      ERROR timeout tras 30 segundos
+      DEBUG nada que contar
+      EOF
+      cat > /root/textos/contactos.txt <<'EOF'
+      Ana Pérez, ana@tienda.es, 600123456
+      Luis Gil, luis.gil@correo.com, 611222333
+      Eva Ruiz, sin correo, 622444555
+      Marta Sanz, marta@tienda.es, sin teléfono
+      EOF
+      printf '%s\n' 'Visita http://tienda.es' 'Docs en http://docs.tienda.es/ayuda' 'Ya seguro https://pago.tienda.es' > /root/textos/web.txt
+sondas:
+  - { id: ultimo@lab, nodo: lab, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
+  - { id: encontrado, nodo: lab, script: "head -c 3000 /root/encontrado.txt 2>/dev/null" }
+  - { id: web, nodo: lab, script: "cat /root/textos/web.txt" }
+  - { id: correos, nodo: lab, script: "head -c 3000 /root/correos.txt 2>/dev/null" }
+mision:
+  - { id: ancla, titulo: Acaba en, texto: "`grep 'segundos$'`", xp: 10, check: { nodo: lab, script: "grep '^grep ' /root/.bash_history | grep -qF '$'" } }
+  - { id: clase, titulo: Una clase, texto: "`grep '[0-9]'`", xp: 10, check: { nodo: lab, script: "grep '^grep ' /root/.bash_history | grep -qF '[0-9]'" } }
+  - { id: veces, titulo: Una o más, texto: "`grep -oE '[0-9]+'`", xp: 10, check: { nodo: lab, script: "grep '^grep ' /root/.bash_history | grep -F -- '-o' | grep -qF '+'" } }
+  - { id: grupo, titulo: Un grupo, texto: "`grep -E '^(ERROR|WARN)'`", xp: 10, check: { nodo: lab, script: "grep '^grep ' /root/.bash_history | grep -F '(' | grep -qF '|'" } }
+  - id: empiezan
+    titulo: Las que empiezan por ERROR
+    texto: "`grep '^ERROR' textos/log.txt > encontrado.txt`"
+    xp: 15
+    check: { nodo: lab, script: "[ \"$(cat /root/encontrado.txt 2>/dev/null)\" = \"$(grep '^ERROR' /root/textos/log.txt)\" ]" }
+  - id: correos
+    titulo: Sacar los correos
+    texto: "`grep -oE '[a-z.]+@[a-z.]+' textos/contactos.txt > correos.txt`"
+    xp: 20
+    check: { nodo: lab, script: "[ \"$(sort /root/correos.txt 2>/dev/null)\" = \"$(printf '%s\n' ana@tienda.es luis.gil@correo.com marta@tienda.es | sort)\" ]" }
+  - { id: contar, titulo: Contar con -c, texto: "`grep -c`", xp: 10, check: { nodo: lab, script: "grep -qE '^grep +(-[a-zA-Z]*c|-c)' /root/.bash_history" } }
+  - { id: https, titulo: Cambiar con sed, texto: "`sed -i 's#http://#https://#' textos/web.txt`", xp: 20, check: { nodo: lab, script: "! grep -q 'http://' /root/textos/web.txt && [ \"$(grep -c https:// /root/textos/web.txt)\" = 3 ]" } }
+  - id: literal
+    titulo: Un literal
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^grep +ERROR' /root/.bash_history
+  - id: verweb
+    titulo: Mirar antes de cambiar
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^cat .*web.txt' /root/.bash_history
+  - id: gruposed
+    titulo: Reordenar
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -F 'sed -E' /root/.bash_history | grep -qF '\1'

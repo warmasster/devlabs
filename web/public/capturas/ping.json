@@ -1,0 +1,161 @@
+{
+ "grabada": "2026-11-02T22:24:41.531Z",
+ "interfaces": {
+  "h1": [
+   {
+    "nombre": "eth1",
+    "mac": "aa:c1:ab:e7:5b:49",
+    "ips": [
+     "10.0.1.10/24"
+    ]
+   }
+  ],
+  "h2": [
+   {
+    "nombre": "eth1",
+    "mac": "aa:c1:ab:c2:88:bf",
+    "ips": [
+     "10.0.2.10/24"
+    ]
+   }
+  ],
+  "r1": [
+   {
+    "nombre": "eth1",
+    "mac": "aa:c1:ab:14:9d:d5",
+    "ips": [
+     "10.0.1.1/24"
+    ]
+   },
+   {
+    "nombre": "eth2",
+    "mac": "aa:c1:ab:33:90:fe",
+    "ips": [
+     "10.0.2.1/24"
+    ]
+   }
+  ]
+ },
+ "paquetes": [
+  {
+   "arp": {
+    "busca": "10.0.1.1",
+    "de": "10.0.1.10",
+    "op": "request"
+   },
+   "if": "eth1",
+   "mac_dst": "ff:ff:ff:ff:ff:ff",
+   "mac_src": "aa:c1:ab:e7:5b:49",
+   "nodo": "h1",
+   "t": "paquete",
+   "texto": "1793658281.543513 aa:c1:ab:e7:5b:49 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Ethernet (len 6), IPv4 (len 4), Request who-has 10.0.1.1 tell 10.0.1.10, length 28",
+   "tipo": "arp",
+   "ts": 1793658281.543513
+  },
+  {
+   "arp": {
+    "ip": "10.0.1.1",
+    "mac": "aa:c1:ab:14:9d:d5",
+    "op": "reply"
+   },
+   "if": "eth1",
+   "mac_dst": "aa:c1:ab:e7:5b:49",
+   "mac_src": "aa:c1:ab:14:9d:d5",
+   "nodo": "r1",
+   "t": "paquete",
+   "texto": "1793658281.543558 aa:c1:ab:14:9d:d5 > aa:c1:ab:e7:5b:49, ethertype ARP (0x0806), length 42: Ethernet (len 6), IPv4 (len 4), Reply 10.0.1.1 is-at aa:c1:ab:14:9d:d5, length 28",
+   "tipo": "arp",
+   "ts": 1793658281.543558
+  },
+  {
+   "dst": "10.0.2.10",
+   "icmp": "echo request",
+   "if": "eth1",
+   "mac_dst": "aa:c1:ab:14:9d:d5",
+   "mac_src": "aa:c1:ab:e7:5b:49",
+   "nodo": "h1",
+   "seq": 1,
+   "src": "10.0.1.10",
+   "t": "paquete",
+   "texto": "1793658281.543560 aa:c1:ab:e7:5b:49 > aa:c1:ab:14:9d:d5, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, id 41800, offset 0, flags [DF], proto ICMP (1), length 84)\n    10.0.1.10 > 10.0.2.10: ICMP echo request, id 23719, seq 1, length 64",
+   "tipo": "ipv4",
+   "ts": 1793658281.54356,
+   "ttl": 64
+  },
+  {
+   "arp": {
+    "busca": "10.0.2.10",
+    "de": "10.0.2.1",
+    "op": "request"
+   },
+   "if": "eth2",
+   "mac_dst": "ff:ff:ff:ff:ff:ff",
+   "mac_src": "aa:c1:ab:33:90:fe",
+   "nodo": "r1",
+   "t": "paquete",
+   "texto": "1793658281.543572 aa:c1:ab:33:90:fe > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Ethernet (len 6), IPv4 (len 4), Request who-has 10.0.2.10 tell 10.0.2.1, length 28",
+   "tipo": "arp",
+   "ts": 1793658281.543572
+  },
+  {
+   "arp": {
+    "ip": "10.0.2.10",
+    "mac": "aa:c1:ab:c2:88:bf",
+    "op": "reply"
+   },
+   "if": "eth1",
+   "mac_dst": "aa:c1:ab:33:90:fe",
+   "mac_src": "aa:c1:ab:c2:88:bf",
+   "nodo": "h2",
+   "t": "paquete",
+   "texto": "1793658281.543587 aa:c1:ab:c2:88:bf > aa:c1:ab:33:90:fe, ethertype ARP (0x0806), length 42: Ethernet (len 6), IPv4 (len 4), Reply 10.0.2.10 is-at aa:c1:ab:c2:88:bf, length 28",
+   "tipo": "arp",
+   "ts": 1793658281.543587
+  },
+  {
+   "dst": "10.0.2.10",
+   "icmp": "echo request",
+   "if": "eth2",
+   "mac_dst": "aa:c1:ab:c2:88:bf",
+   "mac_src": "aa:c1:ab:33:90:fe",
+   "nodo": "r1",
+   "seq": 1,
+   "src": "10.0.1.10",
+   "t": "paquete",
+   "texto": "1793658281.543590 aa:c1:ab:33:90:fe > aa:c1:ab:c2:88:bf, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 63, id 41800, offset 0, flags [DF], proto ICMP (1), length 84)\n    10.0.1.10 > 10.0.2.10: ICMP echo request, id 23719, seq 1, length 64",
+   "tipo": "ipv4",
+   "ts": 1793658281.54359,
+   "ttl": 63
+  },
+  {
+   "dst": "10.0.1.10",
+   "icmp": "echo reply",
+   "if": "eth1",
+   "mac_dst": "aa:c1:ab:33:90:fe",
+   "mac_src": "aa:c1:ab:c2:88:bf",
+   "nodo": "h2",
+   "seq": 1,
+   "src": "10.0.2.10",
+   "t": "paquete",
+   "texto": "1793658281.543601 aa:c1:ab:c2:88:bf > aa:c1:ab:33:90:fe, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, id 44281, offset 0, flags [none], proto ICMP (1), length 84)\n    10.0.2.10 > 10.0.1.10: ICMP echo reply, id 23719, seq 1, length 64",
+   "tipo": "ipv4",
+   "ts": 1793658281.543601,
+   "ttl": 64
+  },
+  {
+   "dst": "10.0.1.10",
+   "icmp": "echo reply",
+   "if": "eth1",
+   "mac_dst": "aa:c1:ab:e7:5b:49",
+   "mac_src": "aa:c1:ab:14:9d:d5",
+   "nodo": "r1",
+   "seq": 1,
+   "src": "10.0.2.10",
+   "t": "paquete",
+   "texto": "1793658281.543603 aa:c1:ab:14:9d:d5 > aa:c1:ab:e7:5b:49, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 63, id 44281, offset 0, flags [none], proto ICMP (1), length 84)\n    10.0.2.10 > 10.0.1.10: ICMP echo reply, id 23719, seq 1, length 64",
+   "tipo": "ipv4",
+   "ts": 1793658281.543603,
+   "ttl": 63
+  }
+ ]
+}

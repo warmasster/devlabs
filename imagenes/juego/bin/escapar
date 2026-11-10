@@ -1,0 +1,9 @@
+#!/bin/sh
+# Solo funciona en el servidor de salida.
+if [ "$(hostname)" = salida ]; then
+  touch /run/escapado
+  printf '\033[1;32m[salida] ¡Has escapado del boss!\033[0m\n'
+else
+  echo "escapar: aquí no hay salida. Busca el servidor «salida»."
+  exit 1
+fi

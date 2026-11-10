@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script>try{const t=localStorage.getItem('relavops.admin.tema');if(t)document.documentElement.dataset.tema=t}catch{}</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · relavops</title>
+  <link rel="icon" href="/favicon.svg" />
+</head>
+<body>
+  <div class="a">
+    <aside class="a-lado">
+      <div class="a-marca">relavops <em>admin</em></div>
+      <nav class="a-nav" id="nav"></nav>
+      <div class="a-lado-pie">
+        <a href="/curso" id="al-curso"></a>
+        <div class="a-yo" id="yo"></div>
+      </div>
+    </aside>
+    <div class="a-principal">
+      <header class="a-arriba">
+        <div><h1 id="titulo">Resumen</h1><p id="subtitulo"></p></div>
+        <span class="espacio"></span>
+        <span id="controles" class="a-filtros"></span>
+        <span class="a-vivo" id="vivo"><i></i><span>En vivo</span></span>
+        <button class="a-btn icono" id="refrescar" title="Actualizar ahora"></button>
+        <button class="a-btn icono" id="tema" title="Cambiar entre claro y oscuro"></button>
+      </header>
+      <main class="a-contenido" id="contenido"></main>
+    </div>
+  </div>
+  <script type="module" src="/src/admin/admin.ts"></script>
+</body>
+</html>

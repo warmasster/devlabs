@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mis clases · relavops</title>
+  <link rel="icon" href="/favicon.svg" />
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/curso"><i data-ic="chevron-left"></i> El curso</a>
+    <h1><i data-ic="users"></i> Mis clases</h1>
+    <span class="espacio"></span>
+    <span id="ajustes"></span>
+  </header>
+  <main class="cp-main" style="max-width:1320px">
+    <div class="pf">
+      <aside class="pf-clases" id="clases">
+        <button class="btn primario grande" id="nueva">Nueva clase</button>
+      </aside>
+      <section id="detalle"><p class="cp-cargando">Cargando tus clases…</p></section>
+    </div>
+  </main>
+  <script type="module" src="/src/cuenta/profe.ts"></script>
+</body>
+</html>

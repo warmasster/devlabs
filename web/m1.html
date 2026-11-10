@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M1 · Terminal nativa</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    body { height: 100vh; display: flex; flex-direction: column; }
+    main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 14px; padding: 14px; min-height: 0; }
+    .izq { display: flex; flex-direction: column; min-height: 0; gap: 8px; }
+    .barra-term { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .terminal-caja { flex: 1; }
+    .der { overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+    .metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .metricas div { background: var(--panel-2); border-radius: var(--radio); padding: 8px; text-align: center; }
+    .metricas b { display: block; font-size: 20px; font-family: var(--mono); }
+    .metricas span { font-size: 12px; color: var(--suave); }
+    .auto { font-size: 12px; font-family: var(--mono); color: var(--suave); }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .terminal-caja { min-height: 420px; } }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/">← Muestrario</a>
+    <h1>M1 · Terminal nativa</h1>
+    <span class="criterio">PTY real en un Debian dentro de un contenedor. Criterio: pasa la batería y escribir no se siente con retardo.</span>
+    <span class="espacio"></span>
+    <span id="ajustes"></span>
+  </header>
+  <main>
+    <section class="izq">
+      <div class="barra-term">
+        <span class="pildora">xterm.js 6 · WebGL</span>
+        <button class="btn" id="inmersivo" title="Pantalla completa + Keyboard Lock: Ctrl+W llega a bash"><i data-ic="maximize"></i> Modo inmersivo</button>
+        <button class="btn" id="nueva"><i data-ic="rotate-cw"></i> Lab nuevo</button>
+        <span class="espacio" style="flex:1"></span>
+        <span class="pildora" id="estado">conectando…</span>
+        <span class="pildora" id="arranque"></span>
+      </div>
+      <div class="terminal-caja" id="caja"><div class="term" id="term"></div></div>
+    </section>
+    <aside class="der">
+      <div class="panel">
+        <h2>Latencia medida</h2>
+        <div class="metricas">
+          <div><b id="lat-tecla">–</b><span>tecla→eco p50</span></div>
+          <div><b id="lat-p95">–</b><span>tecla→eco p95</span></div>
+          <div><b id="lat-eco">–</b><span>red ida+vuelta</span></div>
+        </div>
+        <p class="auto" style="margin:8px 0 0">"Tecla→eco": desde que pulsas hasta que el carácter vuelve del Linux y se dibuja.</p>
+      </div>
+      <div class="panel">
+        <h2>Misión rápida <span class="pildora" id="xp" style="float:right">0 XP</span></h2>
+        <ul class="lista" id="mision"></ul>
+      </div>
+      <div class="panel">
+        <h2>Batería de pruebas</h2>
+        <p class="auto" style="margin:0 0 6px"><i data-ic="check"></i> automática = pasada por Playwright · clic en la casilla para marcar a mano.</p>
+        <ul class="lista" id="bateria"></ul>
+      </div>
+    </aside>
+  </main>
+  <script type="module" src="/src/m1.ts"></script>
+</body>
+</html>

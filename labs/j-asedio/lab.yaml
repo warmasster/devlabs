@@ -1,0 +1,30 @@
+# Generado por juegos/generar.py · no editar a mano
+id: j-asedio
+titulo: Asedio
+motor: topologia
+pool: 0
+juego: true
+terminales:
+- servidor
+topologia:
+  nodes:
+    servidor:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.8.1.1/30 dev eth1
+      - sh -c 'printf "%s\n" "10.8.1.2 atacante" >> /etc/hosts'
+      - sh -c 'useradd -m -s /bin/bash becario && echo becario:becario123 | chpasswd'
+      - sh -c 'mkdir -p /srv/datos && seq -f "cliente-%04g,tarjeta-****" 1 500 > /srv/datos/clientes.csv'
+    atacante:
+      kind: linux
+      image: relavops/juego:1
+      exec:
+      - ip addr add 10.8.1.2/30 dev eth1
+      - sh -c 'printf "%s\n" "10.8.1.1 servidor" >> /etc/hosts'
+  links:
+  - endpoints:
+    - servidor:eth1
+    - atacante:eth1
+    mtu: 1500
+mision: []
