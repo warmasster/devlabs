@@ -71,6 +71,40 @@ func leerCPU() (total, idle uint64) {
 	return
 }
 
+// ramLibre da los bytes de RAM que quedan para abrir labs, o -1 si no se puede saber. Es lo que
+// queda libre en el servidor o, si los labs van en un cgroup con tope, lo que le queda a ese cgroup.
+// Se queda con el menor de los dos.
+func ramLibre(cgroup string) int64 {
+	libre := int64(-1)
+	if b, err := os.ReadFile("/proc/meminfo"); err == nil {
+		for _, l := range strings.Split(string(b), "\n") {
+			if v, ok := strings.CutPrefix(l, "MemAvailable:"); ok {
+				if kb, err := strconv.ParseInt(strings.TrimSuffix(strings.TrimSpace(v), " kB"), 10, 64); err == nil {
+					libre = kb * 1024
+				}
+			}
+		}
+	}
+	if cgroup != "" {
+		leer := func(f string) (int64, bool) {
+			b, err := os.ReadFile("/sys/fs/cgroup/" + cgroup + "/" + f)
+			if err != nil {
+				return 0, false
+			}
+			n, err := strconv.ParseInt(strings.TrimSpace(string(b)), 10, 64)
+			return n, err == nil
+		}
+		if max, ok := leer("memory.max"); ok { // "max" (sin tope) no es un número y se salta
+			if uso, ok := leer("memory.current"); ok {
+				if q := max - uso; libre < 0 || q < libre {
+					libre = q
+				}
+			}
+		}
+	}
+	return libre
+}
+
 func (h *Host) Foto() FotoHost {
 	f := FotoHost{CPUs: runtime.NumCPU()}
 	t, i := leerCPU()

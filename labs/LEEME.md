@@ -8,8 +8,8 @@ Para ver cómo se usa un lab desde una lección, mira [../web/src/curso/leccione
 
 | Prefijo | Para qué | Ejemplo |
 | --- | --- | --- |
-| `n0-Xa-…`, `n0-Xb-…` | **Lab de lección.** Va pegado a la lección X. Tiene sondas para los widgets y una misión que hace de puertas entre pasos. Sin boss. | `n0-1b-red` |
-| `n0-X-…` | **Lab de práctica.** Se usa al final de la lección X, con su misión y su boss. | `n0-1-maquina` |
+| `n0-Xa-…`, `n0-Xb-…` | **Lab de lección.** Va pegado a la lección X. Tiene sondas para los widgets y una misión que hace de puertas entre pasos. Sin boss. | `n0-4a-red` |
+| `n0-X-…` | **Lab de práctica.** Se usa al final de la lección X, con su misión y su boss. | `n0-3-maquina` |
 | `n0-0-tutorial` | Lección y práctica a la vez, con un boss facilito. | |
 | `m1-…`, `m2-…`, `m3-…` | Del muestrario. | |
 | `j-…` | Juegos de examen final. Los genera `juegos/generar.py`. | |
@@ -17,7 +17,7 @@ Para ver cómo se usa un lab desde una lección, mira [../web/src/curso/leccione
 ## Formato de `lab.yaml`
 
 ```yaml
-id: n0-1b-red                 # igual que la carpeta
+id: n0-4a-red                 # igual que la carpeta
 titulo: Tres máquinas en red  # lo ve el alumno arriba del panel
 motor: contenedor             # contenedor | sistema (Sysbox) | topologia (nodos unidos por cables veth)
 pool: 1                       # cuántos se tienen arrancados de antemano
@@ -79,6 +79,7 @@ Reglas para que funcionen bien.
 - Si buscas un proceso, no uses `pgrep -f` ni `grep` con el nombre. El propio script de la comprobación lleva ese texto y se encuentra a sí mismo. Usa `ps -eo stat=,args= | awk '$2 == "sleep" && $3 == "200"'`.
 - Una lista de procesos solo enseña los que llevan **1 segundo o más** vivos (`ps -eo pid=,etimes=,stat=,args=` y `$2 >= 1`). Si no, los procesos de las propias sondas y los comandos rápidos entran y salen cada segundo y la lista baila.
 - Los programas que la lección pide lanzar (como `ocupado` o `tragon`) se instalan en `preparar` como scripts con nombre propio, para que el alumno los lance él mismo con `&`.
+- Un programa que el alumno tiene que parar con `kill` no puede tener hijos, o el hijo se queda vivo. Acábalo con `exec -a nombre programa`, como `tienda-web` en `n0-4-red` o `acaparador` en `n0-2a-arbol`. Así además sale con ese nombre en `ps aux`.
 - Los procesos muertos salen como zombis (estado Z) un momento. Fíltralos con `$1 !~ /^Z/`.
 - Dentro de cada nodo vive el vigía de labd, `sh /usr/lib/relavops/vigia`. Una lista de procesos lo quita con `$5 !~ /relavops[/]vigia$/`. Las comprobaciones que buscan `bash` no lo ven, porque es un `sh`. Un boss no debe matar procesos `sh` a lo loco.
 
@@ -89,12 +90,16 @@ Reglas para que funcionen bien.
   PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
   ```
   El `printf` del final avisa a labd de que ha vuelto el prompt. Sin él, el ✓ tarda unos 270 ms en vez de 25. Si un lab pone su propio `PROMPT_COMMAND`, que acabe siempre así.
-- **CPU que el alumno satura a propósito.** Dale al nodo pocas `cpus` (`0.25` en `n0-1a-cuerpo`), o cada alumno en ese paso se come un núcleo entero del servidor. El medidor de CPU mide contra `/sys/fs/cgroup/cpu.max`, así que sigue llegando al 100 %.
+- **CPU que el alumno satura a propósito.** Dale al nodo pocas `cpus` (`0.25` en `n0-3a-cuerpo`), o cada alumno en ese paso se come un núcleo entero del servidor. El medidor de CPU mide contra `/sys/fs/cgroup/cpu.max`, así que sigue llegando al 100 %.
 - **Responder preguntas.** El script `responde clave valor` guarda en `/root/.respuestas/clave` y la comprobación lo compara con la verdad.
 - **Bosses con varios fallos.** Cada fallo escribe su propio `/run/boss-check.sh` al romper el lab, y el check del boss solo lo ejecuta. Así cada fallo se comprueba a su manera.
-- **free cuenta la RAM de la máquina.** Dentro de un contenedor, `free` enseña la del ordenador anfitrión. Los labs de la lección 0.1 instalan un `free` que lee el límite del cgroup.
+- **free cuenta la RAM de la máquina.** Dentro de un contenedor, `free` enseña la del ordenador anfitrión. Los labs de la lección 0.3 instalan un `free` que lee el límite del cgroup.
 - **PID 1.** En las imágenes de relavops es `maquina` (`imagenes/base/maquina`). Recoge a los procesos que mueren y no termina nunca, así un `pkill sleep` o un `kill -9 -1` del alumno no apaga la máquina. Lo anuncian con la etiqueta `relavops.init=maquina`. Con otra imagen, labd pone `--init` y el PID 1 es `docker-init`, que recoge igual pero termina si muere el proceso principal. Una imagen nueva que parta de `relavops/base:1` y cambie el CMD tiene que acabar con `exec /usr/local/bin/maquina`, como hace `imagenes/juego/bin/arranque`.
+
+## Lo que se pide tiene que estar enseñado
+
+El texto de cada misión de práctica, su pista, el texto del boss, sus pistas y su solución solo pueden usar comandos, opciones y símbolos que la lección ya haya enseñado con una ficha. `node pruebas/comandos.mjs` lo revisa y falla si no. Si un boss necesita algo nuevo, primero va su ficha y una tarea en la lección.
 
 ## Probar un lab
 
-Con `labd` en marcha, `node pruebas/labs-leccion.mjs n0-1b-red` resuelve la misión dentro del lab y comprueba que se valida y que las sondas llegan. Para los de práctica, `pruebas/labs-practica.mjs`, que además prueba cada fallo del boss. Las soluciones están dentro de esos scripts. Si añades un lab, añade su solución ahí.
+Con `labd` en marcha, `node pruebas/labs-leccion.mjs n0-4a-red` resuelve la misión dentro del lab y comprueba que se valida y que las sondas llegan. Para los de práctica, `pruebas/labs-practica.mjs`, que además prueba cada fallo del boss. Las soluciones están dentro de esos scripts. Si añades un lab, añade su solución ahí.

@@ -7,74 +7,89 @@
   <title>relavops · el curso</title>
   <link rel="icon" href="/favicon.svg" />
   <style>
-    main { max-width: 1180px; margin: 0 auto; padding: 18px 16px 60px; }
-    .arriba { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; }
-    .continuar { display: flex; flex-direction: column; gap: 8px; background: linear-gradient(135deg, color-mix(in srgb, var(--acento) 16%, var(--panel)), var(--panel)); }
-    .continuar .eti { font: 700 12px var(--mono); color: var(--acento); letter-spacing: 0.06em; }
-    .continuar h2 { font-size: 26px !important; margin: 0 !important; }
-    .continuar p { margin: 0; color: var(--suave); }
-    .cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .cifras div { background: var(--panel-2); border-radius: var(--radio); padding: 10px 6px; text-align: center; }
-    .cifras b { display: block; font: 800 22px var(--mono); }
-    .cifras span { font-size: 12px; color: var(--suave); }
-    .cinturones { display: flex; gap: 6px; margin: 18px 0 6px; overflow-x: auto; padding-bottom: 4px; }
-    .cint { flex: 1; min-width: 92px; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 8px; font-size: 13px; }
-    .cint .tira { height: 8px; border-radius: 3px; margin-bottom: 6px; opacity: 0.35; }
-    .cint.ganado .tira { opacity: 1; box-shadow: 0 0 12px currentColor; }
-    .cint .p { color: var(--suave); font: 12px var(--mono); }
-    .fase-t { font: 700 13px var(--mono); color: var(--suave); letter-spacing: 0.08em; margin: 34px 0 8px; text-transform: uppercase; }
-    .nivel { margin: 14px 0 22px; }
-    .nivel-cab { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
-    .nivel-cab .cinta { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font: 800 18px var(--mono); color: #111; flex: none; }
-    .nivel-cab h2 { margin: 0; font-size: 21px; }
-    .nivel-cab p { margin: 2px 0 0; color: var(--suave); font-size: 14px; }
-    .nivel-cab .tags { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
-    .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 10px; }
-    .mod { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 5px; padding: 12px; transition: transform 0.15s, border-color 0.15s; position: relative; }
-    a.mod:hover { transform: translateY(-2px); border-color: var(--acento); }
-    .mod .id { font: 700 12px var(--mono); color: var(--acento); display: flex; gap: 6px; align-items: center; }
-    .mod h3 { margin: 0 !important; font-size: 16px !important; color: var(--texto) !important; text-transform: none !important; letter-spacing: 0 !important; }
-    .mod .t { font-size: 13px; color: var(--suave); }
-    .mod .estado { display: flex; gap: 4px; margin-top: auto; padding-top: 6px; }
-    .mod .estado span { font: 700 11px var(--mono); padding: 1px 6px; border-radius: var(--radio-s); border: 1px solid var(--borde); color: var(--suave); }
-    .mod .estado span.si { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, var(--borde)); }
-    .mod.forja { opacity: 0.55; border-style: dashed; }
-    .mod.forja .id { color: var(--suave); }
-    .mod.completo { border-color: color-mix(in srgb, var(--ok) 55%, var(--borde)); }
-    .mod .side { position: absolute; top: 10px; right: 10px; font-size: 11px; color: var(--xp); }
+    main { max-width: 1320px; margin: 0 auto; padding: 10px 16px 60px; }
+    #chuleta-n { font: 700 12px var(--mono); background: var(--panel); border-radius: 99px; padding: 1px 7px; color: var(--xp); }
+    /* Tira de cinturones */
+    .cinturones { display: flex; gap: 6px; margin: 0 0 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .cinturones::-webkit-scrollbar { display: none; }
+    .cint { flex: none; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; color: var(--suave); background: var(--panel); border: 2px solid var(--borde); border-radius: 99px; padding: 5px 12px 5px 8px; font-size: 14px; }
+    .cint i { width: 14px; height: 14px; border-radius: 50%; flex: none; opacity: 0.5; }
+    .cint b { font-weight: 600; }
+    .cint span { font: 12px var(--mono); }
+    .cint.abierto { color: var(--texto); border-color: var(--acento); }
+    .cint.abierto i, .cint.ganado i { opacity: 1; }
+    .cint.ganado i { box-shadow: 0 0 10px currentColor; }
+    .mp-aforo { margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radio); border: 2px solid var(--aviso); background: color-mix(in srgb, var(--aviso) 12%, var(--panel)); font-size: 15px; }
+    /* Mapa a la izquierda, ficha a la derecha */
+    .mp-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+    .mp-lado { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 12px; }
+    .mp-ficha { position: relative; display: flex; flex-direction: column; gap: 8px; }
+    .mp-ficha .cerrar { display: none; position: absolute; top: 6px; right: 10px; background: none; border: 0; color: var(--suave); font: 700 22px var(--sans); cursor: pointer; }
+    .mp-eti { font: 700 12px var(--mono); color: var(--acento); letter-spacing: 0.06em; text-transform: uppercase; }
+    .mp-ficha h2 { margin: 0 !important; font-size: 23px !important; line-height: 1.2; }
+    .mp-ficha p { margin: 0; color: var(--suave); font-size: 15px; }
+    .mi-tpb { display: flex; gap: 6px; flex-wrap: wrap; }
+    .mi-tpb span { font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 99px; border: 2px solid var(--borde); color: var(--suave); }
+    .mi-tpb span.si { color: var(--ok); border-color: var(--ok); }
+    .mp-entrar { margin-top: 4px; }
+    .mp-chuleta { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: inherit; padding: 12px 16px; }
+    .mp-chuleta:hover { border-color: var(--acento); }
+    .mp-chuleta span { color: var(--suave); font-size: 14px; }
+    .mp-cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .mp-cifras div { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 8px 4px; text-align: center; }
+    .mp-cifras b { display: block; font: 800 20px var(--mono); }
+    .mp-cifras span { font-size: 12px; color: var(--suave); }
+    /* Lo que viene */
+    .mp-sec { margin-top: 26px; }
+    .mp-sec > summary, .mp-tit { font: 700 14px var(--sans); color: var(--suave); cursor: pointer; margin-bottom: 10px; }
+    .mp-tit { cursor: default; margin: 26px 0 10px; }
+    .nivel { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 10px 14px; margin-bottom: 8px; }
+    .nivel summary { cursor: pointer; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .nivel summary i { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+    .nivel p { color: var(--suave); margin: 8px 0; font-size: 15px; }
+    .nivel ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 14px; }
+    .nivel li { font-size: 14px; display: flex; flex-direction: column; }
+    .nivel li span { color: var(--suave); font-size: 13px; }
     .arcade { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
     .juego { text-decoration: none; color: inherit; display: flex; gap: 12px; align-items: center; }
     .juego:hover { border-color: var(--acento); }
     .juego .ic { font-size: 28px; color: var(--acento); }
     .juego small { color: var(--suave); display: block; }
-    @media (max-width: 900px) { .arriba { grid-template-columns: 1fr; } }
+    @media (max-width: 1000px) { .mp-cuerpo { grid-template-columns: minmax(0, 1fr) 280px; } }
+    @media (max-width: 700px) {
+      main { padding: 8px 10px 30px; }
+      .solo-ancho { display: none !important; }
+      .mp-cuerpo { display: block; }
+      /* En el móvil la ficha sube desde abajo al tocar una isla. Si no, no ocupa sitio. */
+      .mp-lado { position: fixed; left: 8px; right: 8px; bottom: calc(60px + env(safe-area-inset-bottom)); top: auto; z-index: 30; display: none; }
+      .mp-lado.abierta { display: flex; animation: mp-sube 0.25s ease-out; }
+      .mp-lado .mp-chuleta, .mp-lado .mp-cifras { display: none; }
+      .mp-ficha { box-shadow: 0 10px 40px #000a; border-color: var(--acento) !important; }
+      .mp-ficha .cerrar { display: block; }
+      .mp-ficha p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+      @keyframes mp-sube { from { transform: translateY(30px); opacity: 0; } }
+    }
   </style>
 </head>
 <body>
   <header class="cabecera">
     <h1><a href="/" title="La portada de relavops" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:0.45em"><i data-ic="terminal"></i> relavops</a></h1>
     <span class="espacio"></span>
-    <a class="btn" href="/arcade"><i data-ic="gamepad-2"></i> Arcade</a>
+    <a class="btn solo-ancho" href="/chuleta"><i data-ic="clipboard"></i> Chuleta <span id="chuleta-n">0</span></a>
+    <a class="btn solo-ancho" href="/arcade"><i data-ic="gamepad-2"></i> Arcade</a>
     <span id="ajustes"></span>
   </header>
   <main>
-    <div class="mapa-isla" id="mapa-isla"></div>
-    <div class="solo-clasico">
-    <div class="arriba">
-      <a class="panel continuar" id="continuar" style="text-decoration:none;color:inherit"></a>
-      <div class="panel">
-        <div class="cifras">
-          <div><b id="c-xp" style="color:var(--xp)">0</b><span>XP</span></div>
-          <div><b id="c-racha">0</b><span id="c-racha-t">días de racha</span></div>
-          <div><b id="c-bosses">0</b><span>bosses</span></div>
-        </div>
-        <p style="font-size:13px;color:var(--suave);margin:10px 0 0">Cada 7 días con actividad ganas un comodín que cubre un día sin entrar. Nunca pierdes progreso.</p>
-      </div>
+    <nav class="cinturones" id="cinturones" aria-label="Cinturones"></nav>
+    <div class="mp-cuerpo">
+      <div class="mapa-isla" id="mapa-isla"></div>
+      <aside class="mp-lado" id="lado"></aside>
     </div>
-    <div class="cinturones" id="cinturones"></div>
-    <div id="niveles"></div>
-    </div>
-    <div class="fase-t">Arcade · calentamientos de 60 segundos</div>
+    <details class="mp-sec" id="temario">
+      <summary>Lo que viene después del cinturón blanco</summary>
+      <div id="niveles"></div>
+    </details>
+    <div class="mp-tit">Arcade · calentamientos de 60 segundos</div>
     <div class="arcade" id="arcade"></div>
   </main>
   <script type="module" src="/src/curso/mapa.ts"></script>

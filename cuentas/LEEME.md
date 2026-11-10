@@ -28,7 +28,7 @@ labd le pasa al Worker las rutas de cuentas con la IP del alumno (firmada con el
 | `src/index.ts` | Las rutas y la limpieza diaria (cron). |
 | `src/sesion.ts` | Sesiones, pases, quién eres, roles, registro de actividad y ajustes. |
 | `src/cripto.ts` | Contraseñas (PBKDF2-SHA256, 100 000 vueltas) y la firma Ed25519 de los pases. |
-| `src/rutas/cuenta.ts` | Alta, entrada, salida, nombre y correo libres, código de clase, cambiar contraseña o correo, unirse a una clase, borrar la cuenta, progreso. |
+| `src/rutas/cuenta.ts` | Alta, entrada, salida, nombre y correo libres, código de clase, cambiar contraseña o correo, unirse a una clase, borrar la cuenta, progreso. El progreso lleva también las notas de la chuleta (de cada nota gana la más reciente) y la versión de la numeración de las lecciones. Lo guardado con los números de antes se pasa a los nuevos al mezclar (`migrar`, la misma tabla que `web/src/curso/progreso.ts`). |
 | `src/rutas/clases.ts` | Lo del profe. Clases, códigos, alumnos con su progreso y cuentas de alumnos creadas en bloque. |
 | `src/rutas/admin.ts` | Lo del admin. Resumen con métricas, usuarios, clases, labs, servidores, actividad, ajustes y exportar a CSV. |
 | `src/rutas/nodos.ts` | El latido de cada labd y las órdenes del panel. |

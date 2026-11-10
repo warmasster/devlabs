@@ -1,287 +1,205 @@
-// 0.1 · Qué es un ordenador para un sysadmin. Desde cero: piezas, procesos, red, IP, ping y puertos.
+// 0.1 · La shell. Terminal y shell, el prompt, opciones, TAB, historial, señales y trabajos.
 import type { Leccion } from './tipos';
 
-const CUERPO = 'n0-1a-cuerpo';
-const RED = 'n0-1b-red';
-const PRACTICA = 'n0-1-maquina';
-
-const mb = (v: string): [number, number, string] => {
-  const [u, t] = v.trim().split(/\s+/).map(Number);
-  return [u, t, `${u} MB usados de ${t} MB`];
-};
-const pct = (v: string): [number, number, string] => {
-  const n = Math.min(100, Number(v.trim()) || 0);
-  return [n, 100, `${n} % de su CPU`];
-};
+const L = 'n0-1a-teclas';
+const PRACTICA = 'n0-1-shell';
 
 export const leccion: Leccion = {
   id: '0.1',
-  titulo: 'Qué es un ordenador para un sysadmin',
-  minutos: 45,
-  resumen: 'Ya sabes qué piezas tiene una máquina, qué es un proceso y cómo pararlo. Y sabes qué es una IP, cómo comprobar con ping que otra máquina contesta y qué es un puerto.',
+  titulo: 'La shell',
+  minutos: 35,
+  resumen: 'Sabes leer el prompt, pedir ayuda a un comando, completar con TAB, buscar en el historial y controlar programas con Ctrl+C, Ctrl+Z, bg, jobs, kill y Ctrl+D.',
   pasos: [
     {
-      titulo: 'Qué es un servidor',
-      lab: CUERPO,
+      titulo: 'Terminal y shell no son lo mismo',
+      lab: L,
       w: [
-        { t: 'analogia', icono: 'server', de: 'Un servidor', es: 'es un ordenador que trabaja para otros. Casi nunca tiene pantalla ni teclado.' },
-        { t: 'texto', md: 'Cuando abres una web o mandas un mensaje, al otro lado hay un servidor. El de la derecha es uno pequeñito, para ti.' },
-        { t: 'haz', paso: 'hostname', md: 'Pregúntale cómo se llama. Escribe `hostname` en la terminal.' },
-      ],
-    },
-    {
-      titulo: 'Las capas de una máquina',
-      w: [
-        { t: 'capas', capas: [
-          { t: 'Tú', sub: 'escribes comandos', icono: 'user', info: 'Hablas con la máquina desde la terminal.' },
-          { t: 'Programas', sub: 'ls, cat, una web…', icono: 'app-window', info: 'Cada comando que escribes arranca un programa.' },
-          { t: 'Kernel', sub: 'el que manda', icono: 'shield', info: 'El **kernel** es el programa jefe. Reparte las piezas de abajo entre todos los programas. Ningún programa toca el hardware sin pedírselo a él.' },
-          { t: 'Hardware', sub: 'CPU · RAM · disco · red', icono: 'cpu', info: 'Las piezas físicas. Las vas a ver una a una.' },
-        ] },
-        { t: 'texto', md: 'Toca cada capa. De arriba abajo es el camino que hace cada orden que escribes.' },
-        { t: 'haz', paso: 'uname0', md: 'El kernel de esta máquina se llama Linux. Compruébalo escribiendo `uname`.' },
-      ],
-    },
-    {
-      titulo: 'Un programa pide, el kernel hace',
-      w: [
+        { t: 'comparar', a: { titulo: 'Terminal', icono: 'monitor', puntos: ['la ventana', 'dibuja letras', 'recoge tus teclas'] }, b: { titulo: 'Shell', icono: 'terminal', puntos: ['un programa', 'entiende tus comandos', 'la tuya se llama bash'] }, vs: 'y' },
         { t: 'escena', escena: {
-          alto: 300,
+          alto: 220,
           nodos: [
-            { id: 'prog', x: 160, y: 70, txt: 'cat', sub: 'un programa', color: 'acento', info: 'Quiere leer un fichero, pero no puede tocar el disco.' },
-            { id: 'k', x: 450, y: 160, w: 260, txt: 'kernel', sub: 'el que manda', color: 'xp', info: 'Recibe la petición, va al disco y devuelve lo que había.' },
-            { id: 'disco', x: 740, y: 70, txt: 'disco', sub: 'donde vive el fichero', color: 'suave', forma: 'cilindro', info: 'Guarda los ficheros aunque apagues.' },
-            { id: 'pant', x: 160, y: 250, txt: 'tu pantalla', color: 'ok', info: 'Donde acaba saliendo el texto.' },
+            { id: 'tec', x: 110, y: 110, w: 130, txt: 'tu teclado', color: 'suave', info: 'Solo manda pulsaciones. Tu ordenador se las pasa a la ventana que tienes delante.' },
+            { id: 'term', x: 330, y: 110, w: 150, txt: 'terminal', sub: 'la ventana', color: 'acento', info: 'Un programa que convierte cada tecla en bytes y dibuja las letras que le devuelven. Aquí la terminal es tu navegador.' },
+            { id: 'k', x: 560, y: 110, w: 140, txt: 'kernel', sub: 'el jefe', color: 'xp', info: 'El kernel es el programa que manda en la máquina. Une la terminal con la shell por una tubería. Si ve pasar Ctrl+C, no lo entrega como una letra. Lo convierte en una orden de parar para el programa que está funcionando.' },
+            { id: 'bash', x: 780, y: 110, w: 130, txt: 'bash', sub: 'la shell', color: 'ok', info: 'Recibe cada tecla en cuanto la pulsas. Por eso puede completar con TAB o moverse con las flechas. Al llegar el Enter, ejecuta la línea.' },
           ],
-          flechas: [{ id: 'f1', de: 'prog', a: 'k' }, { id: 'f2', de: 'k', a: 'disco' }, { id: 'f3', de: 'prog', a: 'pant' }],
+          flechas: [{ id: 'a', de: 'tec', a: 'term' }, { id: 'b', de: 'term', a: 'k' }, { id: 'c', de: 'k', a: 'bash' }],
           pasos: [
-            { texto: 'Escribes `cat bienvenida.txt`. Arranca el programa cat.', ver: ['prog'], luz: ['prog'] },
-            { texto: 'cat no puede tocar el disco. Le pide al kernel que lea el fichero.', ver: ['k', 'f1'], luz: ['k'], viaja: [{ de: 'prog', a: 'k', txt: 'léeme esto' }] },
-            { texto: 'El kernel va al disco y trae lo que hay.', ver: ['disco', 'f2'], luz: ['disco'], viaja: [{ de: 'disco', a: 'k', txt: 'datos' }] },
-            { texto: 'Se lo da a cat, y cat lo saca por la pantalla.', ver: ['pant', 'f3'], luz: ['pant'], viaja: [{ de: 'k', a: 'prog', txt: 'datos' }, { de: 'prog', a: 'pant', txt: 'texto' }] },
+            { texto: 'Pulsas una tecla. Le llega a la terminal.', ver: ['tec', 'term', 'a'], luz: ['term'], viaja: [{ de: 'tec', a: 'term', txt: 'l' }] },
+            { texto: 'La terminal se la pasa al kernel, el programa que manda en la máquina.', ver: ['k', 'b'], luz: ['k'], viaja: [{ de: 'term', a: 'k', txt: 'l' }] },
+            { texto: 'El kernel se la entrega a bash. Así con cada tecla. Cuando llega el Enter, bash ejecuta la línea.', ver: ['bash', 'c'], luz: ['bash'], viaja: [{ de: 'k', a: 'bash', txt: 'l s ⏎' }] },
+            { texto: 'La respuesta hace el camino de vuelta y la terminal dibuja las letras en tu pantalla.', luz: ['term'], viaja: [{ de: 'bash', a: 'k', txt: 'salida' }, { de: 'k', a: 'term', txt: 'salida' }] },
           ],
         } },
-        { t: 'haz', paso: 'cathost', md: 'Haz tú lo del dibujo. Escribe `cat /etc/hostname`. cat le pide al kernel que lea ese fichero del disco.' },
+        { t: 'texto', md: 'La shell guarda algunos datos con nombre. Se llaman **variables** y se leen poniendo un `$` delante del nombre. La variable `SHELL` guarda qué shell usas.' },
+        { t: 'comando', cmd: 'echo', ops: [['$NOMBRE', 'enseña lo que guarda esa variable']], partes: [['echo', 'el programa'], ['$SHELL', 'lo que guarda la variable SHELL', 'xp']] },
+        { t: 'haz', paso: 'shell', md: 'Pregúntale a la máquina qué shell usas. Escribe `echo $SHELL`.' },
       ],
     },
     {
-      titulo: 'La CPU',
+      titulo: 'El prompt',
       w: [
-        { t: 'analogia', icono: 'cpu', de: 'La CPU', es: 'es la que hace las cuentas. Cada núcleo trabaja en una cosa a la vez, muy deprisa.' },
-        { t: 'haz', paso: 'nproc', md: 'Escribe `nproc`. Te dice cuántos núcleos hay.' },
-        { t: 'cifra', sonda: 'nproc@servidor', txt: 'núcleos que ve esta máquina', tras: 'nproc' },
-        { t: 'aviso', md: 'Ve los núcleos del ordenador grande donde vive. Pero solo la dejamos usar un cuarto de uno. La barra de CPU que verás cuenta sobre ese cuarto.' },
+        { t: 'anatomia', partes: [['root', 'tu usuario'], ['@', ''], ['lab', 'la máquina'], [':', ''], ['~', 'dónde estás'], ['#', 'eres administrador']] },
+        { t: 'texto', md: 'El **prompt** es lo que sale antes de donde escribes. Te dice quién eres, en qué máquina y en qué carpeta. `~` es tu carpeta personal.' },
+        { t: 'texto', md: 'Al final sale `#` si eres **root**, el administrador, que puede con todo. Un usuario normal ve `$`.' },
+        { t: 'comando', cmd: 'cd', hace: 'Cambia de carpeta. Tu shell siempre está dentro de alguna.', partes: [['cd', 'el programa'], ['/tmp', 'a qué carpeta vas']], ops: [['cd a secas', 'sin nada detrás, vuelve a tu carpeta personal']] },
+        { t: 'haz', paso: 'cdtmp', md: 'Escribe `cd /tmp` y mira cómo cambia el prompt. Luego escribe `cd` solo para volver a casa.' },
       ],
     },
     {
-      titulo: 'La CPU, trabajando',
+      titulo: 'Opciones y ayuda',
       w: [
-        { t: 'medidor', efecto: true, sonda: 'cpu@servidor', titulo: 'CPU que usa tu máquina ahora', fn: pct },
-        { t: 'texto', md: 'En tu máquina hay un programa que se llama **ocupado**. Hace cuentas sin parar y no acaba nunca.' },
-        { t: 'anatomia', partes: [['ocupado', 'el programa'], ['&', 'que se quede detrás y te devuelva la terminal', 'xp']] },
-        { t: 'texto', md: 'Sin el `&`, ocuparía la terminal y no podrías escribir nada más. Con él, la shell te contesta algo como `[1] 812`. Ese 812 es su número.' },
-        { t: 'haz', paso: 'ocupado-dentro', md: 'Escribe `ocupado &` y mira cómo sube la barra.' },
-        { t: 'aviso', md: 'Se queda gastando CPU a propósito. En los dos pasos siguientes lo encuentras y lo paras. Pulsa Seguir.' },
+        { t: 'anatomia', partes: [['ls', 'programa'], ['-l', 'opción', 'xp'], ['/etc', 'qué carpeta', 'ok']] },
+        { t: 'texto', md: 'Las opciones ya las conoces del tutorial. Las hay cortas, con un guion y una letra, como `-a`, y largas, con dos guiones y una palabra, como `--all`. Muchas veces son la misma opción con dos nombres.' },
+        { t: 'comando', cmd: 'ls', ops: [['-l', 'lista con detalles, una línea por fichero']] },
+        { t: 'comando', cmd: '--help', simbolo: true, hace: 'Detrás de casi cualquier programa, hace que te cuente sus opciones.', uso: 'ls --help' },
+        { t: 'haz', paso: 'man', md: 'Escribe `ls --help` y busca qué hace la opción `-l`.' },
+        { t: 'ultimo', nodo: 'lab' },
       ],
     },
     {
-      titulo: 'Los procesos',
+      titulo: 'TAB completa por ti',
       w: [
-        { t: 'analogia', icono: 'activity', de: 'Un proceso', es: 'es un programa que está funcionando ahora mismo. Cada uno lleva un número que se llama **PID**.' },
-        { t: 'texto', md: 'Para ver los procesos de una máquina se usa `ps`. Con `aux` enseña todos, de todos los usuarios.' },
-        { t: 'haz', paso: 'ps', md: 'Escribe `ps aux`. Busca ocupado en la última columna y apunta su PID, que es la segunda.' },
-        { t: 'texto', md: 'Ahora la lección te enseña la lista aquí, en vivo y más limpia. Verás muchos más procesos que núcleos. El kernel los va turnando, unos milisegundos cada uno, tan deprisa que parece que funcionan todos a la vez.', tras: 'ps' },
-        { t: 'aviso', md: 'En tu lista sale también `sh /usr/lib/relavops/vigia`. Es el ayudante del lab que mira lo que haces para que la lección se entere.', tras: 'ps' },
-        { t: 'procesos', sonda: 'procesos@servidor', resalta: ['ocupado', 'tragon'], tras: 'ps' },
-        { t: 'aviso', md: 'En el paso siguiente lo paras con ese PID.' },
+        { t: 'teclas', combos: [{ k: ['Tab'], que: 'completa el nombre de un fichero, una carpeta o un comando' }, { k: ['Tab', 'Tab'], que: 'si hay varias opciones, te las enseña todas' }] },
+        { t: 'texto', md: 'Escribir rutas largas a mano es la mejor forma de equivocarse. Escribe el principio y pulsa TAB.' },
+        { t: 'haz', paso: 'tab', md: 'Escribe `cat /srv/una` y pulsa TAB. Sigue pulsando TAB hasta llegar al fichero y pulsa Enter.' },
+        { t: 'fichero', sonda: 'cat@lab', titulo: 'Lo que has leído', mantener: true },
       ],
     },
     {
-      titulo: 'Parar un proceso',
+      titulo: 'El historial',
       w: [
-        { t: 'anatomia', partes: [['kill', 'el programa'], ['1234', 'el PID del proceso que quieres parar']] },
-        { t: 'medidor', efecto: true, sonda: 'cpu@servidor', titulo: 'CPU que usa tu máquina ahora', fn: pct },
-        { t: 'haz', paso: 'ocupado-fuera', md: 'Escribe `kill` seguido del PID de ocupado. Mira cómo baja la barra.', pista: 'kill 123   (cambia 123 por el PID que ves en la lista)' },
-        { t: 'procesos', sonda: 'procesos@servidor', resalta: ['ocupado'], tras: 'ps' },
-      ],
-    },
-    {
-      titulo: 'RAM y disco',
-      w: [
-        { t: 'comparar', a: { titulo: 'RAM', icono: 'memory-stick', puntos: ['rapidísima', 'se borra al apagar', 'aquí están los programas que funcionan'] }, b: { titulo: 'Disco', icono: 'hard-drive', puntos: ['mucho más lento', 'guarda aunque apagues', 'aquí están los ficheros'] } },
-        { t: 'escala', titulo: 'Lo que se tarda en traer un dato', items: [['RAM', 100, '100 nanosegundos'], ['Disco SSD', 100000, '0,1 milisegundos'], ['Disco duro', 10000000, '10 milisegundos'], ['Otro país, por red', 100000000, '100 milisegundos']] },
-        { t: 'texto', md: 'Por eso los programas se cargan en la RAM para trabajar. Ir al disco cada vez sería como ir a la biblioteca por cada palabra.' },
-        { t: 'haz', paso: 'lsweb', md: 'En el disco de esta máquina hay un vídeo. Míralo con `ls -lh /srv/web`. Ocupa 20 MB de disco y nada de RAM hasta que alguien lo abra.' },
-      ],
-    },
-    {
-      titulo: 'Mira la RAM',
-      w: [
-        { t: 'haz', paso: 'free', md: 'Escribe `free -m`. *total* es toda la RAM y *usada* lo que está ocupado, en megas.' },
-        { t: 'medidor', sonda: 'ram@servidor', titulo: 'RAM de tu máquina, en vivo', fn: mb, tras: 'free' },
-        { t: 'texto', md: 'Ahora otro programa de esta máquina, **tragon**. Se come 300 MB de RAM y se queda esperando.' },
-        { t: 'haz', paso: 'tragon-dentro', md: 'Lánzalo como antes, con `&` al final, y mira cómo sube la barra.', pista: 'tragon &' },
-        { t: 'aviso', md: 'Se queda comiendo RAM a propósito. En el paso siguiente lo paras. Pulsa Seguir.' },
-      ],
-    },
-    {
-      titulo: 'Fuera el tragón',
-      w: [
-        { t: 'medidor', efecto: true, sonda: 'ram@servidor', titulo: 'RAM de tu máquina', fn: mb },
-        { t: 'haz', paso: 'tragon-fuera', md: 'Busca el PID de `tragon` con `ps aux` y páralo con `kill`. La RAM vuelve a quedar libre.', pista: 'ps aux, busca tragon en la última columna, y luego kill y su PID' },
-      ],
-    },
-    {
-      titulo: 'El primer proceso',
-      w: [
-        { t: 'texto', md: 'Cuando una máquina arranca, el kernel lanza un primer proceso con el PID 1. Ese lanza otros, y esos otros más.' },
-        { t: 'haz', paso: 'pid1', md: 'Escribe `ps -p 1`. La opción `-p` elige un PID.' },
-        { t: 'texto', md: 'En un servidor normal suele ser `systemd`. Aquí sale `maquina` porque tu máquina es un **contenedor** y usa el kernel de un ordenador más grande. Es un programa pequeñito de relavops que la mantiene viva y recoge a los procesos que terminan. Tu shell no cuelga de él, la abre relavops desde fuera.' },
-      ],
-    },
-    {
-      titulo: 'El disco',
-      w: [
-        { t: 'haz', paso: 'df', md: 'Escribe `df -h`. Busca la línea que acaba en `/` y mira la columna Uso%.' },
-        { t: 'medidor', sonda: 'disco@servidor', titulo: 'Disco de tu máquina, en vivo', fn: mb, tras: 'df' },
-        { t: 'texto', md: 'La `-h` viene de *human*. Pone los tamaños en G y M en vez de números enormes.' },
-      ],
-    },
-    {
-      titulo: 'El kernel y el sistema',
-      w: [
-        { t: 'texto', md: 'El kernel tiene versión, como cualquier programa. Y alrededor del kernel va una **distribución**, el paquete de programas con el que viene la máquina. La tuya es Debian.' },
-        { t: 'haz', paso: 'uname', md: 'Escribe `uname -r` para ver la versión del kernel.' },
-        { t: 'texto', md: 'Ese kernel es el del ordenador grande donde vive tu contenedor, porque lo comparten. Por eso su versión no tiene por qué cuadrar con la distribución que vas a ver ahora.' },
-        { t: 'haz', paso: 'osrelease', md: 'Escribe `cat /etc/os-release` para ver la distribución. Fíjate en la línea `ID=`.' },
-      ],
-    },
-    {
-      titulo: 'Repaso',
-      w: [
-        { t: 'verdad', items: [
-          ['La RAM guarda las cosas aunque apagues la máquina.', false, 'Se borra al apagar. Lo que guarda es el disco.'],
-          ['Cada proceso tiene un número que se llama PID.', true, 'Lo has visto en la lista y con ps.'],
-          ['`kill` y un PID paran un proceso.', true, 'Así paraste a ocupado y a tragon.'],
-          ['Un programa lee el disco sin pedir permiso a nadie.', false, 'Se lo pide al kernel. Siempre.'],
+        { t: 'texto', md: 'La shell recuerda todo lo que escribes. Prueba estas tres teclas en la terminal. Se encienden cuando las pulsas.' },
+        { t: 'teclas', obliga: true, combos: [
+          { k: ['↑'], que: 'el comando anterior', seq: '\x1b[A' },
+          { k: ['↓'], que: 'el siguiente', seq: '\x1b[B' },
+          { k: ['Ctrl', 'R'], que: 'busca en el historial. Escribe tesoro y verás uno antiguo', seq: '\x12' },
         ] },
+        { t: 'aviso', md: 'Con Ctrl+R, cada vez que vuelves a pulsar Ctrl+R salta a una coincidencia más antigua. Enter la ejecuta.' },
       ],
     },
     {
-      titulo: 'Las máquinas hablan entre ellas',
-      lab: RED,
+      titulo: 'Moverse por la línea',
       w: [
-        { t: 'texto', md: 'Un servidor casi nunca está solo. Ahora tienes **tres máquinas** en la misma red. Mira sus tarjetas a la derecha.' },
-        { t: 'analogia', icono: 'network', de: 'Una red', es: 'son máquinas unidas por cables o por wifi para mandarse datos.' },
-        { t: 'red', efecto: true, origen: 'tu-pc' },
-        { t: 'haz', paso: 'hostpc', nodo: 'tu-pc', md: 'Escribe `hostname` en la terminal de tu-pc. Cada máquina tiene su nombre.' },
+        { t: 'texto', md: 'Escribe algo largo sin pulsar Enter y prueba estas tres.' },
+        { t: 'teclas', obliga: true, combos: [
+          { k: ['Ctrl', 'A'], que: 'salta al principio de la línea', seq: '\x01' },
+          { k: ['Ctrl', 'E'], que: 'salta al final', seq: '\x05' },
+          { k: ['Ctrl', 'U'], que: 'borra desde el cursor hasta el principio', seq: '\x15' },
+        ] },
+        { t: 'teclas', combos: [{ k: ['Ctrl', 'W'], que: 'borra la palabra de antes del cursor', seq: '\x17' }] },
+        { t: 'senala', zona: 'inmersivo', md: 'Ctrl+W en el navegador cierra la pestaña. Con el lab en pantalla completa, desde este botón, llega a la terminal. Pruébalo. Para salir, mantén Esc.' },
+        { t: 'aviso', md: 'Antes de seguir, deja la línea limpia con Ctrl+U.' },
       ],
     },
     {
-      titulo: 'Qué es una IP',
+      titulo: 'Un programa ocupa la terminal',
       w: [
-        { t: 'analogia', icono: 'house', de: 'Una IP', es: 'es la dirección de una máquina en la red. Como la dirección de una casa para el cartero.' },
-        { t: 'ip', ip: '10.0.0.20' },
-        { t: 'texto', md: 'Son cuatro números separados por puntos. Cada uno va de 0 a 255. Toca uno para ver por qué.' },
-        { t: 'haz', paso: 'hostI', nodo: 'tu-pc', md: 'Escribe `hostname -I`. Te dice las IPs de tu-pc en una sola línea.' },
+        { t: 'analogia', icono: 'activity', de: 'Un proceso', es: 'es un programa que está funcionando ahora mismo. Cada vez que lanzas un comando, nace uno.' },
+        { t: 'texto', md: 'Cuando lanzas un programa, la shell espera a que acabe y no te atiende. Se dice que el programa está en **primer plano**.' },
+        { t: 'comando', cmd: 'sleep', hace: 'Espera los segundos que le digas y termina. No hace nada más. Viene bien para practicar.', partes: [['sleep', 'el programa'], ['5', 'cuántos segundos']] },
+        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep'] },
+        { t: 'haz', paso: 'sleep5', md: 'Escribe `sleep 5`. Durante 5 segundos no sale el prompt. Luego vuelve.' },
       ],
     },
     {
-      titulo: 'Por qué hasta 255',
+      titulo: 'Ctrl+C corta',
       w: [
-        { t: 'texto', md: 'Los ordenadores cuentan con **bits**, interruptores que están a 0 o a 1. Cada número de la IP son 8 bits. Cada bit vale el doble que el de su derecha. Con los 8 encendidos sale 255.' },
-        { t: 'texto', md: 'Enciende los bits que sumen 20, el último número de la IP de web.' },
-        { t: 'binario', objetivo: 20 },
+        { t: 'teclas', combos: [{ k: ['Ctrl', 'C'], que: 'le pide al programa de primer plano que pare', seq: '\x03' }] },
+        { t: 'texto', md: 'Es lo que viste en el dibujo del principio. Ctrl+C no llega como una letra. El kernel lo ve pasar y le manda al programa una orden de parar.' },
+        { t: 'haz', paso: 'ctrlc', md: 'Escribe `sleep 100` y, mientras espera, córtalo con Ctrl+C.' },
+        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep'] },
+        { t: 'aviso', md: 'Ojo. Aquí Ctrl+C no copia. Para copiar en la terminal usa Ctrl+Shift+C, o Cmd+C en un Mac.' },
       ],
     },
     {
-      titulo: 'Tu IP',
+      titulo: 'Parar sin matar',
       w: [
-        { t: 'haz', paso: 'ipaddr', nodo: 'tu-pc', md: 'En la terminal de **tu-pc** escribe `ip addr`. Busca la línea que empieza por `inet` y no es la de 127.0.0.1.' },
-        { t: 'anatomia', partes: [['inet', 'dirección IPv4'], ['10.0.0.10', 'tu IP'], ['/24', 'el tamaño de la red']], nota: 'La de 127.0.0.1 es la máquina hablando consigo misma. El /24 lo verás en el nivel de redes.' },
-        { t: 'maquina', tras: 'ipaddr' },
-        { t: 'aviso', md: 'Tu IP también sale en la tarjeta de la derecha. En un servidor de verdad no hay tarjeta, por eso aprendes a buscarla.' },
+        { t: 'texto', md: 'Un programa puede estar funcionando delante, parado o funcionando detrás. Prueba a moverlo con los botones hasta que acabe. En los pasos siguientes haces cada cosa de verdad.' },
+        { t: 'estados', inicio: 'del', objetivo: ['del', 'par', 'det', 'fin'], estados: [
+          { id: 'del', t: 'Delante', sub: 'ocupa la terminal' }, { id: 'par', t: 'Parado', sub: 'congelado' }, { id: 'det', t: 'Detrás', sub: 'sigue, y tú escribes' }, { id: 'fin', t: 'Terminado' },
+        ], trans: [['del', 'par', 'Ctrl+Z'], ['del', 'fin', 'Ctrl+C'], ['par', 'del', '`fg`'], ['par', 'det', '`bg`'], ['det', 'del', '`fg`'], ['det', 'fin', '`kill %1`'], ['par', 'fin', '`kill %1`']] },
       ],
     },
     {
-      titulo: 'ping',
+      titulo: 'Ctrl+Z, ahora de verdad',
       w: [
-        { t: 'analogia', icono: 'radar', de: 'ping', es: 'manda un mensajito a otra máquina y espera la respuesta. Si contesta, está ahí y la red funciona.' },
-        { t: 'anatomia', partes: [['ping', 'el programa'], ['-c 3', 'manda 3 y para'], ['10.0.0.20', 'a quién']] },
-        { t: 'red', efecto: true, origen: 'tu-pc' },
-        { t: 'haz', paso: 'pingweb', nodo: 'tu-pc', md: 'Escribe `ping -c 3 10.0.0.20` y mira el mapa.' },
+        { t: 'teclas', combos: [{ k: ['Ctrl', 'Z'], que: 'congela el programa de primer plano y te devuelve la terminal', seq: '\x1a' }] },
+        { t: 'haz', paso: 'parado', md: 'Escribe `sleep 200` y pulsa Ctrl+Z. Mira cómo sale **parado** en la lista.' },
+        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep 200'] },
+        { t: 'aviso', md: 'Se queda parado, sin hacer nada. En el paso siguiente lo mandas al fondo.' },
       ],
     },
     {
-      titulo: 'Ahora a db',
+      titulo: 'bg, jobs y fg',
       w: [
-        { t: 'red', efecto: true, origen: 'tu-pc' },
-        { t: 'haz', paso: 'pingdb', nodo: 'tu-pc', md: 'Haz ping a **db**. Su IP está en su tarjeta, a la derecha.', pista: 'ping -c 3 10.0.0.30' },
-        { t: 'texto', md: 'En la terminal, cada línea con `time=` es una respuesta. El número es lo que tardó en ir y volver, en milisegundos.' },
+        { t: 'comando', cmd: 'bg', hace: 'Hace que un programa parado siga funcionando, pero detrás. Tú recuperas la terminal.', uso: 'bg' },
+        { t: 'haz', paso: 'fondo', md: 'Escribe `bg`.' },
+        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep 200'] },
+        { t: 'comando', cmd: 'jobs', hace: 'Lista los programas que tienes detrás o parados en esta shell. Cada uno lleva un número entre corchetes, como `[1]`.', uso: 'jobs' },
+        { t: 'haz', paso: 'jobs', md: 'Escribe `jobs` y mira el número de tu `sleep`.' },
+        { t: 'comando', cmd: 'fg', hace: 'Trae a primer plano un programa que estaba detrás o parado.', uso: 'fg' },
+        { t: 'aviso', md: 'El `sleep` sigue funcionando detrás. En el paso siguiente lo terminas.' },
       ],
     },
     {
-      titulo: 'Una IP que no es de nadie',
+      titulo: 'kill %1',
       w: [
-        { t: 'red', efecto: true, origen: 'tu-pc' },
-        { t: 'haz', paso: 'pingnadie', nodo: 'tu-pc', md: 'Escribe `ping -c 2 10.0.0.99`. Ninguna máquina tiene esa IP.' },
-        { t: 'texto', md: 'Los mensajes salen y nadie contesta. Al final ping dice cuántos se perdieron.' },
-        { t: 'texto', md: 'Cuando pasa esto, puede ser que la dirección esté mal o que la red esté rota. También puede haber un cortafuegos que no deja pasar el ping. Que una máquina no conteste no siempre quiere decir que no esté.' },
+        { t: 'comando', cmd: 'kill', hace: 'Le pide a un programa que termine.', partes: [['kill', 'el programa'], ['%1', 'el trabajo número 1 de jobs']], ops: [['%1', 'el trabajo número 1 de los que enseña `jobs`']] },
+        { t: 'texto', md: 'Los trabajos son de cada shell. `%1` solo vale en la terminal donde lanzaste el programa.' },
+        { t: 'haz', paso: 'matar', md: 'Escribe `kill %1`.' },
+        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep 200'] },
       ],
     },
     {
-      titulo: 'Los puertos',
+      titulo: 'Ctrl+D, se acabó',
       w: [
-        { t: 'analogia', icono: 'door-open', de: 'Un puerto', es: 'es una puerta con número dentro de la máquina. La IP te lleva al edificio y el puerto, a la puerta concreta.' },
-        { t: 'tabla', cab: ['Puerto', 'Quién suele estar detrás'], filas: [['22', 'SSH, para entrar a la terminal de otra máquina'], ['80', 'webs sin cifrar'], ['443', 'webs con candado'], ['5432', 'la base de datos PostgreSQL']] },
-        { t: 'puertos', efecto: true, nodo: 'web', puertos: [[22, 'ssh'], [80, 'web'], [443, 'web segura'], [8080, '']] },
-        { t: 'texto', md: 'Ahora mismo web tiene todas sus puertas cerradas. Vas a abrir una.' },
-        { t: 'haz', paso: 'ss', nodo: 'tu-pc', md: 'Las puertas abiertas se miran con `ss -tln`. Escríbelo en tu-pc.' },
+        { t: 'teclas', combos: [{ k: ['Ctrl', 'D'], que: 'le dice al programa que ya no vas a escribir más', seq: '\x04' }] },
+        { t: 'texto', md: 'Ctrl+D tampoco es una letra. El kernel lo convierte en un aviso de fin, como si se acabara lo que escribes. Un programa que lee lo que tecleas, al ver que ya no llegará nada más, se cierra.' },
+        { t: 'comando', cmd: 'python3', hace: 'Abre Python, un lenguaje de programación. Aquí lo usas de calculadora.', uso: 'python3' },
+        { t: 'haz', paso: 'ctrld', md: 'Escribe `python3`, luego `2 + 2` y Enter. Después sal con Ctrl+D.' },
+        { t: 'aviso', md: 'A bash le pasa lo mismo. Ctrl+D con la línea vacía cierra tu shell. Si te pasa, pulsa Enter en la terminal y se abre otra.' },
       ],
     },
     {
-      titulo: 'Abre una puerta',
+      titulo: 'Leer textos largos',
       w: [
-        { t: 'senala', zona: 'pestanas', md: 'Cambia a la terminal de **web** con su pestaña, a la derecha.' },
-        { t: 'haz', paso: 'puerto', nodo: 'web', md: 'En web escribe `nc -lk 8080`. Se queda esperando y no te devuelve el control. Es normal, está escuchando en esa puerta.' },
-        { t: 'puertos', efecto: true, nodo: 'web', puertos: [[22, 'ssh'], [80, 'web'], [443, 'web segura'], [8080, '']] },
-        { t: 'senala', zona: 'web', md: 'Mira la tarjeta de web. Le ha salido un puntito verde con el 8080.' },
+        { t: 'comando', cmd: 'less', hace: 'Enseña un texto largo pantalla a pantalla, sin soltarlo todo de golpe.', partes: [['less', 'el programa'], ['/etc/services', 'qué fichero']] },
+        { t: 'teclas', combos: [
+          { k: ['/'], que: 'dentro de less, busca. Escribes `/`, la palabra y Enter' },
+          { k: ['n'], que: 'dentro de less, salta a la siguiente coincidencia' },
+          { k: ['q'], que: 'dentro de less, sale' },
+        ] },
+        { t: 'haz', paso: 'less', md: 'Escribe `less /etc/services`, busca `/ssh`, pulsa `n` un par de veces y sal con `q`.' },
       ],
     },
     {
-      titulo: 'Llama a esa puerta',
+      titulo: 'Cómo salir de cualquier sitio',
       w: [
-        { t: 'red', efecto: true, origen: 'tu-pc' },
-        { t: 'haz', paso: 'conectar', nodo: 'tu-pc', md: 'Vuelve a **tu-pc** y escribe `nc -zv 10.0.0.20 8080`. Mira el mapa.' },
-        { t: 'texto', md: 'Ha salido una conexión hacia web y nc dice que ha funcionado. Si la puerta estuviera cerrada, te diría que la conexión fue rechazada.' },
+        { t: 'tabla', cab: ['Si estás en…', 'Sales con'], filas: [['un comando que no acaba', 'Ctrl+C'], ['`less`', '`q`'], ['`python3`', 'Ctrl+D'], ['`vim`, un editor de texto que verás más adelante', 'Esc, luego `:q!` y Enter']] },
+        { t: 'texto', md: 'En `vim` se busca igual que en `less`, con `/`, la palabra y Enter.' },
+        { t: 'atajo', items: [['Cortar un programa', 'Ctrl+C'], ['Buscar en el historial', 'Ctrl+R'], ['Ir al principio de la línea', 'Ctrl+A'], ['Salir de python3', 'Ctrl+D'], ['Parar un programa sin matarlo', 'Ctrl+Z'], ['Completar un nombre', 'Tab']] },
       ],
     },
     {
-      titulo: 'Repaso de red',
-      w: [
-        { t: 'clasifica', md: '¿Cuáles pueden ser una IP de verdad?', cubos: ['Puede ser una IP', 'Imposible'], items: [['10.0.0.20', 0], ['192.168.1.1', 0], ['300.1.2.3', 1], ['10.0.0', 1], ['8.8.8.8', 0], ['10.0.0.256', 1]] },
-        { t: 'empareja', pares: [['IP', 'la dirección de la máquina'], ['puerto', 'la puerta dentro de la máquina'], ['`ping`', 'pregunta si otra máquina contesta'], ['`nc -l`', 'abre una puerta y espera']] },
-      ],
-    },
-    {
-      titulo: 'Práctica con la ficha de una máquina',
+      titulo: 'Práctica',
       lab: PRACTICA,
       w: [
-        { t: 'texto', md: 'Ahora una máquina que no conoces. Rellena su ficha con lo que has aprendido. Contestas con `responde`, como en el tutorial.' },
+        { t: 'texto', md: 'Una máquina nueva con todo esto mezclado. Van en el orden que quieras.' },
         { t: 'mision' },
       ],
     },
     {
       titulo: 'El boss',
       w: [
-        { t: 'texto', md: 'Alguien se está comiendo esta máquina y se esconde con un nombre que parece del sistema. Sin guía. Si te atascas, pide pista.' },
+        { t: 'texto', md: 'Te van a meter dentro de un programa. Tienes que encontrar una palabra y salir sin cerrar la pestaña.' },
         { t: 'boss' },
       ],
     },
     {
       titulo: 'Lo que te llevas',
       w: [
-        { t: 'chuleta', items: [['nproc', 'cuántos núcleos'], ['free -m', 'la RAM, en megas'], ['df -h', 'el disco'], ['ps aux', 'todos los procesos'], ['kill PID', 'parar un proceso'], ['uname -r', 'versión del kernel'], ['ip addr', 'tus IPs'], ['ping -c 3 IP', 'comprobar si otra máquina contesta'], ['nc -lk 8080', 'abrir una puerta y esperar'], ['nc -zv IP 8080', 'llamar a una puerta']] },
+        { t: 'chuleta' },
       ],
     },
   ],

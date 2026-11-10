@@ -7,7 +7,7 @@ const limpio = (t) => t.replace(/`[^`]*`/g, '').replace(/https?:\/\/\S+/g, '');
 let n = 0;
 for (const f of fs.readdirSync(raiz + 'web/src/curso/lecciones').filter((x) => /^0-/.test(x))) {
   const s = fs.readFileSync(raiz + 'web/src/curso/lecciones/' + f, 'utf8');
-  for (const m of s.matchAll(/(md|texto|de|es|titulo|q|porque|nota|pista|que|sub|info): ('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g)) {
+  for (const m of s.matchAll(/(md|texto|de|es|titulo|q|porque|nota|pista|que|sub|info|hace): ('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g)) {
     const t = limpio(m[2].slice(1, -1));
     if (/:(\s|$)/.test(t) || t.includes('—')) { n++; console.log(`${f} ${m[1]} | ${m[2].slice(0, 120)}`); }
   }

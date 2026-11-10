@@ -46,6 +46,8 @@ export class LabTerminal {
   onEstado?: (e: Estado) => void;
   onEnter?: () => void;
   onDatos?: (texto: string) => void; // lo que teclea el alumno (la lección reacciona a atajos)
+  onCtrl?: (armado: boolean) => void; // la tecla Ctrl de la barra del móvil se ha armado o gastado
+  private ctrl = false;
 
   private constructor(readonly el: HTMLElement, readonly motor: Motor, readonly sesion: string, readonly nodo: string) {}
 
@@ -92,11 +94,17 @@ export class LabTerminal {
       this.term.loadAddon(new Unicode11Addon());
       this.term.unicode.activeVersion = '11';
       this.term.open(this.el);
-      try {
-        const webgl = new WebglAddon();
-        webgl.onContextLoss(() => webgl.dispose());
-        this.term.loadAddon(webgl);
-      } catch { /* sin WebGL: se queda el render DOM */ }
+      // En el móvil se pinta con el DOM, sin WebGL. La terminal ahí es pequeña y puede nacer en una
+      // pestaña que no se ve (la lección en el móvil), y con WebGL se quedaba en negro. Además los
+      // móviles dan pocos contextos WebGL y una lección con tres máquinas abre tres terminales.
+      const movil = matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+      if (!movil) {
+        try {
+          const webgl = new WebglAddon();
+          webgl.onContextLoss(() => webgl.dispose());
+          this.term.loadAddon(webgl);
+        } catch { /* sin WebGL: se queda el render DOM */ }
+      }
     }
 
     // Copiar y pegar sin pisar Ctrl+C (que es SIGINT para la shell).
@@ -139,7 +147,15 @@ export class LabTerminal {
       this.term.attachCustomKeyEventHandler(procesar);
     }
 
-    this.term.onData((d: string) => this.enviar(this.enc.encode(d), d));
+    this.term.onData((d: string) => {
+      // Ctrl de la barra de teclas del móvil: la letra siguiente va con Ctrl (c pasa a ser Ctrl+C).
+      if (this.ctrl && d.length === 1) {
+        const c = d.toUpperCase().charCodeAt(0);
+        if (c >= 64 && c <= 95) d = String.fromCharCode(c & 31);
+        this.armarCtrl(false);
+      }
+      this.enviar(this.enc.encode(d), d);
+    });
     this.term.onBinary?.((d: string) => this.enviar(Uint8Array.from(d, (c) => c.charCodeAt(0) & 255), d));
     this.term.onResize?.(({ cols, rows }: { cols: number; rows: number }) => this.control({ t: 'resize', c: cols, r: rows }));
 
@@ -326,6 +342,12 @@ export class LabTerminal {
   }
 
   focus() { this.term.focus(); }
+
+  /** Escribe en la terminal como si se tecleara. Lo usa la barra de teclas del móvil. */
+  teclear(t: string) { this.enviar(this.enc.encode(t), t); }
+
+  /** Arma o desarma el Ctrl de la barra de teclas. Armado, la próxima letra va con Ctrl. */
+  armarCtrl(si = !this.ctrl) { this.ctrl = si; this.onCtrl?.(si); }
 
   destruir() {
     this.cerrado = true;

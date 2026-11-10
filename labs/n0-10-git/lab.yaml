@@ -1,0 +1,130 @@
+# 0.10 · Git básico: flujo con remoto y el desastre del viernes.
+id: n0-10-git
+titulo: Git con remoto de verdad
+motor: contenedor
+pool: 1
+nodos:
+  - nombre: lab
+    imagen: relavops/base:1
+    memoria: 256m
+    cpus: 1
+preparar:
+  - nodo: lab
+    script: |
+      git config --global user.name "Tú"
+      git config --global user.email "tu@relavops.local"
+      git config --global init.defaultBranch main
+      git config --global pull.rebase false
+      git config --global advice.detachedHead false
+      # El "servidor" de git del equipo: un repositorio desnudo con historia.
+      mkdir -p /srv/git && git init -q --bare /srv/git/web.git
+      t=$(mktemp -d) && cd "$t" && git init -q && git remote add origin /srv/git/web.git
+      printf '<h1>Tienda</h1>\n<p>Horario: consúltanos</p>\n' > index.html; git add . && git commit -qm "Primera versión de la web"
+      printf 'body { font-family: sans-serif; }\n' > estilo.css; git add . && git commit -qm "Añade estilos"
+      git push -q origin main && cd / && rm -rf "$t"
+      # Una "compañera" para el boss.
+      git config --system safe.directory '*'
+mision:
+  - id: clonar
+    titulo: Clona el repositorio del equipo
+    texto: "El remoto está en `/srv/git/web.git`. Clónalo en `~/web`."
+    pista: git clone /srv/git/web.git ~/web
+    xp: 10
+    check: { nodo: lab, script: 'git -C /root/web rev-parse --git-dir >/dev/null 2>&1 && [ "$(git -C /root/web remote get-url origin)" = /srv/git/web.git ]' }
+  - id: commit
+    titulo: Tu primer commit
+    texto: "Añade a `index.html` una línea con el teléfono (`<p>Tel: …</p>`) y haz commit con un mensaje que diga qué hiciste."
+    pista: git add index.html && git commit -m "Añade el teléfono"
+    xp: 15
+    check: { nodo: lab, script: '[ "$(git -C /root/web rev-list --count main 2>/dev/null)" -ge 3 ] && git -C /root/web show main:index.html | grep -q "Tel"' }
+  - id: rama
+    titulo: Una rama para lo nuevo
+    texto: "Crea la rama `contacto`, y en ella un `contacto.html` con commit."
+    pista: git switch -c contacto  →  crea el fichero  →  git add + commit
+    xp: 15
+    check: { nodo: lab, script: 'git -C /root/web cat-file -e contacto:contacto.html 2>/dev/null' }
+  - id: merge
+    titulo: Únela a main
+    texto: "Vuelve a `main` y fusiona `contacto`. Mira el dibujo con `git log --oneline --graph --all`."
+    pista: git switch main && git merge contacto
+    xp: 15
+    check: { nodo: lab, script: 'git -C /root/web cat-file -e main:contacto.html 2>/dev/null && git -C /root/web merge-base --is-ancestor contacto main' }
+  - id: push
+    titulo: Que lo vea el equipo
+    texto: "Sube `main` al remoto."
+    pista: git push origin main
+    xp: 15
+    check: { nodo: lab, script: 'git -C /srv/git/web.git cat-file -e main:contacto.html 2>/dev/null && git -C /srv/git/web.git show main:index.html | grep -q Tel' }
+boss:
+  titulo: "El desastre del viernes"
+  texto: "Viernes a las seis menos cinco. Algo ha salido mal en el repositorio. `git status` y `git log --oneline --graph --all` son tus ojos. La primera pista es gratis y te cuenta el problema."
+  xp: 80
+  check:
+    - { nodo: lab, script: "test -x /run/boss-check.sh && /run/boss-check.sh" }
+  fallos:
+    - id: conflicto
+      romper:
+        - nodo: lab
+          script: |
+            # La compañera cambia el horario y lo sube…
+            t=$(mktemp -d) && git clone -q /srv/git/web.git "$t" && cd "$t"
+            sed -i 's#<p>Horario: .*</p>#<p>Horario: 9:00-18:00</p>#' index.html && git commit -qam "Horario real" && git push -q origin main
+            # …y tú, en local, cambiaste la misma línea sin subirlo.
+            cd /root/web && git switch -q main 2>/dev/null
+            sed -i 's#<p>Horario: .*</p>#<p>Horario: lunes a viernes</p>#' index.html && git commit -qam "Días de apertura"
+            cat > /run/boss-check.sh <<'EOF'
+            #!/bin/sh
+            R=/srv/git/web.git
+            git -C $R log --format=%s main | grep -q "Horario real" && git -C $R log --format=%s main | grep -q "Días de apertura" || exit 1
+            h=$(git -C $R show main:index.html)
+            echo "$h" | grep -q "9:00-18:00" && echo "$h" | grep -q "lunes a viernes" && ! echo "$h" | grep -qE '^(<<<<<<<|=======|>>>>>>>)'
+            EOF
+            chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 0, texto: "Tu `git push` se rechaza. Sube tu cambio sin perder el de tu compañera. El horario tiene que decir los días y también las horas." }
+        - { coste: 5, texto: "Rechazado = el remoto tiene commits que tú no. `git pull` los trae… y chocan en la misma línea." }
+        - { coste: 10, texto: "Abre index.html, quita las marcas `<<<<<<<`, `=======`, `>>>>>>>` y deja una línea con las dos cosas. Luego `git add`, `git commit` y `git push`." }
+      solucion: "pull → conflicto → editar a mano juntando ambos cambios → add + commit → push. Nunca `push --force` sobre el trabajo de otra persona."
+    - id: secreto
+      romper:
+        - nodo: lab
+          script: |
+            cd /root/web && git switch -q main 2>/dev/null
+            printf 'DB_PASSWORD=Sup3rS3cr3t0!\nSTRIPE_KEY=sk_test_noesreal\n' > .env
+            echo '<p>Ofertas</p>' >> index.html
+            git add -A && git commit -qm "Ofertas de Black Friday"
+            cat > /run/boss-check.sh <<'EOF'
+            #!/bin/sh
+            W=/root/web
+            [ -f $W/.env ] || exit 1
+            grep -qxF .env $W/.gitignore 2>/dev/null || exit 1
+            [ -z "$(git -C $W log --all --format=%H -- .env)" ] || exit 1
+            git -C $W log --format=%s main | grep -q "Ofertas" && git -C $W show main:index.html | grep -q Ofertas
+            EOF
+            chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 0, texto: "Tu último commit, que aún no has subido, metió `.env` con contraseñas. Sácalo de la historia y que no se vuelva a colar, pero conserva el fichero y el cambio de Ofertas." }
+        - { coste: 5, texto: "`git rm --cached .env` lo saca del índice sin borrarlo del disco. Y un `.gitignore` con `.env` evita que vuelva." }
+        - { coste: 10, texto: "Para rehacer el último commit sin el fichero, `git commit --amend`. Comprueba con `git log --all -- .env` que no queda en ninguna rama." }
+      solucion: "`git rm --cached .env`, `.env` al `.gitignore` y `git commit --amend`. Como no se había subido, reescribir el último commit es seguro."
+    - id: rama-equivocada
+      romper:
+        - nodo: lab
+          script: |
+            cd /root/web && git switch -q main 2>/dev/null
+            printf '/* arreglo urgente del menú */\nnav { display: flex; }\n' >> estilo.css
+            git commit -qam "Arreglo urgente del menú"
+            cat > /run/boss-check.sh <<'EOF'
+            #!/bin/sh
+            W=/root/web
+            git -C $W rev-parse --verify -q hotfix >/dev/null || exit 1
+            git -C $W log --format=%s hotfix | grep -q "Arreglo urgente del menú" || exit 1
+            [ "$(git -C $W rev-parse main)" = "$(git -C $W rev-parse origin/main)" ] || exit 1
+            ! git -C $W log --format=%s main | grep -q "Arreglo urgente del menú"
+            EOF
+            chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 0, texto: "Hiciste el commit Arreglo urgente del menú en `main`, pero tenía que ir en una rama `hotfix` para revisarlo. Muévelo, y que `main` quede igual que `origin/main`." }
+        - { coste: 5, texto: "Una rama es solo una etiqueta. `git branch hotfix` crea la etiqueta justo donde estás, con tu commit dentro." }
+        - { coste: 10, texto: "Luego, estando en main, devuélvela a donde estaba el remoto con `git reset --hard origin/main`." }
+      solucion: "`git branch hotfix` guarda el commit en una rama nueva y `git reset --hard origin/main` devuelve main a su sitio. Nada se pierde."

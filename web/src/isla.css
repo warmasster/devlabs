@@ -169,13 +169,11 @@
 @keyframes dl-brinca { 0%, 100% { transform: translateY(0) scale(1.05, 0.95); } 50% { transform: translateY(-16px) scale(0.96, 1.04); } }
 
 /* ---------- Mapa de islas ---------- */
-.mapa-isla { display: none; }
-:root[data-modo='isla'] .mapa-isla { display: block; }
-:root[data-modo='isla'] .solo-clasico { display: none !important; }
-.mi-arriba { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; margin: 4px 0 10px; }
-.mi-cifra { display: flex; align-items: baseline; gap: 6px; padding: 6px 16px; border-radius: 99px; background: var(--panel); border: 2.5px solid var(--borde); border-bottom-width: 5px; font-weight: 600; }
-.mi-cifra b { font-size: 22px; }
-.mi-lienzo { position: relative; max-width: 820px; margin: 0 auto; border-radius: 34px 26px 38px 24px / 26px 36px 24px 34px; overflow: hidden; border: 3px solid var(--borde-fuerte); border-bottom-width: 7px; }
+/* El mismo mapa en los dos modos. En pantalla ancha las islas van en dos filas y caben sin bajar.
+   En el móvil (.mi-movil) van en un camino vertical. El reparto lo hace isla/mapa.ts. */
+.mapa-isla { display: block; min-width: 0; }
+.mi-lienzo { position: relative; margin: 0 auto; border-radius: 34px 26px 38px 24px / 26px 36px 24px 34px; overflow: hidden; border: 3px solid var(--borde-fuerte); border-bottom-width: 7px; }
+.mi-movil .mi-lienzo { max-width: 520px; border-radius: 22px; }
 .mi-lienzo svg.mi-svg { display: block; width: 100%; height: auto; }
 .mi-svg text { font-family: var(--sans); }
 .mi-hierve { animation: dl-hierve 0.9s steps(1) infinite; }
@@ -186,10 +184,12 @@
 .mi-isla .mi-cuerpo { transition: transform 0.25s var(--muelle); transform-box: fill-box; transform-origin: center; }
 .mi-isla:focus { outline: none; }
 .mi-isla.futura .mi-cuerpo { filter: saturate(0.55) brightness(0.85); }
+.mi-isla.elegida .mi-etiqueta { fill: var(--acento); }
+.mi-isla.elegida .mi-cuerpo { transform: scale(1.08); }
 .mi-isla.niebla { cursor: default; }
 .mi-isla.niebla .mi-cuerpo { filter: grayscale(1) brightness(0.6); opacity: 0.6; }
-.mi-etiqueta { font-weight: 700; font-size: 17px; paint-order: stroke; stroke: var(--borde-fuerte); stroke-width: 5px; stroke-linejoin: round; fill: var(--texto); }
-.mi-sub { font-size: 12px; font-weight: 600; fill: var(--suave); paint-order: stroke; stroke: var(--borde-fuerte); stroke-width: 4px; }
+.mi-etiqueta { font-weight: 700; font-size: 21px; paint-order: stroke; stroke: var(--borde-fuerte); stroke-width: 5px; stroke-linejoin: round; fill: var(--texto); }
+.mi-sub { font-size: 16px; font-weight: 600; fill: var(--suave); paint-order: stroke; stroke: var(--borde-fuerte); stroke-width: 4px; }
 .mi-sub.hecho { fill: var(--ok); }
 .mi-bicho { pointer-events: none; }
 .mi-bicho .mi-respira { animation: dl-respira 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
@@ -212,30 +212,22 @@
 @keyframes dl-sube { from { transform: translateY(0); opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.5; } to { transform: translateY(-260px); opacity: 0; } }
 @keyframes dl-titila { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.9; } }
 
-.mi-ficha { position: absolute; z-index: 5; width: min(320px, 86%); padding: 16px 18px; background: var(--panel); border: 2.5px solid var(--borde); border-bottom-width: 6px; border-radius: var(--blando); animation: dl-salta 0.4s var(--muelle); }
-.mi-ficha h3 { margin: 0 0 4px; font-size: 21px; font-weight: 700; }
-.mi-ficha p { margin: 0 0 10px; font-size: 15px; color: var(--suave); }
-.mi-ficha .mi-tpb { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-.mi-ficha .mi-tpb span { font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 99px; border: 2px solid var(--borde); color: var(--suave); }
-.mi-ficha .mi-tpb span.si { color: var(--ok); border-color: var(--ok); }
-.mi-ficha .mi-botones { display: flex; gap: 8px; }
-.mi-ficha .cerrar { position: absolute; top: 6px; right: 10px; background: none; border: 0; color: var(--suave); font: 700 20px var(--sans); cursor: pointer; }
-.mi-seguir { position: sticky; bottom: 18px; display: flex; justify-content: center; margin-top: -70px; z-index: 6; pointer-events: none; }
-.mi-seguir .btn { pointer-events: auto; font-size: 20px; padding: 12px 34px; box-shadow: 0 8px 24px #0008; }
-.con-ficha .mi-seguir { visibility: hidden; }
-.mi-mundo { max-width: 820px; margin: 14px auto 0; display: grid; gap: 8px; }
+:root[data-modo='isla'] .mp-ficha { border-radius: var(--blando); animation: dl-salta 0.4s var(--muelle); }
+/* El botón de seguir solo hace falta en el móvil, donde la ficha no está siempre a la vista. */
+.mi-seguir { display: none; }
+.mi-movil .mi-seguir { position: sticky; bottom: calc(66px + env(safe-area-inset-bottom)); display: flex; justify-content: center; margin-top: -64px; z-index: 6; pointer-events: none; }
+.mi-seguir .btn { pointer-events: auto; font-size: 18px; padding: 11px 28px; box-shadow: 0 8px 24px #0008; }
+.mi-mundo { margin: 14px auto 0; padding: 10px 16px; }
+.mi-mundo summary { cursor: pointer; color: var(--suave); font-weight: 600; font-size: 14px; }
+.mi-mundo[open] { display: grid; gap: 8px; }
 .mi-mundo-fila { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .mi-mundo-fila > span { width: 90px; color: var(--suave); font-weight: 600; font-size: 14px; }
 .mi-telon { position: fixed; inset: 0; z-index: 90; pointer-events: none; background: var(--fondo); clip-path: circle(0 at var(--x) var(--y)); transition: clip-path 0.7s cubic-bezier(0.7, 0, 0.3, 1); display: grid; place-content: center; }
 .mi-telon.cierra { clip-path: circle(150% at var(--x) var(--y)); }
 .mi-telon p { font-size: 26px; font-weight: 700; opacity: 0; transition: opacity 0.3s 0.4s; }
 .mi-telon.cierra p { opacity: 1; }
-.mi-resto { max-width: 820px; margin: 18px auto 0; text-align: center; color: var(--suave); font-size: 15px; }
-@media (max-width: 600px) {
-  .mi-etiqueta { font-size: 30px; stroke-width: 7px; }
-  .mi-sub { font-size: 22px; stroke-width: 6px; }
-  .mi-lienzo { border-radius: 22px; }
-}
+.mi-movil .mi-etiqueta { font-size: 24px; stroke-width: 6px; }
+.mi-movil .mi-sub { font-size: 18px; stroke-width: 5px; }
 
 /* Foco propio: nada del borde del navegador al pulsar. Con el teclado, un anillo redondo del tema. */
 :root[data-modo='isla'] :focus:not(:focus-visible) { outline: none; }

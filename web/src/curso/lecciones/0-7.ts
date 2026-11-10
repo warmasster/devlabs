@@ -1,125 +1,123 @@
-// 0.7 · Editores. nano para empezar, vim con sus modos y su gramática, y JSON e INI para el boss.
+// 0.7 · Expresiones regulares. Literales, anclas, clases, cuántas veces, grupos; grep -E, -o, -c y sed.
 import type { Leccion } from './tipos';
 
-const L = 'n0-7a-editor';
-const PRACTICA = 'n0-7-vim';
-const editor = { t: 'estado', efecto: true, sonda: 'editor', titulo: 'Editor abierto ahora', mapa: { vim: ['vim', 'aviso'], nano: ['nano', 'aviso'], ninguno: ['ninguno', 'ok'] } };
+const L = 'n0-7a-patrones';
+const PRACTICA = 'n0-7-regex';
 
 export const leccion: Leccion = {
   id: '0.7',
-  titulo: 'Editores',
+  titulo: 'Expresiones regulares',
   minutos: 35,
-  resumen: 'Sabes editar con nano y con vim, salir de los dos sin perder nada, y leer JSON e INI sin miedo a una coma de más.',
+  resumen: 'Sabes describir la forma de un texto con anclas, clases y repeticiones, buscar con grep -E y -o, y cambiar texto en ficheros con sed, incluso reordenando trozos.',
   pasos: [
     {
-      titulo: 'Editar sin ratón',
+      titulo: 'Buscar por la forma',
       lab: L,
       w: [
-        { t: 'texto', md: 'En un servidor no hay ventanas ni ratón. Para cambiar un fichero se usa un editor dentro de la terminal.' },
-        { t: 'comparar', a: { titulo: 'nano', icono: 'pencil', puntos: ['fácil', 'los atajos salen escritos abajo', 'no siempre está instalado'] }, b: { titulo: 'vim', icono: 'zap', puntos: ['está en todas partes', 'rapidísimo cuando lo dominas', 'al principio desconcierta'] } },
-        { t: 'haz', paso: 'which', md: 'Comprueba que tienes los dos con `which nano vim`. Te dice dónde está cada programa.' },
+        { t: 'analogia', icono: 'search', de: 'Una expresión regular', es: 'describe la forma de un texto. Como pedir busca algo que parezca un teléfono.' },
+        { t: 'texto', md: 'Se suelen llamar **regex**. Funcionan en grep, en sed, en vim y en casi todos los lenguajes. Aquí las pruebas sin miedo. Escribe en el recuadro y mira qué se marca.' },
+        { t: 'regex', libre: true, inicial: 'ERROR', lineas: [['ERROR disco lleno'], ['INFO todo bien'], ['WARN último ERROR ignorado'], ['ERROR no responde']] },
+        { t: 'haz', paso: 'literal', md: 'Ahora en la terminal, con `grep`, que ya conoces. Escribe `grep ERROR textos/log.txt`.' },
       ],
     },
     {
-      titulo: 'nano',
+      titulo: 'Principio y final',
       w: [
-        { t: 'teclas', combos: [
-          { k: ['Ctrl', 'O'], que: 'guarda. Luego Enter para confirmar el nombre', seq: '\x0f' },
-          { k: ['Ctrl', 'X'], que: 'sale', seq: '\x18' },
-          { k: ['Ctrl', 'K'], que: 'corta la línea entera', seq: '\x0b' },
-          { k: ['Ctrl', 'W'], que: 'busca una palabra', seq: '\x17' },
-        ] },
-        { t: 'aviso', md: 'Abajo nano escribe `^X` en vez de Ctrl+X. El `^` es Ctrl. Las teclas se encienden aquí cuando las pulsas dentro de nano.' },
-        { t: 'senala', zona: 'inmersivo', md: 'Ctrl+W en el navegador cierra la pestaña. Para que llegue a nano, pon el lab en pantalla completa con este botón. Esc mantenido sale.' },
-        { t: 'haz', paso: 'vernota', md: 'Mira primero cómo está con `cat nota.txt`.' },
-        { t: 'fichero', tras: 'vernota', sonda: 'nota', titulo: '`nota.txt`, tal como está guardado' },
-        editor,
-        { t: 'haz', paso: 'nano', md: 'Escribe `nano nota.txt`, añade una línea, guarda con Ctrl+O y Enter, y sal con Ctrl+X.' },
+        { t: 'tabla', cab: ['Símbolo', 'Quiere decir'], filas: [['`^`', 'principio de la línea'], ['`$`', 'final de la línea']] },
+        { t: 'regex', md: 'Marca solo las líneas que **empiezan** por ERROR.', lineas: [['ERROR disco lleno', true], ['INFO todo bien', false], ['WARN último ERROR ignorado', false], ['ERROR no responde', true]] },
+        { t: 'aviso', md: 'En la terminal, pon siempre el patrón entre comillas simples. Pasa como con el asterisco de `find`. Sin comillas, la shell cambia `*`, `$` o `|` antes de que grep los vea.' },
+        { t: 'haz', paso: 'ancla', md: "Busca las líneas que **acaban** en segundos con `grep 'segundos$' textos/log.txt`." },
+        { t: 'ultimo', nodo: 'lab', tras: 'ancla' },
       ],
     },
     {
-      titulo: 'vim tiene modos',
+      titulo: 'Guardar lo que encuentras',
       w: [
-        { t: 'texto', md: 'En vim las teclas no siempre escriben. Depende del **modo**. Al abrirlo estás en NORMAL, donde las letras son órdenes. Mueve el estado con los botones hasta guardar y salir.' },
-        { t: 'estados', inicio: 'n', objetivo: ['n', 'i', 'n', 'c'], estados: [{ id: 'n', t: 'NORMAL', sub: 'órdenes' }, { id: 'i', t: 'INSERCIÓN', sub: 'escribes texto' }, { id: 'c', t: 'COMANDO', sub: 'abajo, tras `:`' }], trans: [['n', 'i', '`i`'], ['i', 'n', 'Esc'], ['n', 'c', '`:`'], ['c', 'n', 'Enter o Esc']] },
-        { t: 'tabla', cab: ['En COMANDO', 'Hace'], filas: [['`:w`', 'guarda'], ['`:q`', 'sale'], ['`:wq`', 'guarda y sale'], ['`:q!`', 'sale sin guardar']] },
+        { t: 'texto', md: 'La salida de grep se guarda en un fichero con `>`, como la de cualquier comando.' },
+        { t: 'fichero', efecto: true, sonda: 'encontrado', titulo: '`encontrado.txt`, en vivo', vacio: 'Todavía no existe.' },
+        { t: 'haz', paso: 'empiezan', md: "Escribe `grep '^ERROR' textos/log.txt > encontrado.txt`." },
       ],
     },
     {
-      titulo: 'Prueba sin miedo',
+      titulo: 'Clases y el punto',
       w: [
-        { t: 'vim', md: 'Este vim es de prácticas. Arregla la errata y guarda con `:wq`. Con `l` te mueves a la derecha, `x` borra una letra e `i` entra a escribir.', texto: 'Hlola mundo', objetivo: 'Hola mundo' },
+        { t: 'tabla', cab: ['Escribes', 'Encaja con'], filas: [['`[0-9]`', 'un dígito'], ['`[a-z]`', 'una letra minúscula'], ['`[aeiou]`', 'una vocal'], ['`[^ ]`', 'cualquier cosa menos un espacio'], ['`.`', 'cualquier carácter'], ['`\\.`', 'un punto de verdad. Sin la barra, el punto es cualquier cosa']] },
+        { t: 'texto', md: 'Ojo con `^`. Dentro de corchetes quiere decir lo contrario, todo menos lo que va detrás. Fuera de corchetes es el principio de la línea.' },
+        { t: 'regex', md: 'Marca los códigos que tienen una letra y luego un dígito, como `a7`.', lineas: [['a7', true], ['b2', true], ['77', false], ['ab', false], ['z0', true]] },
+        { t: 'haz', paso: 'clase', md: "En la terminal, `grep '[0-9]' textos/log.txt` saca las líneas con algún dígito." },
       ],
     },
     {
-      titulo: 'Ahora el de verdad',
+      titulo: 'Cuántas veces',
       w: [
-        editor,
-        { t: 'haz', paso: 'vimsal', md: 'Escribe `vim compra.txt`, mira y sal con `:q`.' },
-        { t: 'aviso', md: 'Si te lías, pulsa Esc dos veces y escribe `:q!`. Sales sin guardar nada.' },
+        { t: 'tabla', cab: ['Escribes', 'Quiere decir'], filas: [['`+`', 'una o más veces'], ['`*`', 'cero o más'], ['`?`', 'puede estar o no'], ['`{3}`', 'exactamente 3'], ['`{2,4}`', 'de 2 a 4']] },
+        { t: 'texto', md: 'Se ponen detrás de lo que se repite. `[0-9]+` es uno o más dígitos seguidos.' },
+        { t: 'regex', md: 'Marca solo los códigos de exactamente 3 dígitos, nada más. Para que no sobre nada delante ni detrás te hacen falta `^` y `$`.', lineas: [['404', true], ['200', true], ['40', false], ['2000', false], ['a404', false]] },
+        { t: 'comando', cmd: 'grep', ops: [['-E', 'regex completas. Sin ella, grep no entiende `+ ? { } ( ) |` tal cual'], ['-o', 'saca solo el trozo que encaja, no la línea entera']] },
+        { t: 'haz', paso: 'veces', md: "Saca solo los números de `textos/log.txt`. Escribe `grep -oE '[0-9]+' textos/log.txt`." },
       ],
     },
     {
-      titulo: 'Moverse y borrar',
+      titulo: 'Grupos y o',
       w: [
-        { t: 'tabla', cab: ['Tecla', 'Hace'], filas: [['`h j k l`', 'izquierda, abajo, arriba, derecha'], ['`w` · `b`', 'palabra siguiente y anterior'], ['`0` · `$`', 'principio y final de la línea'], ['`gg` · `G`', 'principio y final del fichero'], ['`x`', 'borra una letra'], ['`o`', 'abre una línea debajo y te deja escribiendo'], ['`dd`', 'borra la línea'], ['`yy` · `p`', 'copia la línea y pega debajo'], ['`u`', 'deshace'], ['`/palabra`', 'busca']] },
-        { t: 'texto', md: 'Muchas órdenes llevan un número delante. `3dd` borra tres líneas.' },
-        { t: 'haz', paso: 'vimmove', md: 'Practica en el de verdad. Abre `vim compra.txt`, muévete con `h j k l`, `w`, `0` y `$`, y sal con `:q`.' },
+        { t: 'texto', md: 'Los paréntesis agrupan y la barra `|` dentro de una regex quiere decir **o**. `(GET|POST)` encaja con cualquiera de las dos.' },
+        { t: 'regex', md: 'Marca las peticiones que empiezan por GET o por POST.', lineas: [['GET /', true], ['POST /login', true], ['PUT /x', false], ['DELETE /y', false], ['XGET /', false]] },
+        { t: 'haz', paso: 'grupo', md: "En la terminal, las líneas que empiezan por ERROR o por WARN. `grep -E '^(ERROR|WARN)' textos/log.txt`." },
       ],
     },
     {
-      titulo: 'Borra con dd',
+      titulo: 'Sacar y contar',
       w: [
-        { t: 'haz', paso: 'vercompra', md: 'Mira primero cómo está con `cat compra.txt`.' },
-        { t: 'fichero', tras: 'vercompra', sonda: 'compra', titulo: '`compra.txt`, tal como está guardado' },
-        editor,
-        { t: 'haz', paso: 'dd', md: 'Abre `compra.txt` en vim, quita las dos líneas BORRAME con `dd` y guarda con `:wq`.' },
+        { t: 'tabla', cab: ['Opción de grep', 'Hace'], filas: [['`-E`', 'regex completas'], ['`-o`', 'solo el trozo que encaja'], ['`-c`', 'cuenta las líneas que encajan. Ya la conoces']] },
+        { t: 'fichero', efecto: true, sonda: 'correos', titulo: '`correos.txt`, en vivo', vacio: 'Todavía no existe.' },
+        { t: 'haz', paso: 'correos', md: "Saca los correos de `textos/contactos.txt` a `correos.txt`. El patrón de un correo es `[a-z.]+@[a-z.]+`.", pista: "grep -oE '[a-z.]+@[a-z.]+' textos/contactos.txt > correos.txt" },
+        { t: 'haz', paso: 'contar', md: 'Cuenta con `grep -c` cuántas líneas de `textos/log.txt` empiezan por ERROR.', pista: "grep -c '^ERROR' textos/log.txt" },
       ],
     },
     {
-      titulo: 'Reemplazar en todo el fichero',
+      titulo: 'Cambiar con sed',
       w: [
-        { t: 'anatomia', partes: [[':', 'modo comando'], ['%', 'en todas las líneas'], ['s/localhost/db/', 'sustituye'], ['g', 'todas las veces de cada línea']] },
-        { t: 'texto', md: 'Es lo mismo que el `s` de sed, pero dentro de vim.' },
-        { t: 'haz', paso: 'verconfig', md: 'Mira primero cómo está con `cat config.ini`.' },
-        { t: 'fichero', tras: 'verconfig', sonda: 'config', titulo: '`config.ini`, tal como está guardado' },
-        { t: 'haz', paso: 'sust', md: 'Abre `config.ini` en vim, cambia todos los localhost por db y guarda.' },
+        { t: 'comando', cmd: 'sed', hace: 'Cambia un texto por otro en cada línea que le llega.', partes: [['sed', 'el programa'], ['-i', 'guarda el cambio en el fichero'], ["'s#viejo#nuevo#g'", 'sustituye', 'xp'], ['fichero', 'dónde']], ops: [['-i', 'guarda el cambio en el propio fichero. Sin ella, sed solo enseña el resultado'], ['-E', 'regex completas, como en grep']] },
+        { t: 'texto', md: 'La `s` es sustituir. El separador suele ser `/`, pero puedes usar `#` cuando el texto lleva barras. La `g` del final cambia todas, no solo la primera de cada línea.' },
+        { t: 'haz', paso: 'verweb', md: 'Mira primero cómo está con `cat textos/web.txt`.' },
+        { t: 'fichero', tras: 'verweb', sonda: 'web', titulo: '`textos/web.txt`, en vivo' },
+        { t: 'haz', paso: 'https', md: 'Cambia los `http://` por `https://` en `textos/web.txt` con `sed -i`.', pista: "sed -i 's#http://#https://#g' textos/web.txt" },
       ],
     },
     {
-      titulo: 'Ficheros de configuración',
+      titulo: 'Reordenar con grupos',
       w: [
-        { t: 'texto', md: 'Lo que más vas a editar son configuraciones. Dos formatos muy comunes.' },
-        { t: 'codigo', codigo: '{\n  "nombre": "tienda",\n  "puerto": 8080,\n  "debug": false,\n  "backends": ["10.0.0.11", "10.0.0.12"]\n}', notas: { 2: 'Los textos van entre comillas dobles.', 3: 'Los números van sin comillas. "8080" sería un texto.', 4: 'true y false, sin comillas.', 5: 'Una lista va entre corchetes. Detrás del último elemento no va coma.', 6: 'JSON no admite comentarios.' } },
-        { t: 'codigo', codigo: '[servidor]\nworkers = 4\n\n[log]\nnivel = info', notas: { 1: 'Un INI se parte en secciones entre corchetes.', 2: 'Dentro, clave = valor. Sin repetir claves.' } },
-        { t: 'haz', paso: 'jsonok', md: 'Hay un `app.json` en tu carpeta. Escribe `jq . app.json`. Si el JSON está bien, lo enseña ordenado y con colores. Si está mal, dice en qué línea.' },
+        { t: 'texto', md: 'Con `sed -E`, lo que capturas entre paréntesis se puede volver a poner con `\\1`, `\\2`… en el orden que quieras.' },
+        { t: 'terminal-demo', lineas: [["echo 'Ana Pérez' | sed -E 's/(.*) (.*)/\\2, \\1/'", 'Pérez, Ana'], ["echo '03/11/2026' | sed -E 's#([0-9]{2})/([0-9]{2})/([0-9]{4})#\\3-\\2-\\1#'", '2026-11-03']] },
+        { t: 'haz', paso: 'gruposed', md: 'Escribe el primero en tu terminal, tal cual.', pista: "echo 'Ana Pérez' | sed -E 's/(.*) (.*)/\\2, \\1/'" },
       ],
     },
     {
-      titulo: 'Atajos de vim',
+      titulo: 'Memoria',
       w: [
-        { t: 'empareja', pares: [['`dd`', 'borra la línea'], ['`u`', 'deshace'], ['`:wq`', 'guarda y sale'], ['`:q!`', 'sale sin guardar'], ['`i`', 'empieza a escribir'], ['Esc', 'vuelve a NORMAL']] },
+        { t: 'memoria', pares: [['`^`', 'principio'], ['`$`', 'final'], ['`[0-9]`', 'un dígito'], ['`+`', 'una o más'], ['`?`', 'puede estar o no'], ['`grep -o`', 'solo lo que encaja']] },
       ],
     },
     {
-      titulo: 'Práctica contrarreloj',
+      titulo: 'Práctica',
       lab: PRACTICA,
       w: [
-        { t: 'texto', md: 'Cinco ficheros que arreglar en vim. Ve a por ellos.' },
+        { t: 'texto', md: 'Logs y ficheros de verdad. Saca lo que importa.' },
         { t: 'mision' },
       ],
     },
     {
       titulo: 'El boss',
       w: [
-        { t: 'texto', md: 'Alguien editó la configuración a mano y la app ya no arranca. `app-check` te dice qué falla.' },
+        { t: 'texto', md: 'Mañana hay auditoría de protección de datos y un log está lleno de datos personales.' },
         { t: 'boss' },
       ],
     },
     {
       titulo: 'Lo que te llevas',
       w: [
-        { t: 'chuleta', items: [['nano f · Ctrl+O · Ctrl+X', 'editar, guardar, salir'], ['vim f · i · Esc', 'abrir, escribir, volver'], [':wq · :q!', 'guardar y salir, salir sin guardar'], ['dd · yy · p · u', 'borrar, copiar, pegar, deshacer'], ['/palabra', 'buscar'], [':%s/a/b/g', 'reemplazar en todo']] },
+        { t: 'tabla', cab: ['Regex', 'Quiere decir'], filas: [['`^` `$`', 'principio y final'], ['`[0-9]` `[a-z]` `.`', 'clases'], ['`+` `*` `?` `{n}`', 'cuántas veces'], ['`(a|b)`', 'grupo con o'], ['`\\1` `\\2`', 'reusar lo capturado en sed']] },
+        { t: 'chuleta' },
       ],
     },
   ],

@@ -18,6 +18,10 @@
   /* Esquinas: redondeadas pero discretas */
   --radio: 6px;
   --radio-s: 4px;
+  /* Las usa el mapa de islas, que se ve en los dos modos. El modo islas las cambia en isla.css. */
+  --borde-fuerte: #06070b;
+  --muelle: ease-out;
+  --blando: var(--radio);
   --mono: 'Cascadia Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
   --sans: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, sans-serif;
   color-scheme: dark;
@@ -134,3 +138,14 @@ i[data-ic] > .ic { vertical-align: 0; display: block; }
 .dl-dialogo p { margin: 0 0 18px; color: var(--suave); }
 .dl-dialogo-botones { display: flex; gap: 10px; justify-content: flex-end; }
 @keyframes dl-aparece { from { opacity: 0; } }
+
+/* Barra de abajo del móvil (curso/nav.ts). En pantallas grandes no sale. */
+.rv-nav { display: none; }
+@media (max-width: 700px) {
+  .rv-nav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--panel); border-top: 2px solid var(--borde); padding-bottom: env(safe-area-inset-bottom); }
+  .rv-nav a { flex: 1; text-align: center; padding: 12px 4px; font-size: 14px; font-weight: 600; color: var(--suave); text-decoration: none; }
+  .rv-nav a[aria-current='page'] { color: var(--acento); box-shadow: inset 0 3px 0 var(--acento); }
+  body.con-nav { padding-bottom: calc(52px + env(safe-area-inset-bottom)); }
+  .cabecera { padding: 10px 12px; gap: 8px; }
+  .cabecera h1 { font-size: 18px !important; }
+}

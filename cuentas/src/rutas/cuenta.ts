@@ -391,9 +391,46 @@ interface Progreso {
   ultimo?: { mod: string; fase: string; resumen: string; cuando: number };
   records: Record<string, number>;
   pasos?: Record<string, number>; // lección -> último paso al que llegó
+  notas?: Record<string, { t: string; c: number }>; // clave de la chuleta -> nota y cuándo se escribió
+  v?: number; // versión de la numeración de las lecciones (ver migrar)
 }
 const PIEZAS = new Set(['teoria', 'lab', 'boss', 'juego']);
-const vacio = (): Progreso => ({ modulos: {}, xp: 0, dias: [], records: {} });
+const V = 2;
+const vacio = (): Progreso => ({ modulos: {}, xp: 0, dias: [], records: {}, v: V });
+
+// La versión 2 cambió el orden del cinturón blanco: la shell y los ficheros van antes que la máquina,
+// y la lección de la máquina se partió en dos (máquina y red). Lo guardado con los números de antes
+// se pasa a los nuevos antes de mezclar. Es la misma tabla que web/src/curso/progreso.ts.
+const MAPA: Record<string, string[]> = {
+  '0.1': ['0.3', '0.4'], '0.2': ['0.1'], '0.3': ['0.2'], '0.4': ['0.5'], '0.5': ['0.6'],
+  '0.6': ['0.7'], '0.7': ['0.8'], '0.8': ['0.9'], '0.9': ['0.10'],
+};
+const RED_DESDE = 16; // en la 0.1 de antes, el primer paso de la parte de red
+
+export function migrar(p: Progreso): Progreso {
+  if ((p.v ?? 1) >= V) return { ...p, v: V };
+  const modulos: Progreso['modulos'] = {};
+  for (const [k, piezas] of Object.entries(p.modulos)) {
+    for (const n of MAPA[k] ?? [k]) modulos[n] = { ...modulos[n], ...piezas };
+  }
+  let pasos: Record<string, number> | undefined;
+  for (const [k, n] of Object.entries(p.pasos ?? {})) {
+    pasos ??= {};
+    if (k === '0.1') {
+      pasos['0.3'] = n > RED_DESDE + 8 ? n : Math.min(n, RED_DESDE - 1);
+      if (n >= RED_DESDE) pasos['0.4'] = n - RED_DESDE;
+    } else pasos[(MAPA[k] ?? [k])[0]] = n;
+  }
+  let ultimo = p.ultimo;
+  if (ultimo && MAPA[ultimo.mod]) {
+    const mod = ultimo.mod === '0.1' && Number(ultimo.fase) >= RED_DESDE ? '0.4' : MAPA[ultimo.mod][0];
+    ultimo = { ...ultimo, mod, resumen: ultimo.resumen.replace(/^\S+/, mod) };
+  }
+  const m: Progreso = { ...p, modulos, v: V };
+  if (pasos) m.pasos = pasos;
+  if (ultimo) m.ultimo = ultimo;
+  return m;
+}
 
 export function limpiarProgreso(v: unknown): Progreso {
   const p = vacio();
@@ -421,12 +458,22 @@ export function limpiarProgreso(v: unknown): Progreso {
   if (u && typeof u.mod === 'string' && typeof u.cuando === 'number') {
     p.ultimo = { mod: u.mod.slice(0, 12), fase: String(u.fase ?? '').slice(0, 40), resumen: String(u.resumen ?? '').slice(0, 200), cuando: u.cuando };
   }
+  if (o.notas && typeof o.notas === 'object') {
+    for (const [k, n] of Object.entries(o.notas as Record<string, unknown>).slice(0, 400)) {
+      const x = n as { t?: unknown; c?: unknown } | null;
+      if (k.length <= 40 && x && typeof x.t === 'string' && typeof x.c === 'number' && x.c > 0) (p.notas ??= {})[k] = { t: x.t.slice(0, 500), c: Math.floor(x.c) };
+    }
+  }
+  // Lo que llega sin versión es de antes del cambio de numeración.
+  p.v = o.v === V ? V : 1;
   return p;
 }
 
 // Nunca se pierde nada. De cada pieza se queda la fecha más antigua, del XP el mayor y los días se juntan.
 export function mezclar(a: Progreso, b: Progreso): Progreso {
-  const m: Progreso = { modulos: {}, xp: Math.max(a.xp, b.xp), dias: [...new Set([...a.dias, ...b.dias])].sort(), records: { ...a.records } };
+  a = migrar(a);
+  b = migrar(b);
+  const m: Progreso = { modulos: {}, xp: Math.max(a.xp, b.xp), dias: [...new Set([...a.dias, ...b.dias])].sort(), records: { ...a.records }, v: V };
   for (const src of [a, b]) {
     for (const [mod, piezas] of Object.entries(src.modulos)) {
       for (const [pz, t] of Object.entries(piezas)) {
@@ -439,13 +486,20 @@ export function mezclar(a: Progreso, b: Progreso): Progreso {
   for (const src of [a, b]) for (const [k, n] of Object.entries(src.pasos ?? {})) (m.pasos ??= {})[k] = Math.max(m.pasos[k] ?? 0, n);
   m.ultimo = (a.ultimo?.cuando ?? 0) >= (b.ultimo?.cuando ?? 0) ? a.ultimo : b.ultimo;
   if (!m.ultimo) delete m.ultimo;
+  // De cada nota se queda la más reciente. Una nota vacía también cuenta: es que se borró.
+  for (const src of [a, b]) {
+    for (const [k, n] of Object.entries(src.notas ?? {})) {
+      const ya = m.notas?.[k];
+      if (!ya || n.c > ya.c) (m.notas ??= {})[k] = n;
+    }
+  }
   return m;
 }
 
 export async function verProgreso(c: Ctx) {
   const yo = await exigir(c);
   const f = await c.env.DB.prepare('SELECT datos FROM progreso WHERE usuario = ?').bind(yo.id).first<{ datos: string }>();
-  return { datos: f ? limpiarProgreso(JSON.parse(f.datos)) : vacio() };
+  return { datos: f ? migrar(limpiarProgreso(JSON.parse(f.datos))) : vacio() };
 }
 
 export async function guardarProgreso(c: Ctx) {

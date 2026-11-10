@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tu chuleta · relavops</title>
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    main { max-width: 820px; margin: 0 auto; padding: 18px 16px 60px; }
+    .intro { color: var(--suave); margin: 0 0 16px; }
+    @media print {
+      .cabecera, .rv-nav, .ch-arriba, .ch-nota-mas, .ch-libre, .intro { display: none !important; }
+      html, body { background: #fff !important; color: #000 !important; }
+      .ch-fila { break-inside: avoid; border-color: #999 !important; background: #fff !important; }
+      .ch-cmd, .ch-hace, .ch-ops, .ch-uso, .ch-nota-txt { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="cabecera">
+    <a class="volver" href="/curso">← Mapa</a>
+    <h1>Tu chuleta</h1>
+    <span class="espacio"></span>
+    <button class="btn" id="imprimir">Imprimir</button>
+    <span id="ajustes"></span>
+  </header>
+  <main>
+    <p class="intro">Los comandos que llevas aprendidos, en el orden en que salieron. Cada uno con lo que hace y con tus notas.</p>
+    <div id="chuleta"></div>
+  </main>
+  <script type="module" src="/src/curso/chuleta-pagina.ts"></script>
+</body>
+</html>

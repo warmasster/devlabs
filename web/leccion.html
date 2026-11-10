@@ -3,17 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <script id="dl-modo">try{for(const k of Object.keys(localStorage))if(k.startsWith("devlabs.")){const n="relavops"+k.slice(7);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(k));localStorage.removeItem(k)}}catch{}document.documentElement.dataset.modo = localStorage.getItem('relavops.modo') === 'clasico' ? 'clasico' : 'isla';</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
   <title>Lección · relavops</title>
   <link rel="icon" href="/favicon.svg" />
   <style>
-    body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    .cabecera { padding: 10px 18px; }
-    .progreso { flex: 1; min-width: 160px; max-width: 420px; display: flex; align-items: center; gap: 8px; }
+    body { height: 100vh; height: var(--alto, 100dvh); display: flex; flex-direction: column; overflow: hidden; }
+    .cabecera { padding: 10px 18px; flex: none; }
+    .cabecera h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .progreso { flex: 1; min-width: 120px; max-width: 420px; display: flex; align-items: center; gap: 8px; }
     .progreso .barra { flex: 1; }
-    .lc { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(400px, 1fr); }
-    /* Lección: centro izquierda */
-    .lc-izq { overflow-y: auto; padding: 18px clamp(14px, 3vw, 44px) 60px; scroll-behavior: smooth; }
+    .lc { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(400px, 1fr); position: relative; }
+    /* Lección: centro izquierda. La chuleta se abre encima de esta columna y no tapa la terminal. */
+    .lc-col { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+    .lc-izq { height: 100%; overflow-y: auto; padding: 18px clamp(14px, 3vw, 44px) 60px; scroll-behavior: smooth; }
     .lc-hechos { display: flex; gap: 3px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
     .lc-hecho { display: inline-flex; align-items: center; gap: 4px; font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--borde); background: var(--panel); color: var(--suave); cursor: pointer; max-width: 260px; flex: none; }
     .lc-hecho.hecho:not(.actual) { color: var(--ok); padding: 3px 6px; }
@@ -30,35 +32,85 @@
     .lc-tapado { padding: 14px; border: 1px dashed var(--borde); border-radius: var(--radio); color: var(--suave); font-size: 14px; }
     .lc-cambio { max-width: 860px; margin: 0 auto 10px; padding: 8px 12px; border-radius: var(--radio); background: color-mix(in srgb, var(--xp) 14%, var(--panel)); color: var(--xp); font-weight: 600; }
     .lc-fin p { font-size: 18px; }
+    /* La chuleta */
+    .lc-cajon { position: absolute; top: 0; right: 0; bottom: 0; width: min(480px, 100%); z-index: 20; display: flex; flex-direction: column; background: var(--fondo); border-left: 2px solid var(--borde); box-shadow: -18px 0 40px #0006; animation: ch-entra 0.22s ease-out; }
+    .lc-cajon[hidden] { display: none; }
+    @keyframes ch-entra { from { transform: translateX(24px); opacity: 0; } }
+    :root[data-movimiento='0'] .lc-cajon { animation: none; }
+    .lc-cajon-cab { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--borde); flex: none; }
+    .lc-cajon-cab h2 { margin: 0; font-size: 19px; flex: 1; }
+    .lc-cajon-cuerpo { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 40px; }
+    #chuleta-n { font: 700 12px var(--mono); background: var(--panel); border-radius: 99px; padding: 1px 7px; color: var(--xp); }
     /* Lab: derecha */
     /* El marco del lab no se mueve ni hace scroll: cabecera de una línea, hueco fijo para las máquinas y la terminal ocupa el resto. */
-    .lc-der { overflow: hidden; border-left: 1px solid var(--borde); display: flex; flex-direction: column; min-height: 0; background: color-mix(in srgb, var(--fondo) 70%, var(--panel)); }
+    .lc-der { overflow: hidden; border-left: 1px solid var(--borde); display: flex; flex-direction: column; min-height: 0; min-width: 0; background: color-mix(in srgb, var(--fondo) 70%, var(--panel)); }
+    .lc-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .pl-lab { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 0; }
     .pl-lab[hidden] { display: none; }
     .pl-cab { display: flex; align-items: center; gap: 8px; height: 36px; flex: none; }
     .pl-tit { flex: 1; min-width: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pl-cab .btn, .pl-cab .pildora { flex: none; white-space: nowrap; }
     .pl-nuevo, .pl-inmersivo { padding: 4px 9px; }
-    .lc-der:fullscreen { background: var(--fondo); }
+    .lc-der:fullscreen, .lc-panel:fullscreen { background: var(--fondo); }
     .pl-maquinas { display: flex; gap: 6px; flex-wrap: wrap; min-height: 98px; flex: none; }
     .pl-maquinas .w-maquina { min-width: 120px; padding: 8px; height: 98px; overflow: hidden; }
     .pl-maquinas .w-maq-rol { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pl-pestanas { display: flex; gap: 6px; }
     .pl-pestanas:empty { display: none; }
-    .pl-terms { flex: 1; position: relative; min-height: 160px; }
+    .pl-terms { flex: 1; position: relative; min-height: 120px; }
     .pl-terms .terminal-caja { position: absolute; inset: 0; display: none; }
     .pl-terms .terminal-caja.activa { display: block; }
     .pl-sin { padding: 24px; text-align: center; }
+    .pl-espera { display: grid; gap: 10px; justify-items: center; }
+    .pl-espera .barra { width: min(260px, 80%); }
     .pl-aviso { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radio); background: color-mix(in srgb, var(--aviso, #d29922) 16%, var(--panel)); font-size: 14px; }
     .pl-aviso[hidden] { display: none; }
     .pl-aviso span { flex: 1; }
     .pl-cerrada { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; gap: 12px; padding: 24px; text-align: center; background: color-mix(in srgb, var(--fondo) 88%, transparent); }
     .foco .lc-hechos, .foco .cabecera .pildora:not(#xp) { display: none; }
-    @media (max-width: 1000px) {
-      body { height: auto; overflow: auto; }
-      .lc { grid-template-columns: 1fr; }
-      .lc-izq { overflow: visible; }
-      .lc-der { border-left: 0; border-top: 1px solid var(--borde); min-height: 520px; }
+    /* Solo en pantallas pequeñas o táctiles: la tarea fijada, la barra de teclas y las pestañas de abajo. */
+    .lc-tarea, .lc-barra, .lc-tabs, .solo-movil { display: none; }
+    .lc-barra { gap: 5px; padding: 6px 8px; overflow-x: auto; flex: none; background: var(--panel); border-top: 1px solid var(--borde); scrollbar-width: none; }
+    .lc-barra::-webkit-scrollbar { display: none; }
+    .lc-barra button { flex: none; min-width: 40px; height: 36px; padding: 0 9px; font: 600 14px var(--mono); color: var(--texto); background: var(--panel-2); border: 1px solid var(--borde); border-bottom-width: 3px; border-radius: 8px; touch-action: manipulation; }
+    .lc-barra button[aria-pressed='true'] { background: var(--acento); color: var(--sobre-acento); border-color: var(--acento); }
+    @media (pointer: coarse) { .lc-barra { display: flex; } }
+    @media (max-width: 1250px) { #cinturon { display: none; } }
+    @media (max-width: 900px) {
+      .cabecera { padding: 8px 10px; gap: 8px; flex-wrap: nowrap; }
+      .cabecera h1 { font-size: 16px !important; flex: 1; }
+      .cabecera .volver { flex: none; }
+      #cinturon, #foco, #chuleta-btn, .cabecera .espacio, #ajustes > div > .btn, .progreso .barra, .prog-bicho { display: none !important; }
+      .progreso { flex: none; min-width: 0; }
+      .lc { display: block; }
+      /* Las tres vistas van una encima de otra. La que no toca se esconde sin perder su tamaño,
+         para que la terminal siempre sepa cuántas columnas tiene. */
+      .lc-col, .lc-der { position: absolute; inset: 0; visibility: hidden; pointer-events: none; border: 0; }
+      .lc[data-vista='leccion'] .lc-col, .lc[data-vista='chuleta'] .lc-col, .lc[data-vista='terminal'] .lc-der { visibility: visible; pointer-events: auto; }
+      .lc-izq { padding: 12px 10px 30px; }
+      .lc-tarjeta { padding: 16px 14px; }
+      .lc-tarjeta header h2 { font-size: 22px; }
+      .lc[data-vista='chuleta'] .lc-izq { visibility: hidden; }
+      .lc-cajon { width: 100%; border: 0; box-shadow: none; animation: none; }
+      .lc-cajon-cab .btn { display: none; }
+      .lc-barra { display: flex; }
+      .lc-tarea { display: flex; align-items: center; gap: 10px; padding: 8px 12px; flex: none; font-size: 15px; background: color-mix(in srgb, var(--acento) 14%, var(--panel)); border-bottom: 2px solid var(--acento); }
+      .lc-tarea[hidden] { display: none; }
+      .lc-tarea.hecha { background: color-mix(in srgb, var(--ok) 18%, var(--panel)); border-color: var(--ok); }
+      .lc-tarea > div { flex: 1; min-width: 0; }
+      .lc-tarea small { display: block; color: var(--suave); font-size: 12px; font-weight: 600; }
+      .lc-tarea .btn { flex: none; }
+      .pl-lab { padding: 6px; gap: 6px; }
+      .pl-maquinas { min-height: 0; flex-wrap: nowrap; overflow-x: auto; }
+      .pl-maquinas .w-maquina { height: auto; min-width: 150px; }
+      .pl-ms { display: none; }
+      .lc-tabs { display: grid; grid-template-columns: repeat(3, 1fr); flex: none; background: var(--panel); border-top: 2px solid var(--borde); }
+      .lc-tabs button { font: inherit; font-size: 14px; font-weight: 600; padding: 11px 4px calc(11px + env(safe-area-inset-bottom)); background: none; border: 0; color: var(--suave); position: relative; }
+      .lc-tabs button[aria-pressed='true'] { color: var(--acento); box-shadow: inset 0 3px 0 var(--acento); }
+      .lc-tabs button.con-punto::after { content: ''; position: absolute; top: 8px; margin-left: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--aviso); }
+      .lc-tabs button.zona-senalada { color: var(--aviso); }
+      .solo-movil { display: inline-flex; }
+      body.con-teclado .lc-tabs, body.con-teclado .cabecera, body.con-teclado .pl-maquinas, body.con-teclado .pl-cab { display: none; }
     }
   </style>
 </head>
@@ -70,16 +122,32 @@
     <div class="progreso" id="progreso"><div class="barra"><div id="barra-prog" style="width:0%"></div></div><span class="pildora" id="cuenta"></span></div>
     <span class="espacio"></span>
     <span class="pildora" id="xp" style="color:var(--xp)">0 XP</span>
+    <button class="btn" id="chuleta-btn" aria-pressed="false" title="Los comandos que llevas aprendidos, con tus notas"><i data-ic="clipboard"></i> Chuleta <span id="chuleta-n">0</span></button>
     <button class="btn" id="foco" title="Esconde lo que no es la tarea actual"><i data-ic="eye-off"></i> Foco</button>
     <span id="ajustes"></span>
   </header>
-  <main class="lc">
-    <section class="lc-izq" id="izq">
-      <nav class="lc-hechos" id="hechos"></nav>
-      <div id="paso"></div>
-    </section>
-    <aside class="lc-der" id="panel"></aside>
+  <main class="lc" id="lc" data-vista="leccion">
+    <div class="lc-col">
+      <section class="lc-izq" id="izq">
+        <nav class="lc-hechos" id="hechos"></nav>
+        <div id="paso"></div>
+      </section>
+      <aside class="lc-cajon" id="chuleta" hidden aria-label="Tu chuleta">
+        <div class="lc-cajon-cab"><h2>Tu chuleta</h2><button class="btn" id="chuleta-cerrar">Cerrar</button></div>
+        <div class="lc-cajon-cuerpo" id="chuleta-cuerpo"></div>
+      </aside>
+    </div>
+    <aside class="lc-der" id="panel">
+      <div class="lc-tarea" id="tarea" hidden></div>
+      <div class="lc-panel" id="panel-lab"></div>
+      <div class="lc-barra" id="teclas" aria-label="Teclas que no tiene el teclado del móvil"></div>
+    </aside>
   </main>
+  <nav class="lc-tabs" id="tabs" aria-label="Qué ver">
+    <button data-v="leccion" aria-pressed="true">Lección</button>
+    <button data-v="terminal" aria-pressed="false">Terminal</button>
+    <button data-v="chuleta" aria-pressed="false">Chuleta</button>
+  </nav>
   <script type="module" src="/src/curso/leccion.ts"></script>
 </body>
 </html>

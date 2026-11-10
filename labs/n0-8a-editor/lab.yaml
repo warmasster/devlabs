@@ -1,0 +1,76 @@
+# 0.8 · Lab de lección. Cada vez que guardas en nano o en vim, la lección enseña el fichero tal como ha quedado.
+id: n0-8a-editor
+titulo: Editar sin ratón
+motor: contenedor
+pool: 1
+nodos:
+  - { nombre: lab, rol: tu máquina, imagen: "relavops/base:1", memoria: 256m, cpus: 1 }
+preparar:
+  - nodo: lab
+    script: |
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      echo "Primera línea de mi nota." > /root/nota.txt
+      printf '%s\n' 'patatas' 'BORRAME' 'huevos' 'cebolla' 'BORRAME' 'aceite' > /root/compra.txt
+      cat > /root/app.json <<'EOF'
+      {
+        "nombre": "tienda",
+        "puerto": 8080,
+        "debug": false
+      }
+      EOF
+      printf '%s\n' 'servidor = localhost' 'cache = localhost' 'colas = localhost' > /root/config.ini
+sondas:
+  - { id: nota, nodo: lab, script: "cat /root/nota.txt" }
+  - { id: compra, nodo: lab, script: "cat /root/compra.txt" }
+  - { id: config, nodo: lab, script: "cat /root/config.ini" }
+  - { id: editor, nodo: lab, script: "if pgrep -x vim >/dev/null; then echo vim; elif pgrep -x nano >/dev/null; then echo nano; else echo ninguno; fi" }
+mision:
+  - { id: nano, titulo: Escribir con nano, texto: "Añade una línea con nano", xp: 15, check: { nodo: lab, script: "[ \"$(wc -l < /root/nota.txt)\" -ge 2 ] && ! pgrep -x nano >/dev/null" } }
+  - { id: vimsal, titulo: Entrar y salir de vim, texto: "`vim compra.txt` y `:q`", xp: 10, check: { nodo: lab, script: "grep -qE '^vim' /root/.bash_history && ! pgrep -x vim >/dev/null" } }
+  - { id: dd, titulo: Borrar líneas con dd, texto: "Quita los BORRAME", xp: 20, check: { nodo: lab, script: "! grep -q BORRAME /root/compra.txt && [ \"$(wc -l < /root/compra.txt)\" -eq 4 ] && ! pgrep -x vim >/dev/null" } }
+  - { id: sust, titulo: Reemplazar en todo el fichero, texto: "`:%s/localhost/db/g`", xp: 20, check: { nodo: lab, script: "! grep -q localhost /root/config.ini && [ \"$(grep -c ' = db$' /root/config.ini)\" = 3 ]" } }
+  - { id: jsonok, titulo: Comprobar un JSON, texto: "`jq . app.json`", xp: 10, check: { nodo: lab, script: "grep -qE '^jq ' /root/.bash_history" } }
+  - id: which
+    titulo: Dónde están
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^which ' /root/.bash_history
+  - id: vernota
+    titulo: Mirar la nota
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^cat +nota.txt' /root/.bash_history
+  - id: vercompra
+    titulo: Mirar la compra
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^cat +compra.txt' /root/.bash_history
+  - id: verconfig
+    titulo: Mirar la config
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^cat +config.ini' /root/.bash_history
+  - id: vimmove
+    titulo: Moverse en vim
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        [ "$(grep -c '^vim' /root/.bash_history)" -ge 2 ] && ! pgrep -x vim >/dev/null

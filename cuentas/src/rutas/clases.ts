@@ -2,7 +2,7 @@
 import { hashClave } from '../cripto';
 import { apuntar, exigir, type Usuario } from '../sesion';
 import { ahora, cuerpo, Fallo, letras, nuevoId, origenValido, texto, type Ctx } from '../util';
-import { limpiarProgreso, revisarNombre } from './cuenta';
+import { limpiarProgreso, migrar, revisarNombre } from './cuenta';
 import { sesionesVivas } from './nodos';
 
 interface Clase { id: string; nombre: string; descripcion: string; codigo: string; profe: string; abierta: number; creada: number }
@@ -68,7 +68,7 @@ export async function ver(c: Ctx) {
       const l = porUsuario.get(a.id);
       return {
         id: a.id, nombre: a.nombre, tiene_correo: !!a.correo, origen: a.origen, ultimo_acceso: a.ultimo_acceso, estado: a.estado, unido: a.unido,
-        xp: a.xp ?? 0, bosses: a.modulos ?? 0, progreso: a.datos ? limpiarProgreso(JSON.parse(a.datos)).modulos : {},
+        xp: a.xp ?? 0, bosses: a.modulos ?? 0, progreso: a.datos ? migrar(limpiarProgreso(JSON.parse(a.datos))).modulos : {},
         lab_minutos: Math.round((l?.segundos ?? 0) / 60), lab_sesiones: l?.sesiones ?? 0, en_lab: enLab.get(a.id) ?? null,
         puede_cambiar_clave: puedeCambiarClave(yo, a),
       };

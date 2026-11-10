@@ -1,186 +1,219 @@
-// 0.2 · La shell. Terminal y shell, el prompt, opciones, TAB, historial, señales y trabajos.
+// 0.2 · Sistema de ficheros. Carpetas, rutas, crear, copiar, mover, borrar, buscar, inodos y enlaces.
 import type { Leccion } from './tipos';
 
-const L = 'n0-2a-teclas';
-const PRACTICA = 'n0-2-shell';
+const L = 'n0-2a-arbol';
+const PRACTICA = 'n0-2-ficheros';
+const arbolVivo = { t: 'arbol', sonda: 'arbol@lab', aqui: 'aqui@lab', raiz: '/root/casa', tras: 'pwd' };
 
 export const leccion: Leccion = {
   id: '0.2',
-  titulo: 'La shell',
-  minutos: 35,
-  resumen: 'Sabes leer el prompt, pedir ayuda a un comando, completar con TAB, buscar en el historial y controlar programas con Ctrl+C, Ctrl+Z, bg, jobs, kill y Ctrl+D.',
+  titulo: 'Sistema de ficheros',
+  minutos: 45,
+  resumen: 'Te mueves por carpetas con rutas absolutas y relativas, creas, copias, mueves, borras y buscas ficheros. Y sabes que un nombre apunta a un inodo, que es el fichero de verdad.',
   pasos: [
     {
-      titulo: 'Terminal y shell no son lo mismo',
+      titulo: 'Ficheros y carpetas',
       lab: L,
       w: [
-        { t: 'comparar', a: { titulo: 'Terminal', icono: 'monitor', puntos: ['la ventana', 'dibuja letras', 'recoge tus teclas'] }, b: { titulo: 'Shell', icono: 'terminal', puntos: ['un programa', 'entiende tus comandos', 'la tuya se llama bash'] }, vs: 'y' },
+        { t: 'texto', md: 'Las carpetas ya las conoces del tutorial. También se llaman **directorios**. Es lo mismo.' },
+        { t: 'comando', cmd: 'ls', ops: [['-F', 'pone una barra detrás de cada carpeta, para distinguirlas de los ficheros']] },
+        { t: 'haz', paso: 'lsF', md: 'Escribe `ls -F`.' },
+      ],
+    },
+    {
+      titulo: 'Todo cuelga de /',
+      w: [
+        { t: 'texto', md: 'En Linux no hay `C:` ni `D:`. Hay una sola raíz, que se escribe `/`, y todo cuelga de ella.' },
+        { t: 'haz', paso: 'lsraiz', md: 'Escribe `ls /` para ver lo que cuelga de la raíz.' },
+        { t: 'arbol', tras: 'lsraiz', items: ['d /etc', 'f /etc/hosts', 'd /home', 'd /home/ana', 'd /root', 'd /tmp', 'd /usr', 'd /usr/bin', 'd /var', 'd /var/log'] },
+        { t: 'tabla', cab: ['Carpeta', 'Qué hay'], filas: [['`/etc`', 'la configuración'], ['`/home`', 'una carpeta por usuario'], ['`/root`', 'la casa de root, el administrador'], ['`/tmp`', 'cosas temporales'], ['`/usr/bin`', 'los programas'], ['`/var/log`', 'los diarios de lo que pasa, los logs']] },
+      ],
+    },
+    {
+      titulo: 'Dónde estás',
+      w: [
+        { t: 'comando', cmd: 'pwd', hace: 'Dice en qué carpeta estás ahora mismo.', uso: 'pwd' },
+        { t: 'haz', paso: 'pwd', md: 'Escribe `pwd`.' },
+        { t: 'texto', md: 'Estás en `/root`, tu casa. Dentro hay una carpeta `casa` con cosas. Aquí la ves en vivo.' },
+        { ...arbolVivo, tras: 'pwd' },
+      ],
+    },
+    {
+      titulo: 'Entrar en una carpeta',
+      w: [
+        { t: 'texto', md: '`cd` ya lo usaste en la lección de la shell. Ahora te mueves con él de verdad.' },
+        { t: 'anatomia', partes: [['cd', 'cambia de carpeta'], ['casa', 'a cuál']] },
+        { t: 'haz', paso: 'cdcasa', md: 'Escribe `cd casa`. Mira cómo cambia tu prompt.' },
+        { t: 'haz', paso: 'ls', md: 'Escribe `ls` para ver qué hay dentro.' },
+        { ...arbolVivo, tras: 'ls' },
+      ],
+    },
+    {
+      titulo: 'Leer lo que hay',
+      w: [
+        { t: 'haz', paso: 'cddoc', md: 'Entra en `documentos` con `cd`.', pista: 'cd documentos' },
+        { t: 'haz', paso: 'cat', md: 'Lee `nota.txt` con `cat`.', pista: 'cat nota.txt' },
+        { t: 'fichero', sonda: 'cat@lab', titulo: 'Lo que lees', mantener: true },
+        arbolVivo,
+      ],
+    },
+    {
+      titulo: 'Rutas absolutas y relativas',
+      w: [
+        { t: 'analogia', icono: 'map-pin', de: 'Una ruta', es: 'es el camino hasta un fichero o una carpeta, con una barra `/` entre cada tramo.' },
+        { t: 'comparar', a: { titulo: 'Absoluta', icono: 'map-pin', puntos: ['empieza por `/`', 'sirve desde cualquier sitio', '`/root/casa/fotos`'] }, b: { titulo: 'Relativa', icono: 'footprints', puntos: ['empieza desde donde estás', 'más corta', '`fotos` si ya estás en casa'] } },
+        { t: 'tabla', cab: ['Atajo', 'Quiere decir'], filas: [['`..`', 'la carpeta de arriba'], ['`.`', 'esta carpeta'], ['`~`', 'tu casa, /root']] },
+        { t: 'haz', paso: 'subir', md: 'Escribe `cd ..` y mira dónde quedas.' },
+        arbolVivo,
+      ],
+    },
+    {
+      titulo: 'Juego de rutas',
+      w: [
+        { t: 'ruta', md: 'Busca el fichero `hosts` tocando carpetas y luego escribe su ruta absoluta.', objetivo: '/etc/hosts', arbol: ['/etc/hosts', '/etc/passwd', '/etc/nginx/nginx.conf', '/home/ana/notas.txt', '/var/log/syslog', '/root/casa/documentos/nota.txt'] },
+        { t: 'clasifica', cubos: ['Absoluta', 'Relativa'], items: [['`/var/log`', 0], ['`fotos/playa.jpg`', 1], ['`../musica`', 1], ['`/root/casa`', 0], ['`./nota.txt`', 1], ['`/etc/hosts`', 0]] },
+      ],
+    },
+    {
+      titulo: 'Crear',
+      w: [
+        { t: 'comando', cmd: 'mkdir', hace: 'Crea una carpeta.', partes: [['mkdir', 'el programa'], ['/root/casa/proyectos', 'la carpeta nueva']], ops: [['-p', 'crea también las carpetas de en medio si faltan']] },
+        { t: 'haz', paso: 'mkdir', md: 'Crea la carpeta `/root/casa/proyectos`.', pista: 'mkdir /root/casa/proyectos' },
+        { t: 'comando', cmd: 'touch', hace: 'Crea un fichero vacío.', partes: [['touch', 'el programa'], ['idea.txt', 'el fichero nuevo']] },
+        { t: 'haz', paso: 'touch', md: 'Crea dentro de `proyectos` un fichero vacío llamado `idea.txt`.', pista: 'touch /root/casa/proyectos/idea.txt' },
+        arbolVivo,
+      ],
+    },
+    {
+      titulo: 'Copiar y mover',
+      w: [
+        { t: 'comando', cmd: 'cp', hace: 'Copia un fichero. El original se queda donde estaba.', partes: [['cp', 'copia'], ['origen', 'qué'], ['destino', 'adónde']] },
+        { t: 'haz', paso: 'cp', md: 'Copia `nota.txt` de documentos a proyectos.', pista: 'cp /root/casa/documentos/nota.txt /root/casa/proyectos/' },
+        { t: 'comando', cmd: 'mv', hace: 'Mueve un fichero a otro sitio o le cambia el nombre. No deja copia.', partes: [['mv', 'mueve'], ['origen', 'qué'], ['destino', 'adónde o qué nombre nuevo']] },
+        { t: 'haz', paso: 'mv', md: 'Renombra `musica/cancion.mp3` a `musica/favorita.mp3`.', pista: 'mv /root/casa/musica/cancion.mp3 /root/casa/musica/favorita.mp3' },
+        arbolVivo,
+      ],
+    },
+    {
+      titulo: 'Borrar',
+      w: [
+        { t: 'comando', cmd: 'rm', hace: 'Borra un fichero. No hay papelera ni deshacer.', partes: [['rm', 'borra'], ['basura.tmp', 'qué fichero']], ops: [['-r', 'borra una carpeta con todo lo que tiene dentro']] },
+        { t: 'aviso', tipo: 'mal', md: 'Lo que borras con `rm` no vuelve. Lee la línea dos veces antes de pulsar Enter.' },
+        { t: 'haz', paso: 'rm', md: 'Borra `/root/casa/basura.tmp`.', pista: 'rm /root/casa/basura.tmp' },
+        arbolVivo,
+      ],
+    },
+    {
+      titulo: 'Comodines',
+      w: [
+        { t: 'comando', cmd: '*', simbolo: true, hace: 'Quiere decir cualquier cosa. `*.log` son todos los nombres que acaban en .log.', uso: 'ls *.log' },
+        { t: 'haz', paso: 'comodin', md: 'Pruébalo. Escribe `ls /root/casa/documentos/*.log`.' },
+        { t: 'texto', md: 'El asterisco no lo entiende `ls`, lo entiende la shell. Antes de lanzar el programa, bash cambia `*.log` por todos los nombres que encajan. A `ls` ya le llega la lista hecha.' },
+        { t: 'quiz', q: '¿Qué nombres encajan con `foto*.jpg`?', ops: ['Solo `foto.jpg`', '`foto1.jpg` y `foto-playa.jpg`', 'Todos los ficheros'], ok: 1, porque: 'Empieza por foto, luego cualquier cosa y acaba en .jpg.' },
+      ],
+    },
+    {
+      titulo: 'Buscar',
+      w: [
+        { t: 'comando', cmd: 'find', hace: 'Busca ficheros dentro de una carpeta y de todas las que cuelgan de ella.', partes: [['find', 'busca'], ['/root/casa', 'desde dónde'], ['-name', 'por nombre'], ["'*.log'", 'el patrón']], ops: [['-name', 'busca por nombre'], ['-size', 'busca por tamaño. `-size +5M` es lo que pesa más de 5 megas']] },
+        { t: 'texto', md: "Las comillas de `'*.log'` hacen falta. Sin ellas, la shell cambiaría el asterisco por los nombres de la carpeta donde estás antes de que find lo vea. Con comillas le llega tal cual, y find lo busca en todas las carpetas." },
+        { t: 'haz', paso: 'find', md: 'Busca todos los `.log` de `/root/casa`.', pista: "find /root/casa -name '*.log'" },
+      ],
+    },
+    {
+      titulo: 'Qué ocupa',
+      w: [
+        { t: 'comando', cmd: 'df', hace: 'Dice cuánto disco hay y cuánto queda libre.', ops: [['-h', 'pone los tamaños en G y M en vez de números enormes. Viene de *human*']], uso: 'df -h' },
+        { t: 'haz', paso: 'df', md: 'Escribe `df -h`. Busca la línea que acaba en `/` y mira la columna Uso%.' },
+        { t: 'comando', cmd: 'du', hace: 'Dice cuánto pesa una carpeta o un fichero.', ops: [['-s', 'solo el total de cada cosa, sin entrar al detalle'], ['-h', 'tamaños fáciles de leer'], ['-a', 'fichero a fichero, y también los ocultos']], uso: 'du -sh /root/casa/*' },
+        { t: 'haz', paso: 'du', md: 'Escribe `du -sh /root/casa/*`.' },
+        { t: 'aviso', md: '`du` con `*` no enseña lo que empieza por punto, que son ficheros ocultos. Para verlo todo, `du -ah` y la carpeta.' },
+      ],
+    },
+    {
+      titulo: 'Un nombre no es el fichero',
+      w: [
         { t: 'escena', escena: {
-          alto: 220,
+          alto: 260,
           nodos: [
-            { id: 'tec', x: 110, y: 110, w: 130, txt: 'tu teclado', color: 'suave', info: 'Solo manda pulsaciones. Tu ordenador se las pasa a la ventana que tienes delante.' },
-            { id: 'term', x: 330, y: 110, w: 150, txt: 'terminal', sub: 'la ventana', color: 'acento', info: 'Un programa que convierte cada tecla en bytes y dibuja las letras que le devuelven. Aquí la terminal es tu navegador.' },
-            { id: 'k', x: 560, y: 110, w: 140, txt: 'kernel', sub: 'la PTY', color: 'xp', info: 'La PTY es una tubería del kernel entre la terminal y la shell. Por ella pasan los bytes en los dos sentidos. Si ve pasar Ctrl+C, no lo entrega como una letra. Lo convierte en una orden de parar para el programa que está corriendo.' },
-            { id: 'bash', x: 780, y: 110, w: 130, txt: 'bash', sub: 'la shell', color: 'ok', info: 'Recibe cada tecla en cuanto la pulsas. Por eso puede completar con TAB o moverse con las flechas. Al llegar el Enter, ejecuta la línea.' },
+            { id: 'n1', x: 140, y: 80, w: 170, txt: 'original.txt', sub: 'un nombre', color: 'acento', forma: 'doc', info: 'Un nombre dentro de una carpeta. Apunta a un número.' },
+            { id: 'ino', x: 450, y: 130, w: 180, txt: 'inodo 812', sub: 'el fichero de verdad', color: 'xp', info: 'Guarda el dueño, los permisos, el tamaño y dónde están los datos. Todo menos el nombre.' },
+            { id: 'datos', x: 760, y: 130, w: 150, txt: 'datos', sub: 'en el disco', color: 'suave', forma: 'cilindro', info: 'Lo que hay escrito dentro.' },
+            { id: 'n2', x: 140, y: 190, w: 170, txt: 'duro.txt', sub: 'otro nombre', color: 'ok', forma: 'doc', info: 'Un enlace duro. Otro nombre para el mismo inodo.' },
           ],
-          flechas: [{ id: 'a', de: 'tec', a: 'term' }, { id: 'b', de: 'term', a: 'k' }, { id: 'c', de: 'k', a: 'bash' }],
+          flechas: [{ id: 'a', de: 'n1', a: 'ino' }, { id: 'b', de: 'ino', a: 'datos' }, { id: 'c', de: 'n2', a: 'ino', color: 'ok' }],
           pasos: [
-            { texto: 'Pulsas una tecla. Le llega a la terminal.', ver: ['tec', 'term', 'a'], luz: ['term'], viaja: [{ de: 'tec', a: 'term', txt: 'l' }] },
-            { texto: 'La terminal la mete en la PTY, una tubería del kernel que la une con la shell.', ver: ['k', 'b'], luz: ['k'], viaja: [{ de: 'term', a: 'k', txt: 'l' }] },
-            { texto: 'Por el otro lado de la tubería está bash, que recibe la tecla. Así con cada una. Cuando llega el Enter, bash ejecuta la línea.', ver: ['bash', 'c'], luz: ['bash'], viaja: [{ de: 'k', a: 'bash', txt: 'l s ⏎' }] },
-            { texto: 'La respuesta hace el camino de vuelta. bash escribe en la PTY y la terminal dibuja las letras en tu pantalla.', luz: ['term'], viaja: [{ de: 'bash', a: 'k', txt: 'salida' }, { de: 'k', a: 'term', txt: 'salida' }] },
+            { texto: 'Un nombre como original.txt no es el fichero. Es una etiqueta que apunta a un número, el **inodo**.', ver: ['n1', 'ino', 'a'], luz: ['ino'] },
+            { texto: 'El inodo sabe dónde están los datos en el disco.', ver: ['datos', 'b'], luz: ['datos'] },
+            { texto: 'Puedes poner un segundo nombre al mismo inodo. Es un **enlace duro**. Ninguno de los dos es más original que el otro.', ver: ['n2', 'c'], luz: ['n2', 'ino'] },
           ],
         } },
-        { t: 'texto', md: 'El kernel está en medio por algo. Así Ctrl+C para cualquier programa aunque ese programa no lea el teclado. Y bash funciona igual en cualquier terminal, la de tu ordenador, una por SSH o esta del navegador.' },
-        { t: 'haz', paso: 'shell', md: 'Pregúntale a la máquina qué shell usas. Escribe `echo $SHELL`.' },
+        { t: 'comando', cmd: 'ls', ops: [['-i', 'enseña el número de inodo delante de cada nombre']] },
+        { t: 'haz', paso: 'lsi', md: 'Mira los números de inodo de la carpeta enlaces con `ls -i /root/enlaces`.' },
       ],
     },
     {
-      titulo: 'El prompt',
+      titulo: 'Enlace duro, en tu máquina',
       w: [
-        { t: 'anatomia', partes: [['root', 'tu usuario'], ['@', ''], ['lab', 'la máquina'], [':', ''], ['~', 'dónde estás'], ['#', 'eres administrador']] },
-        { t: 'texto', md: 'El **prompt** es lo que sale antes de donde escribes. Te dice quién eres, en qué máquina y en qué carpeta. `~` es tu carpeta personal.' },
-        { t: 'texto', md: 'Al final sale `#` si eres **root**, el administrador, que puede con todo. Un usuario normal ve `$`.' },
-        { t: 'haz', paso: 'cdtmp', md: 'Escribe `cd /tmp` y mira cómo cambia el prompt. Luego escribe `cd` solo para volver a casa.' },
+        { t: 'comando', cmd: 'ln', hace: 'Pone otro nombre a un fichero que ya existe. Es un enlace duro.', partes: [['ln', 'enlaza'], ['original.txt', 'el que ya existe'], ['duro.txt', 'el nombre nuevo']] },
+        { t: 'inodos', sonda: 'inodos@lab', tras: 'lsi' },
+        { t: 'haz', paso: 'duro', md: 'Entra en `/root/enlaces` con `cd` y escribe `ln original.txt duro.txt`. Mira cómo los dos nombres van al mismo inodo.' },
       ],
     },
     {
-      titulo: 'Opciones',
+      titulo: 'Enlace simbólico',
       w: [
-        { t: 'anatomia', partes: [['ls', 'programa'], ['-l', 'opción', 'xp'], ['/etc', 'argumento', 'ok']] },
-        { t: 'texto', md: 'Las **opciones** cambian cómo trabaja el programa. Empiezan por un guion. `ls -l` lista con detalles en vez de solo los nombres.' },
-        { t: 'texto', md: 'Las hay cortas, con un guion y una letra, como `-a`, y largas, con dos guiones y una palabra, como `--all`. Muchas veces son la misma opción con dos nombres. Casi todos los programas te las cuentan con `--help`.' },
-        { t: 'haz', paso: 'man', md: 'Escribe `ls --help` y busca qué hace la opción `-a`.' },
-        { t: 'ultimo', nodo: 'lab' },
+        { t: 'texto', md: 'Un **enlace simbólico** es otra cosa. Es un fichero pequeñito que guarda una ruta, como un acceso directo.' },
+        { t: 'comando', cmd: 'ln', ops: [['-s', 'crea un enlace simbólico en vez de uno duro']] },
+        { t: 'haz', paso: 'simbolico', md: 'Escribe `ln -s original.txt atajo.txt`.' },
+        { t: 'inodos', sonda: 'inodos@lab', tras: 'lsi' },
       ],
     },
     {
-      titulo: 'TAB completa por ti',
+      titulo: 'Borra el original',
       w: [
-        { t: 'teclas', combos: [{ k: ['Tab'], que: 'completa el nombre de un fichero, una carpeta o un comando' }, { k: ['Tab', 'Tab'], que: 'si hay varias opciones, te las enseña todas' }] },
-        { t: 'texto', md: 'Escribir rutas largas a mano es la mejor forma de equivocarse. Escribe el principio y pulsa TAB.' },
-        { t: 'haz', paso: 'tab', md: 'Escribe `cat /srv/una` y pulsa TAB. Sigue pulsando TAB hasta llegar al fichero y pulsa Enter.' },
-        { t: 'fichero', sonda: 'cat@lab', titulo: 'Lo que has leído', mantener: true },
+        { t: 'quiz', q: 'Si borras `original.txt`, ¿qué crees que pasa?', ops: ['Los dos enlaces dejan de funcionar', '`duro.txt` sigue bien y `atajo.txt` se rompe', '`atajo.txt` sigue bien y `duro.txt` se rompe'], ok: 1, porque: 'duro.txt apunta al inodo, que sigue vivo. atajo.txt guardaba la ruta original.txt, que ya no existe.' },
+        { t: 'haz', paso: 'borraorig', md: 'Compruébalo. Escribe `rm original.txt` y luego `cat duro.txt` y `cat atajo.txt`.' },
+        { t: 'inodos', sonda: 'inodos@lab', tras: 'lsi' },
       ],
     },
     {
-      titulo: 'El historial',
+      titulo: 'Borrado pero ocupando',
       w: [
-        { t: 'texto', md: 'La shell recuerda todo lo que escribes. Prueba estas tres teclas en la terminal. Se encienden cuando las pulsas.' },
-        { t: 'teclas', obliga: true, combos: [
-          { k: ['↑'], que: 'el comando anterior', seq: '\x1b[A' },
-          { k: ['↓'], que: 'el siguiente', seq: '\x1b[B' },
-          { k: ['Ctrl', 'R'], que: 'buscar en el historial. Escribe tesoro y verás uno antiguo', seq: '\x12' },
-        ] },
-        { t: 'aviso', md: 'Con Ctrl+R, cada vez que vuelves a pulsar Ctrl+R salta a una coincidencia más antigua. Enter la ejecuta.' },
+        { t: 'texto', md: 'Los datos de un fichero se liberan cuando ningún nombre apunta a su inodo **y** ningún programa lo tiene abierto.' },
+        { t: 'texto', md: 'Cada proceso lleva un número, su **PID**. Linux enseña los ficheros que tiene abiertos cada proceso en la carpeta `/proc/PID/fd`. El proceso 1 es el primero que arranca en la máquina.' },
+        { t: 'haz', paso: 'procfd', md: 'Mira los ficheros que tiene abiertos el proceso 1 con `ls -l /proc/1/fd`. Cada número de la izquierda es un fichero abierto.' },
+        { t: 'texto', md: 'Si un programa tiene abierto un fichero que ya borraste, el fichero sigue ocupando disco. En esa lista sale marcado con *(deleted)*.' },
       ],
     },
     {
-      titulo: 'Moverse por la línea',
+      titulo: 'Libera el espacio',
       w: [
-        { t: 'texto', md: 'Escribe algo largo sin pulsar Enter y prueba estas tres.' },
-        { t: 'teclas', obliga: true, combos: [
-          { k: ['Ctrl', 'A'], que: 'salta al principio de la línea', seq: '\x01' },
-          { k: ['Ctrl', 'E'], que: 'salta al final', seq: '\x05' },
-          { k: ['Ctrl', 'U'], que: 'borra desde el cursor hasta el principio', seq: '\x15' },
-        ] },
-        { t: 'teclas', combos: [{ k: ['Ctrl', 'W'], que: 'borra la palabra de antes del cursor', seq: '\x17' }] },
-        { t: 'senala', zona: 'inmersivo', md: 'Ctrl+W en el navegador cierra la pestaña. Con el lab en pantalla completa, desde este botón, llega a la terminal. Pruébalo. Para salir, mantén Esc.' },
-        { t: 'aviso', md: 'Antes de seguir, deja la línea limpia con Ctrl+U.' },
-      ],
-    },
-    {
-      titulo: 'Un programa ocupa la terminal',
-      w: [
-        { t: 'texto', md: 'Cuando lanzas un programa, la shell espera a que acabe y no te atiende. Se dice que el programa está en **primer plano**. Lo que teclees mientras tanto espera en la PTY, y la shell lo recoge cuando el programa termina.' },
-        { t: 'texto', md: '`sleep 100` es un programa que solo espera 100 segundos. Viene bien para practicar.' },
-        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep'] },
-        { t: 'haz', paso: 'sleep5', md: 'Escribe `sleep 5`. Durante 5 segundos no sale el prompt. Luego vuelve.' },
-      ],
-    },
-    {
-      titulo: 'Ctrl+C corta',
-      w: [
-        { t: 'teclas', combos: [{ k: ['Ctrl', 'C'], que: 'le pide al programa de primer plano que pare', seq: '\x03' }] },
-        { t: 'texto', md: 'Es lo que viste en el dibujo del principio. Ctrl+C no llega como una letra. El kernel lo ve pasar por la PTY y le manda al programa una orden de parar.' },
-        { t: 'haz', paso: 'ctrlc', md: 'Escribe `sleep 100` y, mientras espera, córtalo con Ctrl+C.' },
-        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep'] },
-        { t: 'aviso', md: 'Ojo. Aquí Ctrl+C no copia. Para copiar en la terminal usa Ctrl+Shift+C, o Cmd+C en un Mac.' },
-      ],
-    },
-    {
-      titulo: 'Parar sin matar',
-      w: [
-        { t: 'texto', md: 'Un programa puede estar corriendo delante, parado o corriendo detrás. Prueba a moverlo con los botones hasta que acabe.' },
-        { t: 'estados', inicio: 'del', objetivo: ['del', 'par', 'det', 'fin'], estados: [
-          { id: 'del', t: 'Delante', sub: 'ocupa la terminal' }, { id: 'par', t: 'Parado', sub: 'congelado' }, { id: 'det', t: 'Detrás', sub: 'sigue, y tú escribes' }, { id: 'fin', t: 'Terminado' },
-        ], trans: [['del', 'par', 'Ctrl+Z'], ['del', 'fin', 'Ctrl+C'], ['par', 'del', '`fg`'], ['par', 'det', '`bg`'], ['det', 'del', '`fg`'], ['det', 'fin', '`kill %1`'], ['par', 'fin', '`kill %1`']] },
-      ],
-    },
-    {
-      titulo: 'Ctrl+Z, ahora de verdad',
-      w: [
-        { t: 'haz', paso: 'parado', md: 'Escribe `sleep 200` y pulsa Ctrl+Z. Mira cómo sale **parado** en la lista.' },
-        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep 200'] },
-        { t: 'aviso', md: 'Se queda parado, sin hacer nada. En el paso siguiente lo mandas al fondo.' },
-      ],
-    },
-    {
-      titulo: 'bg y jobs',
-      w: [
-        { t: 'haz', paso: 'fondo', md: 'Escribe `bg`. El programa sigue funcionando, pero detrás, y tú recuperas la terminal.' },
-        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep 200'] },
-        { t: 'texto', md: 'Escribe `jobs` para ver lo que tienes detrás. Cada trabajo lleva un número entre corchetes, como `[1]`.' },
-        { t: 'aviso', md: 'Sigue funcionando detrás. En el paso siguiente lo terminas.' },
-      ],
-    },
-    {
-      titulo: 'kill %1',
-      w: [
-        { t: 'texto', md: '`kill` ya lo conoces con un PID. Con `%1` le dices el trabajo número 1 de los que enseña `jobs`, sin buscar su PID.' },
-        { t: 'texto', md: 'Los trabajos son de cada shell. `%1` solo vale en la terminal donde lanzaste el programa. Desde otra, hace falta el PID.' },
-        { t: 'haz', paso: 'matar', md: 'Escribe `kill %1`.' },
-        { t: 'procesos', efecto: true, sonda: 'procesos@lab', resalta: ['sleep 200'] },
-      ],
-    },
-    {
-      titulo: 'Ctrl+D, se acabó',
-      w: [
-        { t: 'teclas', combos: [{ k: ['Ctrl', 'D'], que: 'le dice al programa que ya no vas a escribir más', seq: '\x04' }] },
-        { t: 'texto', md: 'Ctrl+D tampoco es una letra. El kernel lo convierte en un aviso de fin, como si se acabara lo que escribes. Un programa que lee lo que tecleas, al ver que ya no llegará nada más, se cierra.' },
-        { t: 'texto', md: '`python3` es uno de esos. Te deja hacer cuentas.' },
-        { t: 'haz', paso: 'ctrld', md: 'Escribe `python3`, luego `2 + 2` y Enter. Después sal con Ctrl+D.' },
-        { t: 'aviso', md: 'A bash le pasa lo mismo. Ctrl+D con la línea vacía cierra tu shell. Si te pasa, pulsa Enter en la terminal y se abre otra.' },
-      ],
-    },
-    {
-      titulo: 'Cómo salir de cualquier sitio',
-      w: [
-        { t: 'tabla', cab: ['Si estás en…', 'Sales con'], filas: [['un comando que no acaba', 'Ctrl+C'], ['`less` o `man`, que enseñan textos largos', '`q`'], ['`vim`', 'Esc, luego `:q!` y Enter'], ['`nano`', 'Ctrl+X'], ['`top`', '`q`'], ['`python3`', 'Ctrl+D']] },
-        { t: 'texto', md: 'En `less` y en `vim` puedes buscar. Escribe `/`, la palabra y Enter. Con `n` vas a la siguiente.' },
-        { t: 'atajo', items: [['Cortar un programa', 'Ctrl+C'], ['Buscar en el historial', 'Ctrl+R'], ['Ir al principio de la línea', 'Ctrl+A'], ['Salir de python3', 'Ctrl+D'], ['Parar un programa sin matarlo', 'Ctrl+Z'], ['Completar un nombre', 'Tab']] },
-        { t: 'haz', paso: 'less', md: 'Practica con uno. Escribe `less /etc/services`, busca `/ssh`, pulsa `n` un par de veces y sal con `q`.' },
+        { t: 'texto', md: 'En tu máquina hay un programa, `acaparador`, que tiene abierto un fichero que alguien borró. Para verlo, mira los ficheros abiertos de todos los procesos a la vez con el asterisco.' },
+        { t: 'comando', cmd: 'kill', ops: [['PID', 'con el número de un proceso, le pide que termine']], partes: [['kill', 'el programa'], ['1234', 'el PID del proceso']] },
+        { t: 'haz', paso: 'matapid', md: 'Escribe `ls -l /proc/*/fd` y busca la línea que acaba en *(deleted)*. El número que va detrás de `/proc/` en esa parte de la lista es el PID. Termina ese proceso con `kill` y su PID.', pista: 'Las líneas salen agrupadas. Cada grupo empieza por `/proc/NÚMERO/fd`. Ese número es el PID. Luego `kill` y el número.' },
+        { t: 'aviso', md: 'Esto te va a hacer falta en el boss.' },
       ],
     },
     {
       titulo: 'Práctica',
       lab: PRACTICA,
       w: [
-        { t: 'texto', md: 'Una máquina nueva con todo esto mezclado. Van en el orden que quieras.' },
+        { t: 'texto', md: 'Un servidor desordenado. Ordénalo.' },
         { t: 'mision' },
       ],
     },
     {
       titulo: 'El boss',
       w: [
-        { t: 'texto', md: 'Te van a meter dentro de un programa. Tienes que encontrar una palabra y salir sin cerrar la pestaña.' },
+        { t: 'texto', md: 'Un disco se está llenando y hay que saber por qué sin tocar los datos buenos.' },
         { t: 'boss' },
       ],
     },
     {
       titulo: 'Lo que te llevas',
       w: [
-        { t: 'chuleta', items: [['cmd --help', 'las opciones de un comando'], ['Tab', 'completar'], ['↑ y Ctrl+R', 'historial'], ['Ctrl+A · Ctrl+E · Ctrl+U', 'moverse y borrar'], ['Ctrl+C', 'cortar'], ['Ctrl+Z · bg · fg · jobs', 'parar y mover trabajos'], ['kill %1', 'terminar un trabajo'], ['Ctrl+D', 'cerrar lo que espera que escribas']] },
+        { t: 'chuleta' },
       ],
     },
   ],

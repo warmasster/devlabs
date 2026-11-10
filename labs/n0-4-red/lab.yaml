@@ -1,0 +1,122 @@
+# 0.4 · La red: práctica y boss. Tres máquinas en una red que el alumno no conoce.
+id: n0-4-red
+titulo: La red de la tienda
+motor: contenedor
+pool: 1
+red: { subred: 10.0.5.0/24 }
+nodos:
+  - { nombre: tu-pc, rol: tu ordenador, ip: 10.0.5.10, imagen: "relavops/base:1", memoria: 192m, cpus: 0.5 }
+  - { nombre: tienda, rol: la web de la tienda, ip: 10.0.5.21, imagen: "relavops/base:1", memoria: 192m, cpus: 0.5 }
+  - { nombre: datos, rol: base de datos, ip: 10.0.5.34, imagen: "relavops/base:1", memoria: 192m, cpus: 0.5 }
+preparar:
+  - nodo: tu-pc
+    script: &base |
+      cat > /usr/local/bin/responde <<'EOF'
+      #!/bin/sh
+      [ $# -ge 2 ] || { echo "uso: responde <pregunta> <respuesta>"; exit 1; }
+      mkdir -p /root/.respuestas; k=$1; shift
+      printf '%s\n' "$*" > "/root/.respuestas/$k"; echo "Apuntado. $k = $*"
+      EOF
+      chmod +x /usr/local/bin/responde
+      # La web de la tienda, de mentira. Escucha en el puerto que le digas (80 si no dices nada).
+      # En la lista de procesos sale como tienda-web y no tiene hijos, así kill la para entera.
+      cat > /usr/local/bin/tienda-web <<'EOF'
+      #!/bin/bash
+      exec -a tienda-web nc -lk "${1:-80}"
+      EOF
+      chmod +x /usr/local/bin/tienda-web
+  - nodo: tienda
+    script: |
+      cat > /usr/local/bin/responde <<'EOF'
+      #!/bin/sh
+      [ $# -ge 2 ] || { echo "uso: responde <pregunta> <respuesta>"; exit 1; }
+      mkdir -p /root/.respuestas; k=$1; shift
+      printf '%s\n' "$*" > "/root/.respuestas/$k"; echo "Apuntado. $k = $*"
+      EOF
+      cat > /usr/local/bin/tienda-web <<'EOF'
+      #!/bin/bash
+      exec -a tienda-web nc -lk "${1:-80}"
+      EOF
+      chmod +x /usr/local/bin/responde /usr/local/bin/tienda-web
+      setsid nohup tienda-web 80 >/dev/null 2>&1 &
+      # Otra puerta abierta, en un puerto al azar, para la misión.
+      p=$(shuf -n1 -e 3000 4100 5200 6300); echo "$p" > /run/.puerto
+      cat > /usr/local/bin/almacen <<'EOF'
+      #!/bin/bash
+      exec -a almacen nc -lk "$1"
+      EOF
+      chmod +x /usr/local/bin/almacen
+      setsid nohup almacen "$p" >/dev/null 2>&1 &
+  - { nodo: datos, script: *base }
+sondas:
+  - &puertos
+    id: puertos@tu-pc
+    nodo: tu-pc
+    script: &ss "ss -tlnH 2>/dev/null | awk '$4 !~ /^127[.]0[.]0[.]11:/ {n = split($4, a, \":\"); print a[n]}' | sort -un | tr '\\n' ' '"
+  - { id: puertos@tienda, nodo: tienda, script: *ss }
+  - { id: puertos@datos, nodo: datos, script: *ss }
+mision:
+  - id: miip
+    titulo: La IP de tu-pc
+    texto: "Averigua la IP de `tu-pc` desde su terminal y contesta ahí con `responde ip` y la IP."
+    pista: ip addr
+    nodo: tu-pc
+    xp: 10
+    check: { nodo: tu-pc, script: 'test "$(cat /root/.respuestas/ip 2>/dev/null)" = 10.0.5.10' }
+  - id: muda
+    titulo: Quién no contesta
+    texto: "Una de estas dos direcciones no contesta, `10.0.5.21` o `10.0.5.77`. Compruébalo desde tu-pc y contesta con `responde muda` y la que no contesta."
+    pista: ping -c 2 10.0.5.77
+    nodo: tu-pc
+    xp: 15
+    check: { nodo: tu-pc, script: 'test "$(cat /root/.respuestas/muda 2>/dev/null)" = 10.0.5.77' }
+  - id: puerta
+    titulo: Las puertas de tienda
+    texto: "`tienda` tiene dos puertas abiertas. Una es la 80. Mira cuál es la otra desde la terminal de tienda y contesta ahí con `responde puerta` y el número."
+    pista: ss -tln
+    nodo: tienda
+    xp: 15
+    check: { nodo: tienda, script: 'test "$(cat /root/.respuestas/puerta 2>/dev/null)" = "$(cat /run/.puerto)"' }
+  - id: abrir
+    titulo: Abre una puerta en datos
+    texto: "Abre el puerto 7000 en `datos` y déjalo escuchando."
+    pista: nc -lk 7000
+    nodo: datos
+    xp: 15
+    check: { nodo: datos, script: "ss -tlnH | grep -q ':7000 '" }
+  - id: llamar
+    titulo: Llama a esa puerta
+    texto: "Desde `tu-pc`, comprueba que la puerta 7000 de datos abre. La IP de datos está en su tarjeta."
+    pista: nc -zv 10.0.5.34 7000
+    nodo: tu-pc
+    xp: 15
+    check: { nodo: datos, script: "[ \"$(awk '/^Tcp:/ { if (!t) { split($0, a); t = 1 } else { split($0, b); for (n in a) c[a[n]] = b[n] } } END { print c[\"PassiveOpens\"] + 0 }' /proc/net/snmp)\" -ge 1 ]" }
+boss:
+  titulo: "La tienda no carga"
+  texto: "Los clientes entran por la puerta 80 de `tienda` y ahora no pueden. Averigua qué falla y arréglalo. Está resuelto cuando `nc -zv 10.0.5.21 80` abre desde tu-pc. El programa de la web se llama `tienda-web` y se lanza en tienda con el puerto detrás, así, `tienda-web 80 &`."
+  xp: 60
+  check:
+    - { nodo: tu-pc, script: "nc -z -w1 10.0.5.21 80" }
+  fallos:
+    - id: caida
+      romper:
+        - nodo: tienda
+          script: |
+            for p in $(ps -eo pid=,args= | awk '$2 == "tienda-web" {print $1}'); do kill "$p"; done
+      pistas:
+        - { coste: 0, texto: "Primero mira si la máquina contesta, con `ping -c 2 10.0.5.21` desde tu-pc." }
+        - { coste: 5, texto: "Contesta, así que la máquina está. Falla la puerta. Mira las puertas de tienda desde su terminal con `ss -tln`." }
+        - { coste: 10, texto: "La 80 no sale porque nadie escucha ahí. Lanza la web en tienda con `tienda-web 80 &`." }
+      solucion: "La máquina contestaba al ping, pero nadie escuchaba en la puerta 80. El programa de la web se había parado. Al lanzarlo otra vez, la puerta vuelve a abrir."
+    - id: puerto
+      romper:
+        - nodo: tienda
+          script: |
+            for p in $(ps -eo pid=,args= | awk '$2 == "tienda-web" {print $1}'); do kill "$p"; done
+            sleep 0.3
+            setsid nohup tienda-web 8080 >/dev/null 2>&1 &
+      pistas:
+        - { coste: 0, texto: "Primero mira si la máquina contesta, con `ping -c 2 10.0.5.21` desde tu-pc." }
+        - { coste: 5, texto: "Contesta. Mira las puertas de tienda desde su terminal con `ss -tln`. Hay una que no debería estar y falta la 80." }
+        - { coste: 10, texto: "La web está en marcha, pero escucha en otro puerto. Busca su PID con `ps aux`, párala con `kill` y lánzala bien con `tienda-web 80 &`." }
+      solucion: "La web estaba en marcha, pero escuchando en el 8080. Los clientes llaman al 80. Había que pararla con `kill` y lanzarla en el puerto bueno."

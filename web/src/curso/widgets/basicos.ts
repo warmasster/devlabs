@@ -1,5 +1,6 @@
 // Widgets básicos: explican con poco texto. No necesitan lab (salvo "teclas" y "senala", que lo usan si está).
 import { ic } from '../../iconos';
+import { catalogo, esNuevo } from '../chuleta';
 import { esc, h, md, vivo, type Widget } from '../nucleo/tipos';
 
 /** Párrafo corto. { md } */
@@ -55,9 +56,46 @@ export const tabla: Widget = (el, p) => {
     <tbody>${p.filas.map((f: string[]) => `<tr>${f.map((c) => `<td>${md(c)}</td>`).join('')}</tr>`).join('')}</tbody>`));
 };
 
-/** Chuleta de comandos. { items: [[comando, para qué]] } */
-export const chuleta: Widget = (el, p) => {
-  el.append(h('div', 'w-chuleta', `<div class="w-chuleta-t">${ic('clipboard')} Chuleta</div>` + p.items.map(([c, d]: string[]) => `<div><code>${esc(c)}</code><span>${md(d)}</span></div>`).join('')));
+/**
+ * La ficha de un comando. Va siempre antes de pedirlo. Dice qué hace en una frase, enseña sus piezas
+ * y sus opciones, y lo apunta en la chuleta del alumno.
+ * { cmd, hace, uso?, partes?: [[texto, etiqueta]], ops?: [[opción, qué hace]], nota?, simbolo? }
+ * Si el comando ya se enseñó antes, la ficha solo presenta las opciones nuevas.
+ */
+export const comando: Widget = (el, p, ctx) => {
+  const nuevo = esNuevo(p.cmd, ctx.leccion ?? '', ctx.paso ?? 0);
+  const eti = nuevo ? (p.simbolo ? 'Símbolo nuevo' : 'Comando nuevo') : 'Ya lo conoces. Esto es nuevo';
+  const caja = h('div', `w-comando ${nuevo ? '' : 'mas'}`, `<div class="w-cmd-eti">${eti}</div>
+    <div class="w-cmd-cab"><code>${esc(p.cmd)}</code><span>${md(p.hace ?? '')}</span></div>`);
+  if (p.partes) {
+    const colores = ['acento', 'ok', 'xp', 'aviso', 'mal', 'suave'];
+    const fila = h('div', 'w-anatomia');
+    p.partes.forEach(([t, etq, col]: [string, string, string?], i: number) => {
+      const c = col ?? colores[i % colores.length];
+      fila.append(h('span', 'w-parte', `<code style="--c:var(--${c})">${esc(t)}</code>${etq ? `<small style="--c:var(--${c})">${md(etq)}</small>` : ''}`));
+    });
+    caja.append(fila);
+  } else if (p.uso) caja.append(h('div', 'w-cmd-uso', `Por ejemplo <code>${esc(p.uso)}</code>`));
+  if (p.ops?.length) caja.append(h('div', 'w-cmd-ops', p.ops.map(([o, q]: string[]) => `<div><code>${esc(o)}</code><span>${md(q)}</span></div>`).join('')));
+  if (p.nota) caja.append(h('p', 'w-nota', md(p.nota)));
+  caja.append(h('div', 'w-cmd-pie', `${ic('check')} Apuntado en tu chuleta`));
+  el.append(caja);
+};
+
+/** Resumen de lo aprendido. Sin `items` sale solo de las fichas de esta lección. { items?: [[comando, para qué]] } */
+export const chuleta: Widget = (el, p, ctx) => {
+  let items: string[][] = p.items ?? [];
+  if (!p.items) {
+    items = [];
+    for (const e of catalogo()) {
+      if (e.lec === ctx.leccion) items.push([e.clave, e.hace]);
+      for (const o of e.ops) if (o.lec === ctx.leccion) items.push([`${e.clave} ${o.op}`, o.que]);
+    }
+  }
+  const caja = h('div', 'w-chuleta', `<div class="w-chuleta-t">${ic('clipboard')} Lo que te llevas</div>` + items.map(([c, d]) => `<div><code>${esc(c)}</code><span>${md(d)}</span></div>`).join(''));
+  const b = h('button', 'btn w-chuleta-abrir', 'Abrir mi chuleta');
+  b.onclick = () => dispatchEvent(new CustomEvent('relavops:chuleta'));
+  el.append(caja, b);
 };
 
 /** Código con números de línea; tocar una línea con nota la explica. { codigo, notas: {n: texto}, lenguaje? } */

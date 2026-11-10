@@ -69,6 +69,8 @@ func main() {
 	flag.IntVar(&lim.PorPersona, "max-por-persona", 0, "sesiones por persona; al pasarse se cierra la más antigua (0: sin límite)")
 	flag.DurationVar(&lim.Duracion, "dura-sesion", 0, "vida máxima de una sesión, p. ej. 2h (0: sin límite)")
 	flag.DurationVar(&lim.Abandono, "abandono", 20*time.Minute, "cerrar las sesiones sin nadie conectado tras este tiempo")
+	flag.DurationVar(&lim.Desalojo, "desalojo", 0, "con el servidor lleno, una sesión sin nadie conectado durante esto deja su sitio, p. ej. 2m (0: no se desaloja)")
+	flag.Func("ram-libre-min", "con menos RAM libre que esto no se abren sesiones nuevas, p. ej. 700M (vacío: no se mira)", func(v string) (err error) { lim.RAMLibreMin, err = tamano(v); return })
 	flag.Parse()
 
 	var labsFS fs.FS
@@ -88,6 +90,7 @@ func main() {
 	}
 	dk := NewDocker(*sock)
 	cerradas := &Cerradas{}
+	lim.Cgroup = rec.CgroupPadre
 	a := &App{dk: dk, labs: labs, sessions: NewSessions(lim, cerradas), ritmo: NewRitmo(*nuevasMin), inicio: time.Now(), cerradas: cerradas}
 	a.sessions.medir = a.medir
 	a.host = NewHost(*estado)
@@ -134,6 +137,7 @@ func main() {
 	mux.HandleFunc("POST /api/sesion/{sid}/accion/{nombre}", a.handleAccion)
 	mux.HandleFunc("POST /api/sesion/{sid}/exec", a.handleExec)
 	mux.HandleFunc("GET /api/estado", a.handleEstado)
+	mux.HandleFunc("GET /api/aforo", a.handleAforo)
 	mux.HandleFunc("GET /ws/term", a.handleTerm)
 	mux.HandleFunc("GET /ws/eventos", a.handleEventos)
 	mux.Handle("/", a.web(webFS, *inicio))
@@ -349,8 +353,10 @@ func (a *App) handleNuevaSesion(w http.ResponseWriter, r *http.Request) {
 	}
 	s, err := a.sessions.New(a.eng, p, dueno, usuario, nombre)
 	if errors.Is(err, errLleno) {
-		log.Printf("lleno: %s se queda sin lab %s", dueno, p.spec.ID)
-		writeJSON(w, 503, map[string]string{"error": "Ahora mismo están todas las máquinas ocupadas. Prueba en unos minutos.", "motivo": "lleno"})
+		// La lección no enseña un error. Enseña una sala de espera y vuelve a pedir sola (panel-lab.ts).
+		log.Printf("lleno: %s se queda esperando el lab %s", dueno, p.spec.ID)
+		w.Header().Set("Retry-After", "15")
+		writeJSON(w, 503, map[string]any{"error": "Ahora mismo no queda ninguna máquina libre. En cuanto se libere una, es tuya.", "motivo": "lleno", "espera": 15})
 		return
 	}
 	if err != nil {
@@ -548,6 +554,13 @@ func (a *App) handleExec(w http.ResponseWriter, r *http.Request) {
 	}
 	wg.Wait()
 	writeJSON(w, 200, res)
+}
+
+// handleAforo dice cómo de lleno está el servidor. El mapa lo usa para avisar con tiempo, antes de
+// que el alumno entre en una lección y se encuentre esperando.
+func (a *App) handleAforo(w http.ResponseWriter, r *http.Request) {
+	abiertas, tope, llenos, lleno := a.sessions.Aforo()
+	writeJSON(w, 200, map[string]any{"abiertas": abiertas, "tope": tope, "lleno": lleno, "llenos": llenos})
 }
 
 func (a *App) handleEstado(w http.ResponseWriter, r *http.Request) {

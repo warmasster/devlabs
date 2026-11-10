@@ -59,6 +59,10 @@ type Limites struct {
 	PorPersona int           // por dueño. Al pasarse se cierra su sesión más antigua
 	Duracion   time.Duration // vida máxima de una sesión. Se avisa 5 minutos antes
 	Abandono   time.Duration // sin pestañas ni terminales conectadas durante esto, se cierra
+	// Contención para cuando llega mucha gente a la vez.
+	Desalojo    time.Duration // con el servidor lleno, una sesión sin nadie delante durante esto deja su sitio
+	RAMLibreMin int64         // con menos RAM libre que esto (bytes) no se abren sesiones nuevas
+	Cgroup      string        // cgroup común de los labs, para medir su RAM libre además de la del servidor
 }
 
 var errLleno = errors.New("lleno")
@@ -113,6 +117,7 @@ type Sessions struct {
 	m        map[string]*Session
 	lim      Limites
 	reservas int // sesiones que se están creando ahora mismo, para no pasarse del total
+	llenos   int // veces que alguien se ha quedado sin máquina desde que arrancó labd
 	cerradas *Cerradas
 	medir    func(*Session) // lee lo que ha gastado (lo pone main con App.medir)
 }
@@ -149,9 +154,20 @@ func (ss *Sessions) Get(id string) *Session {
 func (ss *Sessions) New(eng *Engine, p *Pool, dueno, usuario, nombre string) (*Session, error) {
 	t0 := time.Now()
 	ss.mu.Lock()
-	if ss.lim.Total > 0 && len(ss.m)+ss.reservas >= ss.lim.Total {
+	if ss.sinRAM() {
+		ss.llenos++
 		ss.mu.Unlock()
 		return nil, errLleno
+	}
+	var desalojada *Session
+	if ss.lim.Total > 0 && len(ss.m)+ss.reservas >= ss.lim.Total {
+		// Antes de decir que no, se mira si alguna sesión lleva un rato sin nadie delante.
+		// Esa le deja el sitio a quien sí está esperando.
+		if desalojada = ss.sinNadie(dueno); desalojada == nil {
+			ss.llenos++
+			ss.mu.Unlock()
+			return nil, errLleno
+		}
 	}
 	var vieja *Session
 	if ss.lim.PorPersona > 0 {
@@ -175,7 +191,11 @@ func (ss *Sessions) New(eng *Engine, p *Pool, dueno, usuario, nombre string) (*S
 		ss.reservas--
 		ss.mu.Unlock()
 	}()
-	if vieja != nil {
+	if desalojada != nil {
+		log.Printf("sesión %s cerrada para hacer sitio: lleno, y llevaba un rato sin nadie delante", desalojada.ID)
+		ss.cerrarCon(desalojada.ID, "abandono")
+	}
+	if vieja != nil && vieja != desalojada {
 		log.Printf("sesión %s de %s cerrada: ha abierto una más de %d", vieja.ID, dueno, ss.lim.PorPersona)
 		ss.cerrarCon(vieja.ID, "otra")
 	}
@@ -236,6 +256,45 @@ func (ss *Sessions) cerrarCon(id, motivo string) {
 		time.Sleep(100 * time.Millisecond) // que el evento salga antes de cortar
 	}
 	ss.cerrar(id, motivo)
+}
+
+// sinNadie da la sesión que más tiempo lleva sin pestañas ni terminales conectadas, si pasa del
+// tiempo de desalojo. Se llama con ss.mu cogido. Las del propio dueño no cuentan: esas ya las
+// gestiona el tope por persona.
+func (ss *Sessions) sinNadie(dueno string) *Session {
+	if ss.lim.Desalojo <= 0 {
+		return nil
+	}
+	var mejor *Session
+	var mas time.Duration
+	for _, s := range ss.m {
+		s.mu.Lock()
+		quieta := time.Since(s.lastSeen)
+		libre := len(s.subs) == 0 && s.terms == 0 && s.Dueno != dueno
+		s.mu.Unlock()
+		if libre && quieta > ss.lim.Desalojo && quieta > mas {
+			mejor, mas = s, quieta
+		}
+	}
+	return mejor
+}
+
+// sinRAM dice si queda menos RAM libre que el mínimo pedido con -ram-libre-min.
+func (ss *Sessions) sinRAM() bool {
+	if ss.lim.RAMLibreMin <= 0 {
+		return false
+	}
+	libre := ramLibre(ss.lim.Cgroup)
+	return libre >= 0 && libre < ss.lim.RAMLibreMin
+}
+
+// Aforo dice cuántas sesiones hay abiertas, cuál es el tope y si ahora mismo no cabe nadie más.
+func (ss *Sessions) Aforo() (abiertas, tope, llenos int, lleno bool) {
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	abiertas, tope, llenos = len(ss.m)+ss.reservas, ss.lim.Total, ss.llenos
+	lleno = ss.sinRAM() || (tope > 0 && abiertas >= tope && ss.sinNadie("") == nil)
+	return
 }
 
 // reaper cierra las sesiones abandonadas y las que pasan de su duración máxima.

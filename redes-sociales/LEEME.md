@@ -248,7 +248,7 @@ Desde el perfil de Fernando, en primera persona. Martes y jueves.
 | 1 | He hecho un curso de DevOps donde cada lección trae un Linux de verdad. Es gratis. | Vídeo horizontal de 40 segundos de una lección |
 | 1 | Si das clase en SMR o ASIR, esto te ahorra montar máquinas virtuales. | El vídeo del panel del profe |
 | 2 | Un Linux por alumno gasta 9,7 MB de RAM y arranca en 180 ms. | La tabla de densidad y cómo se consigue |
-| 2 | Cada módulo acaba con un boss que te rompe el lab. Esto es lo que aprende un alumno ahí. | El boss de la 0.5 en vídeo |
+| 2 | Cada módulo acaba con un boss que te rompe el lab. Esto es lo que aprende un alumno ahí. | El boss de la 0.6 en vídeo |
 | 3 | Este curso lo he construido con una IA. Estas son las veces que se equivocó. | Casos reales tuyos. Uno lo tengo apuntado, la primera instalación dejó la web tres minutos caída |
 | 3 | El temario empieza por la terminal y no por Kubernetes. | El artículo de la ruta |
 | 4 | Busco cinco profes de FP que quieran probarlo con una clase en enero. | Qué ofreces y qué pides a cambio |

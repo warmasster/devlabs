@@ -48,9 +48,25 @@ export class PanelLab {
         return undefined; // api.ts ya está llevando a la página de entrar
       }
       if (e.motivo === 'lleno' || e.motivo === 'deprisa') {
-        const [t, p] = e.motivo === 'lleno' ? ['Todas las máquinas están ocupadas', 'Hay mucha gente a la vez. Prueba otra vez en unos minutos.'] : ['Demasiadas máquinas seguidas', 'Has abierto muchas en poco rato. Espera un minuto y vuelve a probar.'];
-        terms.innerHTML = `<div class="pl-sin"><h3>${ic('timer')} ${t}</h3><p>${p}</p><button class="btn primario">${ic('rotate-ccw')} Probar otra vez</button></div>`;
-        (terms.querySelector('button') as HTMLElement).onclick = () => { raiz.remove(); this.actual = undefined; this.mostrar(lab); };
+        // Sala de espera. No hay que hacer nada: se vuelve a pedir sola cada pocos segundos,
+        // con un poco de azar para que no llamen todos a la vez. Mientras, la lección se puede leer.
+        const lleno = e.motivo === 'lleno';
+        const [t, p] = lleno
+          ? ['Ahora mismo no queda ninguna máquina libre', 'Hay mucha gente aprendiendo a la vez. Te guardamos el sitio y te damos la primera que se libere. No hace falta que hagas nada.']
+          : ['Vas muy deprisa', 'Has abierto muchas máquinas en poco rato. En un minuto te damos otra.'];
+        raiz.querySelector('.pl-tit')!.innerHTML = `${ic('timer')} <b>Esperando una máquina</b>`;
+        terms.innerHTML = `<div class="pl-sin pl-espera"><h3>${ic('timer')} ${t}</h3><p>${p}</p><div class="barra"><div style="width:0%"></div></div><p class="w-suave pl-espera-txt"></p>
+          <p class="w-suave">Mientras, puedes leer la lección, repasar tu chuleta o echar una partida en el <a href="/arcade" data-libre>arcade</a>.</p><button class="btn">${ic('rotate-ccw')} Probar ya</button></div>`;
+        const total = (e.espera ?? (lleno ? 15 : 60)) + Math.floor(Math.random() * 8);
+        let queda = total;
+        const pinta = () => {
+          (terms.querySelector('.barra > div') as HTMLElement).style.width = `${(100 * (total - queda)) / total}%`;
+          terms.querySelector('.pl-espera-txt')!.textContent = `Volvemos a mirar en ${queda} s.`;
+        };
+        const otra = () => { clearInterval(reloj); raiz.remove(); this.actual = undefined; this.mostrar(lab).then((c) => { if (c) this.onNuevo?.(); }); };
+        const reloj = window.setInterval(() => { if (document.hidden) return; if (--queda <= 0) otra(); else pinta(); }, 1000);
+        pinta();
+        (terms.querySelector('button') as HTMLElement).onclick = otra;
       } else {
         terms.innerHTML = `<div class="pl-sin"><h3>${ic('triangle-alert')} No hay servidor de labs</h3><p>La lección necesita <b>labd</b> en marcha para darte una máquina.</p><code>bash dev.sh</code><p class="w-suave">${e.message}</p></div>`;
       }
@@ -127,7 +143,7 @@ export class PanelLab {
     }));
   }
 
-  async terminal(nodo?: string) {
+  async terminal(nodo?: string, enfocar = !matchMedia('(max-width: 900px)').matches) {
     const a = this.actual ? this.abiertos.get(this.actual) : undefined;
     if (!a) return;
     const n = nodo && a.terms.has(nodo) ? nodo : a.activo || a.con.terminales[0];
@@ -139,9 +155,21 @@ export class PanelLab {
     if (!t.term) {
       t.term = await LabTerminal.crear(t.caja.querySelector('.term') as HTMLElement, 'xterm', a.con.sesion, n);
       t.term.onDatos = (d) => this.teclear.forEach((f) => f(d));
+      t.term.onCtrl = (si) => this.onCtrl?.(si);
     }
-    t.term.focus();
+    if (enfocar) t.term.focus();
   }
+
+  private termActiva(): LabTerminal | undefined {
+    const a = this.actual ? this.abiertos.get(this.actual) : undefined;
+    return a ? a.terms.get(a.activo)?.term : undefined;
+  }
+
+  /** Escribe en la terminal que se ve, como si lo tecleara el alumno (barra de teclas del móvil). */
+  escribir(texto: string) { this.termActiva()?.teclear(texto); }
+  /** Arma el Ctrl de la barra de teclas: la letra siguiente va con Ctrl. */
+  ctrl() { this.termActiva()?.armarCtrl(); }
+  onCtrl?: (armado: boolean) => void;
 
   alTeclear(f: (t: string) => void): () => void {
     this.teclear.add(f);
@@ -151,8 +179,12 @@ export class PanelLab {
   senalar(zona: string, si: boolean) {
     const a = this.actual ? this.abiertos.get(this.actual) : undefined;
     const raiz = a?.raiz ?? this.raiz;
-    const sel: Record<string, string> = { maquinas: '.pl-maquinas', terminal: '.pl-terms', pestanas: '.pl-pestanas', nuevo: '.pl-nuevo', inmersivo: '.pl-inmersivo', ajustes: '#ajustes', xp: '#xp', fases: '#progreso' };
-    const el = sel[zona]?.startsWith('#') ? document.querySelector(sel[zona]) : raiz.querySelector(sel[zona] ?? `.w-maquina[data-nodo="${zona}"]`);
+    const sel: Record<string, string> = { maquinas: '.pl-maquinas', terminal: '.pl-terms', pestanas: '.pl-pestanas', nuevo: '.pl-nuevo', inmersivo: '.pl-inmersivo', ajustes: '#ajustes', xp: '#xp', fases: '#progreso', chuleta: '#chuleta-btn' };
+    const deFuera = sel[zona]?.startsWith('#');
+    const el = deFuera ? document.querySelector(sel[zona]) : raiz.querySelector(sel[zona] ?? `.w-maquina[data-nodo="${zona}"]`);
     el?.classList.toggle('zona-senalada', si);
+    // En el móvil lo señalado puede estar en otra pestaña. Se marca también su pestaña.
+    const pestana = zona === 'chuleta' ? 'chuleta' : deFuera ? '' : 'terminal';
+    if (pestana) document.querySelector(`.lc-tabs [data-v="${pestana}"]`)?.classList.toggle('zona-senalada', si);
   }
 }

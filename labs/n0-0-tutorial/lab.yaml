@@ -37,6 +37,8 @@ preparar:
       Nada de lo que hagas aquí puede romper tu ordenador.
       EOF
       echo "nota de prueba" > /root/notas.txt
+      mkdir -p /root/cosas
+      printf '%s\n' pan leche 'un cable de red' > /root/cosas/lista.txt
 sondas:
   - { id: ultimo@mi-servidor, nodo: mi-servidor, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
   - { id: rc@mi-servidor, nodo: mi-servidor, script: "cat /run/.rc 2>/dev/null" }
@@ -64,6 +66,21 @@ mision:
     texto: Escribe `ls`.
     xp: 10
     check: { nodo: mi-servidor, script: "grep -qE '^ls' /root/.bash_history" }
+  - id: lsa
+    titulo: Ver también lo oculto
+    texto: Escribe `ls -a`.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^ls +-[a-zA-Z]*a' /root/.bash_history" }
+  - id: lscosas
+    titulo: Mirar dentro de una carpeta
+    texto: Escribe `ls cosas`.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^ls +(-[a-zA-Z]+ +)?(/root/|~/|[.]/)?cosas/?$' /root/.bash_history" }
+  - id: catcosas
+    titulo: Leer un fichero de una carpeta
+    texto: Escribe `cat cosas/lista.txt`.
+    xp: 10
+    check: { nodo: mi-servidor, script: "grep -qE '^cat +(/root/|~/|[.]/)?cosas/lista.txt' /root/.bash_history" }
   - id: error
     titulo: Equivocarse a propósito
     texto: Escribe `adios`, que no existe.
@@ -108,7 +125,7 @@ boss:
             echo "El código es $c" > /root/tesoro/cofre.txt
       pistas:
         - { coste: 0, texto: "Mira qué hay dentro con `ls tesoro`." }
-        - { coste: 5, texto: "Para leer uno, `cat tesoro/empieza-aqui.txt`." }
+        - { coste: 0, texto: "Para leer uno, `cat tesoro/empieza-aqui.txt`." }
       solucion: Tres ficheros, uno detrás de otro. Con `ls` ves qué hay y con `cat` lees cada uno.
     - id: oculto
       romper:
@@ -116,9 +133,9 @@ boss:
           script: |
             c=$(shuf -n1 -e FARO-3 ISLA-58 VELERO-16); echo "$c" > /run/.codigo
             mkdir -p /root/tesoro
-            echo "El código está en un fichero que no se ve con ls a secas. Prueba ls -a" > /root/tesoro/leeme.txt
+            echo "El código está en un fichero que no se ve con ls a secas. Prueba ls -a tesoro" > /root/tesoro/leeme.txt
             echo "El código es $c" > /root/tesoro/.escondido.txt
       pistas:
         - { coste: 0, texto: "Empieza con `ls tesoro` y lee lo que encuentres." }
-        - { coste: 5, texto: "Los ficheros que empiezan por un punto no salen con `ls`. Salen con `ls -a`." }
+        - { coste: 0, texto: "Los ficheros que empiezan por un punto no salen con `ls`. Salen con `ls -a tesoro`." }
       solucion: El código estaba en `.escondido.txt`. Los nombres que empiezan por punto son ficheros ocultos y `ls -a` los enseña.

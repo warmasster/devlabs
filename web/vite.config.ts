@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { prepararSeo, seo } from './seo/plugin.ts';
 
-const paginas = ['index', 'curso', 'leccion', 'arcade', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'disenos', 'juegos', 'juego', 'entrar', 'cuenta', 'profe', 'admin', 'inicio'];
+const paginas = ['index', 'curso', 'leccion', 'chuleta', 'arcade', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'disenos', 'juegos', 'juego', 'entrar', 'cuenta', 'profe', 'admin', 'inicio'];
 const resolve = (_: string, f: string) => new URL(f, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const __dirname = '';
 

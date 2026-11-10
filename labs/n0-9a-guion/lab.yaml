@@ -1,0 +1,85 @@
+# 0.9 · Lab de lección. La lección enseña tu script tal como lo guardas, si se puede ejecutar y cómo terminó el último comando.
+id: n0-9a-guion
+titulo: Tu primer script
+motor: contenedor
+pool: 1
+nodos:
+  - { nombre: lab, rol: tu máquina, imagen: "relavops/base:1", memoria: 256m, cpus: 1 }
+preparar:
+  - nodo: lab
+    script: |
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      mkdir -p /root/fotos && touch /root/fotos/playa.jpg /root/fotos/monte.jpg /root/fotos/gato.jpg
+sondas:
+  - { id: ultimo@lab, nodo: lab, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
+  - { id: rc@lab, nodo: lab, script: "cat /run/.rc 2>/dev/null" }
+  - { id: script, nodo: lab, script: "head -c 3000 /root/hola.sh 2>/dev/null" }
+  - { id: ejecutable, nodo: lab, script: "if [ ! -e /root/hola.sh ]; then echo falta; elif [ -x /root/hola.sh ]; then echo si; else echo no; fi" }
+mision:
+  - { id: crear, titulo: Crear el script, texto: "hola.sh con un echo", xp: 10, check: { nodo: lab, script: "grep -q echo /root/hola.sh 2>/dev/null" } }
+  - { id: permiso, titulo: Hacerlo ejecutable, texto: "`chmod +x hola.sh`", xp: 10, check: { nodo: lab, script: "test -x /root/hola.sh" } }
+  - { id: lanzar, titulo: Ejecutarlo, texto: "`./hola.sh`", xp: 10, check: { nodo: lab, script: "grep -qE '^(\\./|/root/)hola\\.sh' /root/.bash_history" } }
+  - { id: argumento, titulo: Usar $1, texto: "`./hola.sh Ana`", xp: 15, check: { nodo: lab, script: "/root/hola.sh Ana 2>/dev/null | grep -q Ana && ! /root/hola.sh Ana 2>/dev/null | grep -q '\\$1'" } }
+  - { id: falso, titulo: Un comando que falla, texto: "`ls /nada` y `echo $?`", xp: 10, check: { nodo: lab, script: "grep -qE '^echo +\\$\\?' /root/.bash_history" } }
+  - { id: bucle, titulo: Un bucle, texto: "`for f in fotos/*; do echo $f; done`", xp: 15, check: { nodo: lab, script: "grep -qE '^for ' /root/.bash_history" } }
+  - { id: si, titulo: Un if, texto: "`if [ -f hola.sh ]; then echo existe; fi`", xp: 15, check: { nodo: lab, script: "grep -qE '^if ' /root/.bash_history" } }
+  - id: variable
+    titulo: Una variable
+    texto: ""
+    xp: 10
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^[A-Za-z_][A-Za-z0-9_]*=' /root/.bash_history && grep -qE '^echo .*\$[A-Za-z_]' /root/.bash_history
+  - id: cuentas
+    titulo: Cuentas
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qF '$((' /root/.bash_history
+  - id: tr
+    titulo: Leer de una tubería
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '\| *tr ' /root/.bash_history
+  - id: shebang
+    titulo: Un script del sistema
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^head .*/usr/bin/zcat' /root/.bash_history
+  - id: lsl
+    titulo: Mirar sus permisos
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls +-[a-zA-Z]*l' /root/.bash_history
+  - id: funcion
+    titulo: Una función
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^saluda ' /root/.bash_history
+  - id: bashx
+    titulo: Por dentro
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^bash +-x' /root/.bash_history

@@ -11,7 +11,7 @@ export const WIDGETS: Record<string, Widget> = {
   // Básicos (no necesitan lab)
   texto: b.texto, analogia: b.analogia, cifra: b.cifra, comparar: b.comparar, capas: b.capas, anatomia: b.anatomia,
   tabla: b.tabla, chuleta: b.chuleta, codigo: b.codigo, linea: b.linea, escala: b.escala, teclas: b.teclas,
-  senala: b.senala, aviso: b.aviso,
+  senala: b.senala, aviso: b.aviso, comando: b.comando,
   // Diagramas
   escena: d.escena, estados: d.estados, tuberia: d.tuberia, canales: d.canales, arbol: d.arbol, inodos: d.inodos,
   red: d.red, ip: d.ip, binario: d.binario, rwx: d.rwx, 'git-zonas': d.gitZonas, 'git-grafo': d.gitGrafo,

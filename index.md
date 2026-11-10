@@ -12,8 +12,8 @@ Este fichero es la puerta de entrada. Cada carpeta tiene su propio LEEME con el 
 | --- | --- | --- | --- |
 | `labs/` | Un lab por carpeta, definido en un `lab.yaml`. Máquinas, sondas, misión y boss. | crear o arreglar un lab, una comprobación o un boss | [labs/LEEME.md](labs/LEEME.md) |
 | `web/src/curso/lecciones/` | Las lecciones. Un fichero por lección con sus pasos y widgets. | escribir o cambiar el contenido de una lección | [lecciones/LEEME.md](web/src/curso/lecciones/LEEME.md) |
-| `web/src/curso/widgets/` | Los 53 widgets de las lecciones. Funciones reutilizables. | crear un widget o cambiar cómo se ve uno | [widgets/LEEME.md](web/src/curso/widgets/LEEME.md) |
-| `web/src/curso/` | El resto del curso en la web. Reproductor de lección, mapa, arcade, progreso y temario. | tocar la página de lección, el mapa o el progreso | [curso/LEEME.md](web/src/curso/LEEME.md) |
+| `web/src/curso/widgets/` | Los 54 widgets de las lecciones. Funciones reutilizables. | crear un widget o cambiar cómo se ve uno | [widgets/LEEME.md](web/src/curso/widgets/LEEME.md) |
+| `web/src/curso/` | El resto del curso en la web. Reproductor de lección, mapa, chuleta, arcade, progreso y temario. | tocar la página de lección, el mapa, la chuleta o el progreso | [curso/LEEME.md](web/src/curso/LEEME.md) |
 | `web/` | La web entera (Vite y TypeScript). Páginas HTML, estilo común, terminal, muestrario M1 a M6 y juegos. | cosas de la web que no son el curso | [README.md](README.md) |
 | `labd/` | El servidor en Go. Sirve la web, arranca los labs, abre las terminales y ejecuta comprobaciones y sondas. | cambiar cómo se arrancan los labs o la API | [labd/LEEME.md](labd/LEEME.md) |
 | `cuentas/` | Las cuentas, en un Worker de Cloudflare con D1. Alta, entrada, clases de los profes, progreso, latidos de los servidores y el panel de admin. | tocar usuarios, roles, clases, métricas o el correo | [cuentas/LEEME.md](cuentas/LEEME.md) |
@@ -33,7 +33,8 @@ Con `labd` en marcha, todo está en http://localhost:8080. Las direcciones van s
 
 | Dirección | Qué es |
 | --- | --- |
-| `/curso` | El mapa del curso, con los 9 cinturones y el botón de continuar |
+| `/curso` | El mapa del curso. Las islas del cinturón blanco, la ficha de la lección y lo que viene después |
+| `/chuleta` | La chuleta del alumno. Los comandos que lleva aprendidos, con sus notas |
 | `/leccion?m=0.0` | Una lección. `m` es el número del temario |
 | `/arcade` | Juegos cortos sin lab |
 | `/` | La portada pública (`inicio.html`). Sin `-cuentas`, la raíz lleva a `-inicio` o al muestrario |
@@ -60,6 +61,16 @@ bash dev-m6.sh
 `dev-m6.sh` compila `labd`, para el servicio instalado y lanza `labd` leyendo la web y los labs desde esta carpeta. Al acabar, `wsl -d relavops-m6 -u root -- systemctl start relavops` deja el servicio como estaba.
 
 Así no pide cuenta. Para probar con cuentas, arranca el Worker en local (`cd cuentas && npm run dev`) y lanza `CUENTAS=http://IP-DE-WINDOWS:8787 bash dev-m6.sh`. Lo explica [cuentas/LEEME.md](cuentas/LEEME.md#probar-en-local).
+
+## Antes de dar algo por bueno
+
+```
+node pruebas/comandos.mjs   # nada se pide sin haberlo enseñado antes
+node pruebas/reglas.mjs     # las reglas de las lecciones
+node pruebas/estilo.mjs     # dos puntos y rayas largas
+```
+
+Las tres van sin labd. Con labd en marcha, además `node pruebas/labs-leccion.mjs` y `node pruebas/labs-practica.mjs`.
 
 ## Cómo encaja todo
 

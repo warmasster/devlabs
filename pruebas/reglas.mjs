@@ -39,7 +39,7 @@ const VIVOS = new Set(['cifra', 'medidor', 'contador', 'procesos', 'arbol', 'ino
 const esVivo = (w) => VIVOS.has(w.t) && (w.sonda || ['maquina', 'puertos', 'red'].includes(w.t)) && !(w.t === 'fichero' && /^cat@/.test(w.sonda ?? ''));
 
 let avisos = 0;
-const files = fs.readdirSync(path.join(raiz, 'web/src/curso/lecciones')).filter((f) => /^0-\d\.ts$/.test(f)).sort();
+const files = fs.readdirSync(path.join(raiz, 'web/src/curso/lecciones')).filter((f) => /^0-\d+\.ts$/.test(f)).sort((a, b) => Number(a.match(/-(\d+)/)[1]) - Number(b.match(/-(\d+)/)[1]));
 for (const f of files) {
   const lec = await cargar(f);
   let lab;

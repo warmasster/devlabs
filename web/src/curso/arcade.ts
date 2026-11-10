@@ -3,10 +3,12 @@ import '../estilo.css';
 import '../iconos';
 import { celebrar, confeti, ding, fanfarria, panelAjustes } from '../recompensa';
 import { JUEGOS } from './juegos-lista';
+import { navMovil } from './nav';
 import { leer, record, sumarXP } from './progreso';
 
 const $ = (id: string) => document.getElementById(id)!;
 $('ajustes').append(panelAjustes());
+navMovil('arcade');
 const main = $('main');
 const id = new URLSearchParams(location.search).get('j');
 const R = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));

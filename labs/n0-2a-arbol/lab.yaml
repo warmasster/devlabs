@@ -1,0 +1,119 @@
+# 0.2 · Lab de lección. La lección dibuja tus carpetas en vivo, marca dónde estás y enseña lo que lees con cat.
+id: n0-2a-arbol
+titulo: Tu casa en el disco
+motor: contenedor
+pool: 1
+nodos:
+  - { nombre: lab, rol: tu máquina, imagen: "relavops/base:1", memoria: 256m, cpus: 1 }
+preparar:
+  - nodo: lab
+    script: |
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      mkdir -p /root/casa/documentos /root/casa/fotos /root/casa/musica
+      echo "Comprar pan. Llamar a Marta. Aprender Linux." > /root/casa/documentos/nota.txt
+      printf 'Cosas que me gustan\n- el café\n- la terminal\n' > /root/casa/documentos/lista.txt
+      for f in playa monte; do head -c 3000 /dev/urandom > /root/casa/fotos/$f.jpg; done
+      head -c 4000 /dev/urandom > /root/casa/musica/cancion.mp3
+      echo "esto sobra" > /root/casa/basura.tmp
+      mkdir -p /root/enlaces && echo "soy el contenido de verdad" > /root/enlaces/original.txt
+      for n in 1 2 3; do echo "registro $n" > /root/casa/documentos/viaje-$n.log; done
+      # Un programa que tiene abierto un fichero ya borrado, para verlo en /proc/PID/fd y pararlo con kill.
+      # Se llama acaparador en la lista de procesos (exec -a) y no tiene hijos, así kill lo termina entero.
+      cat > /usr/local/bin/lanza-acaparador <<'EOF'
+      #!/bin/bash
+      exec 3> /tmp/registro-viejo.log
+      head -c 200000 /dev/zero >&3
+      rm -f /tmp/registro-viejo.log
+      exec -a acaparador sleep infinity
+      EOF
+      chmod +x /usr/local/bin/lanza-acaparador
+      setsid nohup /usr/local/bin/lanza-acaparador >/dev/null 2>&1 &
+sondas:
+  - { id: ultimo@lab, nodo: lab, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
+  - { id: arbol@lab, nodo: lab, script: "find /root/casa -mindepth 1 -maxdepth 3 -printf '%y %p\\n' 2>/dev/null | head -60" }
+  - { id: aqui@lab, nodo: lab, script: "readlink /proc/$(pgrep -n -x bash)/cwd 2>/dev/null" }
+  - { id: inodos@lab, nodo: lab, script: "ls -li /root/enlaces 2>/dev/null | tail -n +2" }
+  - id: cat@lab
+    nodo: lab
+    script: |
+      c=$(tail -n 1 /root/.bash_history 2>/dev/null)
+      case "$c" in *[\;\|\&\>\<\$\`]*) exit 0 ;; "cat "*) ;; *) exit 0 ;; esac
+      d=$(readlink /proc/$(pgrep -n -x bash)/cwd 2>/dev/null); cd "${d:-/root}" || exit 0
+      head -c 3000 -- $(printf '%s' "${c#cat }" | sed 's#~#/root#g') 2>&1
+mision:
+  - { id: pwd, titulo: Dónde estoy, texto: "`pwd`", xp: 5, check: { nodo: lab, script: "grep -qE '^pwd' /root/.bash_history" } }
+  - { id: cdcasa, titulo: Entrar en casa, texto: "`cd casa`", xp: 10, check: { nodo: lab, script: "grep -qE '^cd' /root/.bash_history && [ \"$(readlink /proc/$(pgrep -n -x bash)/cwd)\" = /root/casa ]" } }
+  - { id: ls, titulo: Mirar, texto: "`ls`", xp: 5, check: { nodo: lab, script: "grep -qE '^ls' /root/.bash_history" } }
+  - { id: cddoc, titulo: Entrar en documentos, texto: "`cd documentos`", xp: 10, check: { nodo: lab, script: "[ \"$(readlink /proc/$(pgrep -n -x bash)/cwd)\" = /root/casa/documentos ]" } }
+  - { id: cat, titulo: Leer la nota, texto: "`cat nota.txt`", xp: 10, check: { nodo: lab, script: "grep -qE '^cat .*nota.txt' /root/.bash_history" } }
+  - { id: subir, titulo: Subir con .., texto: "`cd ..`", xp: 10, check: { nodo: lab, script: "grep -qE '^cd \\.\\.' /root/.bash_history" } }
+  - { id: mkdir, titulo: Crear una carpeta, texto: "`mkdir /root/casa/proyectos`", xp: 10, check: { nodo: lab, script: "test -d /root/casa/proyectos" } }
+  - { id: touch, titulo: Crear un fichero, texto: "`touch /root/casa/proyectos/idea.txt`", xp: 10, check: { nodo: lab, script: "test -f /root/casa/proyectos/idea.txt" } }
+  - { id: cp, titulo: Copiar, texto: "`cp`", xp: 10, check: { nodo: lab, script: "test -f /root/casa/proyectos/nota.txt && test -f /root/casa/documentos/nota.txt" } }
+  - { id: mv, titulo: Renombrar, texto: "`mv`", xp: 10, check: { nodo: lab, script: "test -f /root/casa/musica/favorita.mp3 && ! test -e /root/casa/musica/cancion.mp3" } }
+  - { id: rm, titulo: Borrar, texto: "`rm`", xp: 10, check: { nodo: lab, script: "! test -e /root/casa/basura.tmp" } }
+  - { id: find, titulo: Buscar, texto: "`find`", xp: 10, check: { nodo: lab, script: "grep -qE '^find .*-name' /root/.bash_history" } }
+  - { id: duro, titulo: Enlace duro, texto: "`ln`", xp: 15, check: { nodo: lab, script: "[ ! -L /root/enlaces/duro.txt ] && [ \"$(stat -c %i /root/enlaces/duro.txt 2>/dev/null)\" = \"$(stat -c %i /root/enlaces/original.txt)\" ]" } }
+  - { id: simbolico, titulo: Enlace simbólico, texto: "`ln -s`", xp: 15, check: { nodo: lab, script: "test -L /root/enlaces/atajo.txt" } }
+  - { id: borraorig, titulo: Borrar el original, texto: "`rm original.txt`", xp: 15, check: { nodo: lab, script: "! test -e /root/enlaces/original.txt && test -f /root/enlaces/duro.txt && test -L /root/enlaces/atajo.txt" } }
+  - { id: du, titulo: Qué ocupa, texto: "`du -sh`", xp: 10, check: { nodo: lab, script: "grep -qE '^du' /root/.bash_history" } }
+  - id: df
+    titulo: Cuánto disco queda
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^df( |$)' /root/.bash_history
+  - id: matapid
+    titulo: Parar al que retiene el fichero borrado
+    texto: ""
+    xp: 15
+    check:
+      nodo: lab
+      script: |
+        ! ps -eo stat=,args= | awk '$1 !~ /^Z/ && $2 == "acaparador" {f = 1} END {exit !f}'
+  - id: lsF
+    titulo: Carpetas con barra
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls +-F' /root/.bash_history
+  - id: lsraiz
+    titulo: La raíz
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls +/ *$' /root/.bash_history
+  - id: comodin
+    titulo: Comodín
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls .*\*\.log' /root/.bash_history
+  - id: lsi
+    titulo: Ver inodos
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls .*-[a-zA-Z]*i' /root/.bash_history
+  - id: procfd
+    titulo: Ficheros abiertos
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls .*/proc/[0-9]+/fd' /root/.bash_history

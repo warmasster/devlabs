@@ -1,0 +1,126 @@
+# 0.3 · La máquina por dentro: informe forense de una máquina desconocida.
+id: n0-3-maquina
+titulo: Informe forense de una máquina
+motor: contenedor
+pool: 1
+nodos:
+  - nombre: servidor
+    imagen: relavops/base:1
+    memoria: 384m
+    cpus: 1
+    pids: 256
+preparar:
+  - nodo: servidor
+    script: |
+      cat > /usr/local/bin/responde <<'EOF'
+      #!/bin/sh
+      [ $# -ge 2 ] || { echo "uso: responde <pregunta> <respuesta>   (ej.: responde cpus 4)"; exit 1; }
+      mkdir -p /root/.respuestas; k=$1; shift
+      printf '%s\n' "$*" > "/root/.respuestas/$k"; echo "Apuntado en el informe: $k = $*"
+      EOF
+      chmod +x /usr/local/bin/responde
+      # free enseña la RAM de esta máquina (su límite), igual que en la lección.
+      cat > /usr/local/bin/free <<'EOF'
+      #!/bin/sh
+      max=$(cat /sys/fs/cgroup/memory.max 2>/dev/null); cur=$(cat /sys/fs/cgroup/memory.current 2>/dev/null)
+      case "$max" in ''|max) exec /usr/bin/free "$@" ;; esac
+      t=$((max / 1048576)); u=$((cur / 1048576)); l=$((t - u))
+      printf '%14s %10s %10s %12s\n' total usada libre disponible
+      printf 'Mem: %9s %10s %10s %12s\n' "$t" "$u" "$l" "$l"
+      EOF
+      chmod +x /usr/local/bin/free
+      # Trabajadores legítimos: un número al azar entre 3 y 6.
+      cp /bin/sleep /usr/local/bin/trabajador
+      n=$(( $(od -An -N1 -tu1 /dev/urandom) % 4 + 3 ))
+      i=0; while [ $i -lt $n ]; do setsid nohup trabajador infinity >/dev/null 2>&1 & i=$((i+1)); done
+      echo "$n" > /run/.trab
+      printf 'Ticket #4411: "el servidor va lento". Antes de tocar nada, rellena el informe con `responde`.\n' > /etc/motd
+mision:
+  - id: kernel
+    titulo: ¿Qué kernel corre?
+    texto: Averigua la versión del kernel y contesta con `responde kernel` y la versión.
+    pista: uname -r
+    xp: 10
+    check: { nodo: servidor, script: 'test "$(cat /root/.respuestas/kernel 2>/dev/null)" = "$(uname -r)"' }
+  - id: distro
+    titulo: ¿Qué distribución es?
+    texto: "Mira `/etc/os-release` y contesta con `responde distro` y lo que pone en ID."
+    pista: cat /etc/os-release
+    xp: 10
+    check: { nodo: servidor, script: '. /etc/os-release; test "$(tr A-Z a-z < /root/.respuestas/distro 2>/dev/null)" = "$ID"' }
+  - id: cpus
+    titulo: ¿Cuántas CPUs puedes usar?
+    texto: "Cuántos núcleos ve esta máquina. Contesta con `responde cpus` y el número."
+    pista: nproc
+    xp: 10
+    check: { nodo: servidor, script: 'test "$(cat /root/.respuestas/cpus 2>/dev/null)" = "$(nproc)"' }
+  - id: ram
+    titulo: Cuánta RAM tiene
+    texto: La memoria total en megas. `responde ram` y el número. Vale un 5 % arriba o abajo.
+    pista: free -m   (columna total)
+    xp: 10
+    check:
+      nodo: servidor
+      script: |
+        r=$(tr -dc 0-9 < /root/.respuestas/ram 2>/dev/null); [ -n "$r" ] || exit 1
+        t=$(($(cat /sys/fs/cgroup/memory.max) / 1048576))
+        [ $((r*100)) -ge $((t*95)) ] && [ $((r*100)) -le $((t*105)) ]
+  - id: pid1
+    titulo: ¿Quién es el PID 1?
+    texto: El proceso con PID 1. Contesta con `responde pid1` y su nombre.
+    pista: "`ps -p 1` y mira la última columna"
+    xp: 10
+    check: { nodo: servidor, script: 'test "$(cat /root/.respuestas/pid1 2>/dev/null)" = "$(ps -p 1 -o comm=)"' }
+  - id: trabajadores
+    titulo: Cuenta los trabajadores
+    texto: Hay varios procesos llamados `trabajador`. Cuéntalos y contesta con `responde trabajadores`.
+    pista: "Escribe `ps aux` y cuenta las líneas que acaban en trabajador"
+    xp: 15
+    check: { nodo: servidor, script: 'test "$(cat /root/.respuestas/trabajadores 2>/dev/null)" = "$(cat /run/.trab)"' }
+boss:
+  titulo: "El proceso fantasma"
+  texto: El ticket era verdad, algo se está comiendo la máquina y se esconde con un nombre de sistema. Encuéntralo y elimínalo. Los `trabajador` son inocentes, no los toques.
+  xp: 60
+  check:
+    - { nodo: servidor, script: "test -x /run/boss-check.sh && /run/boss-check.sh" }
+  fallos:
+    - id: cpu
+      romper:
+        - nodo: servidor
+          script: |
+            cp /usr/bin/yes /usr/local/sbin/kworker-u8
+            setsid nohup /usr/local/sbin/kworker-u8 >/dev/null 2>&1 & echo $! > /run/.fantasma
+            printf '#!/bin/sh\n! ps -o stat= -p $(cat /run/.fantasma) | grep -qv Z && [ "$(ps -eo stat=,comm= | grep -v "^Z" | grep -cw trabajador)" -eq "$(cat /run/.trab)" ]\n' > /run/boss-check.sh; chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 5, texto: "Para ver quién gasta CPU, abre `top` y pulsa P. El que más gasta queda arriba." }
+        - { coste: 10, texto: "Un nombre como `kworker` parece del kernel, pero los hilos del kernel salen entre corchetes en `ps`. Este no." }
+        - { coste: 15, texto: "`kill` y el PID del que encabeza la lista de CPU." }
+      solucion: Un programa que solo gasta CPU, copiado con nombre de hilo del kernel. Lo delataba que no salía entre corchetes y que estaba al 100 % de CPU.
+    - id: ram
+      romper:
+        - nodo: servidor
+          script: |
+            mkdir -p /usr/lib/.sd; cp "$(readlink -f /usr/bin/python3)" /usr/lib/.sd/systemd-cache
+            setsid nohup /usr/lib/.sd/systemd-cache -c 'import time; b=bytearray(150*1024*1024); [b.__setitem__(i,1) for i in range(0,len(b),4096)]; time.sleep(99999)' >/dev/null 2>&1 & echo $! > /run/.fantasma
+            printf '#!/bin/sh\n! ps -o stat= -p $(cat /run/.fantasma) | grep -qv Z && [ "$(ps -eo stat=,comm= | grep -v "^Z" | grep -cw trabajador)" -eq "$(cat /run/.trab)" ]\n' > /run/boss-check.sh; chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 5, texto: "No es la CPU. Mira la memoria con `free -m` y luego abre `top` y pulsa M." }
+        - { coste: 10, texto: "La columna RES de top es la RAM real que usa cada proceso." }
+        - { coste: 15, texto: "En la carpeta /proc de cada proceso, exe apunta a su programa. Míralo con `ls -l /proc/PID/exe`, con su PID. Un systemd que vive en /usr/lib/.sd no es systemd." }
+      solucion: Un python renombrado como `systemd-cache` reteniendo 150 MB. Lo delataba la columna RES y su programa en una carpeta oculta.
+    - id: hijos
+      romper:
+        - nodo: servidor
+          script: |
+            cat > /usr/local/sbin/dbus-monitor-d <<'EOF'
+            #!/bin/sh
+            while true; do yes >/dev/null & p=$!; sleep 3; kill $p; done
+            EOF
+            chmod +x /usr/local/sbin/dbus-monitor-d
+            setsid nohup /usr/local/sbin/dbus-monitor-d >/dev/null 2>&1 & echo $! > /run/.fantasma
+            printf '#!/bin/sh\n! ps -o stat= -p $(cat /run/.fantasma) | grep -qv Z && ! ps -eo stat=,comm= | grep -v "^Z" | grep -qw yes && [ "$(ps -eo stat=,comm= | grep -v "^Z" | grep -cw trabajador)" -eq "$(cat /run/.trab)" ]\n' > /run/boss-check.sh; chmod +x /run/boss-check.sh
+      pistas:
+        - { coste: 5, texto: "Matas el proceso que gasta CPU y a los 3 segundos vuelve con otro PID. Alguien lo relanza." }
+        - { coste: 10, texto: "Busca a su padre con `ps -ef`. La columna PPID es el PID del padre." }
+        - { coste: 15, texto: "Mata primero al padre (el bucle), luego al hijo." }
+      solucion: Un bucle disfrazado de `dbus-monitor-d` relanzaba el programa que gasta CPU cada 3 s. Había que matar al padre, no solo al síntoma.

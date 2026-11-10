@@ -45,7 +45,7 @@ Las series. **R** Rómpelo, **B** El boss, **C** Un comando, **IA** La IA y tú.
 
 ### 1. Borro este Linux
 
-**Serie** R · **Lección** 0.3, sistema de ficheros
+**Serie** R · **Lección** 0.2, sistema de ficheros
 
 **Gancho** «Voy a borrar este Linux entero. Es una máquina de verdad.»
 **Otro gancho** «El comando que nunca vas a escribir en tu ordenador.»
@@ -65,7 +65,7 @@ Las series. **R** Rómpelo, **B** El boss, **C** Un comando, **IA** La IA y tú.
 
 ### 2. Ataque en curso
 
-**Serie** B · **Lección** 0.5, texto y tuberías · **Avería** combined
+**Serie** B · **Lección** 0.6, texto y tuberías · **Avería** combined
 
 **Gancho** «Alguien está probando contraseñas contra este servidor. Su IP está en este log.»
 **Otro gancho** «Un log de 6000 líneas y un atacante dentro.»
@@ -78,15 +78,15 @@ Las series. **R** Rómpelo, **B** El boss, **C** Un comando, **IA** La IA y tú.
 5. «La IP con más tráfico del log era un cliente. Si bloqueas esa, la lías.»
 6. `responde atacante` con la IP. Boss derrotado y 60 XP.
 
-**Cierre** «Es el boss de la lección 0.5. relavops.org»
+**Cierre** «Es el boss de la lección 0.6. relavops.org»
 
-**Descripción** El boss de la lección 0.5. Encontrar al atacante en un log de 6000 líneas con cuatro comandos encadenados. #linux #ciberseguridad #devops #asir #terminal
+**Descripción** El boss de la lección 0.6. Encontrar al atacante en un log de 6000 líneas con cuatro comandos encadenados. #linux #ciberseguridad #devops #asir #terminal
 
 **Por comprobar** El nombre exacto del fichero de log. Que la tubería entera cabe en 45 columnas o se parte en dos líneas.
 
 ### 3. Salir de vim
 
-**Serie** C · **Lección** 0.7, editores · **Manda a** `/blog/como-salir-de-vim`, que en el móvil se lee bien
+**Serie** C · **Lección** 0.8, editores · **Manda a** `/blog/como-salir-de-vim`, que en el móvil se lee bien
 
 **Gancho** «Has abierto vim sin querer. Así se sale.»
 **Otro gancho** «Llevas diez minutos dentro de vim. Sales en tres segundos.»
@@ -103,7 +103,7 @@ Las series. **R** Rómpelo, **B** El boss, **C** Un comando, **IA** La IA y tú.
 
 ### 4. Permission denied
 
-**Serie** IA · **Lección** 0.4, permisos · **Avería** directorio
+**Serie** IA · **Lección** 0.5, permisos · **Avería** directorio
 
 Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto.
 
@@ -125,7 +125,7 @@ Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto
 
 ### 5. El desastre del viernes
 
-**Serie** B · **Lección** 0.9, Git · **Avería** conflicto · **Se publica** el viernes a las 17:55
+**Serie** B · **Lección** 0.10, Git · **Avería** conflicto · **Se publica** el viernes a las 17:55
 
 **Gancho** «Viernes, seis menos cinco. Git rechaza tu push.»
 **Otro gancho** «Tu compañera ha subido antes que tú. Y habéis tocado la misma línea.»
@@ -139,7 +139,7 @@ Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto
 
 **Cierre** «Nunca push --force sobre el trabajo de otra persona. relavops.org»
 
-**Descripción** El boss de la lección 0.9. Un conflicto de Git a cinco minutos de irte a casa. #git #programacion #devops #daw #asir
+**Descripción** El boss de la lección 0.10. Un conflicto de Git a cinco minutos de irte a casa. #git #programacion #devops #daw #asir
 
 **Por comprobar** Cuánto dura la edición a mano. Si pasa de seis segundos, se acelera ese trozo.
 
@@ -149,7 +149,7 @@ Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto
 
 ### 6. chmod sin chmod
 
-**Serie** R · **Lección** 0.4, permisos
+**Serie** R · **Lección** 0.5, permisos
 
 **Gancho** «Le quito el permiso de ejecución a chmod. Ahora no puedo devolvérselo.»
 **Otro gancho** «El comando que arregla los permisos se ha quedado sin permisos.»
@@ -169,7 +169,7 @@ Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto
 
 ### 7. Tres números
 
-**Serie** C · **Lección** 0.4, permisos · **Manda a** `/herramientas/calculadora-chmod`
+**Serie** C · **Lección** 0.5, permisos · **Manda a** `/herramientas/calculadora-chmod`
 
 **Gancho** «Tres números y sabes quién puede tocar un fichero.»
 **Otro gancho** «¿Qué permisos da chmod 640? Tienes cinco segundos.»
@@ -189,7 +189,7 @@ Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto
 
 ### 8. El proceso fantasma
 
-**Serie** B · **Lección** 0.1, qué es un ordenador · **Avería** cpu
+**Serie** B · **Lección** 0.3, la máquina por dentro · **Avería** cpu
 
 **Gancho** «Algo se está comiendo esta máquina. Se hace pasar por un proceso del sistema.»
 **Otro gancho** «Este proceso tiene nombre de kernel. No lo es.»
@@ -201,15 +201,15 @@ Guion abierto. Primero se hace la pregunta de verdad y luego se escribe el resto
 4. `kill` con su PID. La barra de CPU de la lección baja sola. Boss derrotado.
 5. «Los procesos trabajador eran inocentes. Matar a ojo no vale.»
 
-**Cierre** «Es el boss de la lección 0.1. relavops.org»
+**Cierre** «Es el boss de la lección 0.3. relavops.org»
 
-**Descripción** El boss de la lección 0.1. Un proceso que gasta toda la CPU con nombre de sistema. #linux #sysadmin #ciberseguridad #devops #asir
+**Descripción** El boss de la lección 0.3. Un proceso que gasta toda la CPU con nombre de sistema. #linux #sysadmin #ciberseguridad #devops #asir
 
 **Por comprobar** Que la barra de CPU se ve en el encuadre vertical.
 
 ### 9. La leo antes de pegarla
 
-**Serie** IA · **Lección** 0.5, texto y tuberías
+**Serie** IA · **Lección** 0.6, texto y tuberías
 
 Guion abierto. La línea que se lee es la que conteste la IA.
 
@@ -229,7 +229,7 @@ Guion abierto. La línea que se lee es la que conteste la IA.
 
 ### 10. Linux olvida mi nombre
 
-**Serie** R · **Lección** 0.1 y, cuando exista, la 1.1 de usuarios
+**Serie** R · **Lección** 0.3 y, cuando exista, la 1.1 de usuarios
 
 **Gancho** «Borro una línea de un fichero y Linux olvida cómo me llamo.»
 **Otro gancho** «Linux no te conoce por tu nombre. Te conoce por un número.»
@@ -274,7 +274,7 @@ Guion abierto. La línea que se lee es la que conteste la IA.
 
 ### 12. Quién llena el disco
 
-**Serie** B · **Lección** 0.3, sistema de ficheros · **Avería** oculto
+**Serie** B · **Lección** 0.2, sistema de ficheros · **Avería** oculto
 
 **Gancho** «El disco está al 90 % y du dice que no hay nada grande.»
 **Otro gancho** «50 megas escondidos en una carpeta que no ves.»
@@ -286,15 +286,15 @@ Guion abierto. La línea que se lee es la que conteste la IA.
 4. `du -ah /datos | sort -h | tail`. «Ahora sí. 50 megas dentro de cuatro carpetas ocultas.»
 5. `rm` del fichero y `df -h` otra vez. Boss derrotado.
 
-**Cierre** «Es el boss de la lección 0.3. relavops.org»
+**Cierre** «Es el boss de la lección 0.2. relavops.org»
 
-**Descripción** El boss de la lección 0.3. Un disco lleno y un fichero que du no enseña. #linux #sysadmin #terminal #devops #asir
+**Descripción** El boss de la lección 0.2. Un disco lleno y un fichero que du no enseña. #linux #sysadmin #terminal #devops #asir
 
 **Por comprobar** Que la ruta larga del fichero cabe o se puede cortar sin que se pierda.
 
 ### 13. Dos enlaces
 
-**Serie** R · **Lección** 0.3, sistema de ficheros
+**Serie** R · **Lección** 0.2, sistema de ficheros
 
 **Gancho** «Hago dos enlaces a un fichero y borro el original. Solo uno sobrevive.»
 **Otro gancho** «Enlace duro y enlace simbólico. La diferencia en veinte segundos.»
@@ -312,7 +312,7 @@ Guion abierto. La línea que se lee es la que conteste la IA.
 
 ### 14. La IA contra el boss
 
-**Serie** IA · **Lección** 0.8, Bash · **Avería** comillas
+**Serie** IA · **Lección** 0.9, Bash · **Avería** comillas
 
 Guion abierto. Se publica lo que pase.
 
@@ -332,7 +332,7 @@ Guion abierto. Se publica lo que pase.
 
 ### 15. Ctrl+R
 
-**Serie** C · **Lección** 0.2, la shell
+**Serie** C · **Lección** 0.1, la shell
 
 **Gancho** «Deja de pulsar la flecha de arriba cuarenta veces.»
 **Otro gancho** «El atajo de la terminal que más tiempo ahorra.»
@@ -344,7 +344,7 @@ Guion abierto. Se publica lo que pase.
 4. `Ctrl+R` otra vez. «Otra vez Ctrl+R y va al anterior.»
 5. Enter.
 
-**Cierre** «Se practica contra reloj en la lección 0.2. relavops.org»
+**Cierre** «Se practica contra reloj en la lección 0.1. relavops.org»
 
 **Descripción** Ctrl+R busca en el historial de la terminal. Se acabó la flecha de arriba. #linux #terminal #programacion #productividad #asir
 
@@ -354,7 +354,7 @@ Guion abierto. Se publica lo que pase.
 
 ### 16. La variable vacía
 
-**Serie** R · **Lección** 0.8, Bash
+**Serie** R · **Lección** 0.9, Bash
 
 **Gancho** «Este script limpia una carpeta. Con la variable vacía, limpia el disco entero.»
 **Otro gancho** «Una línea de Bash que funciona hasta el día que no.»
@@ -365,7 +365,7 @@ Guion abierto. Se publica lo que pase.
 3. Se lanza sin nada. Sale `rm -rf /bin /boot /dev` y lo demás. «Sin carpeta, la barra se queda sola. Y eso es todo el disco.»
 4. Se añade `set -u` arriba y se lanza sin nada. El script se para. «Con set -u, una variable vacía lo detiene.»
 
-**Cierre** «set -euo pipefail en la primera línea. Lección 0.8. relavops.org»
+**Cierre** «set -euo pipefail en la primera línea. Lección 0.9. relavops.org»
 
 **Descripción** Por qué un script de Bash empieza con set -u. Una variable vacía y rm se lleva el disco. #bash #linux #devops #scripting #asir
 
@@ -373,7 +373,7 @@ Guion abierto. Se publica lo que pase.
 
 ### 17. Mañana hay auditoría
 
-**Serie** B · **Lección** 0.6, expresiones regulares · **Avería** emails
+**Serie** B · **Lección** 0.7, expresiones regulares · **Avería** emails
 
 **Gancho** «Mañana hay auditoría. Este log está lleno de correos de clientes.»
 **Otro gancho** «Cientos de correos que no deberían estar en este log. Una línea los quita.»
@@ -385,15 +385,15 @@ Guion abierto. Se publica lo que pase.
 4. `sed -E -i` con ese patrón y `[email]`. «sed cambia cada uno por [email].»
 5. `grep -c @ soporte.log` da 0. Boss derrotado y 70 XP.
 
-**Cierre** «Es el boss de la lección 0.6. relavops.org»
+**Cierre** «Es el boss de la lección 0.7. relavops.org»
 
-**Descripción** El boss de la lección 0.6. Anonimizar un log entero con una expresión regular y sed. #regex #linux #protecciondedatos #devops #asir
+**Descripción** El boss de la lección 0.7. Anonimizar un log entero con una expresión regular y sed. #regex #linux #protecciondedatos #devops #asir
 
 **Por comprobar** Que el patrón del `lab.yaml` cabe en pantalla. Cuántos correos hay de verdad, para no decir «cientos» si son cuarenta.
 
 ### 18. Cuatro comandos
 
-**Serie** C · **Lección** 0.5, texto y tuberías
+**Serie** C · **Lección** 0.6, texto y tuberías
 
 **Gancho** «Cuatro comandos que resumen cualquier log.»
 **Otro gancho** «sort, uniq, sort y head. En ese orden.»
@@ -405,13 +405,13 @@ Guion abierto. Se publica lo que pase.
 4. Se añade `| sort -rn | head`. «Ordeno por cantidad y me quedo con las primeras.»
 5. Se cambia `$1` por `$7`. «Cambio la columna y son las páginas más pedidas.»
 
-**Cierre** «Vale para cualquier log. Lección 0.5. relavops.org»
+**Cierre** «Vale para cualquier log. Lección 0.6. relavops.org»
 
 **Descripción** sort, uniq -c, sort -rn y head. La tubería que resume cualquier log. #linux #terminal #devops #sysadmin #asir
 
 ### 19. La contraseña en el repo
 
-**Serie** IA · **Lección** 0.9, Git · **Avería** secreto
+**Serie** IA · **Lección** 0.10, Git · **Avería** secreto
 
 Guion abierto.
 
@@ -424,13 +424,13 @@ Guion abierto.
 4. `git log --all -- .env` no devuelve nada. Boss derrotado o no.
 5. «Fuera del historial. Pero esa contraseña ya ha estado ahí. Se cambia.»
 
-**Cierre** «Borrar el fichero no borra el historial. Lección 0.9. relavops.org»
+**Cierre** «Borrar el fichero no borra el historial. Lección 0.10. relavops.org»
 
 **Por comprobar** Todo. Si la IA avisa de cambiar la contraseña, se dice que lo ha avisado.
 
 ### 20. kill -9
 
-**Serie** R · **Lección** 0.1 y, cuando exista, la 1.3 de procesos
+**Serie** R · **Lección** 0.3 y, cuando exista, la 1.3 de procesos
 
 **Gancho** «kill -9 mata cualquier proceso. Menos uno.»
 **Otro gancho** «Intento matar el proceso 1. No se deja.»

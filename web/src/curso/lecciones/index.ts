@@ -1,4 +1,5 @@
 // Registro de lecciones. Para añadir una: crea su fichero en esta carpeta y súmala aquí, en orden.
+// El orden de esta lista es el orden del curso. El vigilante de pruebas/comandos.mjs lo recorre igual.
 import type { Leccion } from './tipos';
 import { leccion as l00 } from './0-0';
 import { leccion as l01 } from './0-1';
@@ -10,8 +11,9 @@ import { leccion as l06 } from './0-6';
 import { leccion as l07 } from './0-7';
 import { leccion as l08 } from './0-8';
 import { leccion as l09 } from './0-9';
+import { leccion as l10 } from './0-10';
 
-const TODAS = [l00, l01, l02, l03, l04, l05, l06, l07, l08, l09];
+const TODAS = [l00, l01, l02, l03, l04, l05, l06, l07, l08, l09, l10];
 
 export const LECCIONES: Record<string, Leccion> = Object.fromEntries(TODAS.map((l) => [l.id, l]));
 export const ORDEN = TODAS.map((l) => l.id);

@@ -28,6 +28,7 @@ Un solo binario en Go que lo hace todo en la máquina del alumno. Sirve la web, 
 | `POST /api/sesion/{sid}/boss?fallo=` | Rompe el lab con un fallo al azar, o con el pedido. |
 | `POST /api/sesion/{sid}/pista` | Siguiente pista del boss. Resta XP. |
 | `POST /api/sesion/{sid}/accion/{nombre}` | Ejecuta una acción del `lab.yaml` y lanza una ronda de sondas. |
+| `GET /api/aforo` | Cuántas sesiones hay abiertas, el tope y si ahora mismo no cabe nadie más. El mapa lo usa para avisar antes de entrar. |
 | `GET /ws/term?s=&n=&c=&r=` | La terminal de un nodo (`n`), con sus columnas y filas. |
 | `GET /ws/eventos?s=` | Eventos de la sesión. `estado` al conectar, y luego `paso`, `sonda`, `boss` y `paquete`. |
 
@@ -58,9 +59,9 @@ Por eso labd deja en cada nodo un **vigía**, `sh /usr/lib/relavops/vigia` (en `
 
 - Corre dentro del contenedor, con sus límites de CPU y memoria y sus permisos. No se usa `nsenter` desde fuera porque el script correría con todos los permisos del servidor, y el alumno, que es root en su lab, podría cambiar los programas que ejecuta.
 - Si una ronda tarda más de 4 s o el vigía muere (el alumno lo mata, por ejemplo), esa ronda se hace con un `docker exec` por script y la siguiente abre otro vigía. Si uno recién abierto falla, se deja de intentar 30 s. Si muere tres veces en un minuto, se deja de abrir durante un minuto, y mientras tanto las rondas con `docker exec` van como mucho cada 2 s. Así matarlo en bucle no gasta CPU del servidor.
-- El alumno lo ve en `ps aux`. La lección 0.1 lo explica y las sondas de procesos lo filtran.
+- El alumno lo ve en `ps aux`. La lección 0.3 lo explica y las sondas de procesos lo filtran.
 
-Medido en la lección 0.3 (6 sondas y 21 pasos) con la lección abierta y sin teclear nada.
+Medido en la lección de ficheros (6 sondas y 21 pasos) con la lección abierta y sin teclear nada.
 
 | Cómo | CPU del servidor |
 | --- | --- |
@@ -113,7 +114,9 @@ Por defecto no hay ninguno, salvo cerrar las abandonadas a los 20 minutos. Así 
 
 | Opción | En el VPS | Qué hace |
 | --- | --- | --- |
-| `-max-sesiones` | 30 | Sesiones abiertas a la vez en todo el servidor. Con el tope, abrir otra da 503 y la lección dice que están todas ocupadas. |
+| `-max-sesiones` | 30 | Sesiones abiertas a la vez en todo el servidor. Con el tope, abrir otra da 503 y la lección enseña la sala de espera (ver abajo). En el VPS se cambia con `MAX_SESIONES=40 bash instalador/vps.sh`. |
+| `-desalojo` | 2m | Con el servidor lleno, antes de decir que no, se cierra la sesión que más tiempo lleva sin nadie delante, si pasa de esto. Su sitio es para quien sí está esperando. |
+| `-ram-libre-min` | 600M | Con menos RAM libre que esto no se abren sesiones nuevas, haya las que haya. Mira la del servidor y la que le queda al cgroup de los labs, y se queda con la menor. En el VPS se cambia con `RAM_LIBRE_MIN=1G`. |
 | `-max-por-persona` | 3 | Por cuenta (sin cuentas, por IP). Al abrir una más se cierra la más antigua de esa persona. |
 | `-dura-sesion` | 2h | Vida máxima. 5 minutos antes la lección avisa, y al llegar la cierra. |
 | `-max-nuevas-min` | 8 | Sesiones nuevas por persona y minuto. Reutilizar la suya no cuenta. Al pasarse da 429 y la lección pide esperar un minuto. Frena a quien entra y sale sin parar. |
@@ -122,6 +125,19 @@ Por defecto no hay ninguno, salvo cerrar las abandonadas a los 20 minutos. Así 
 | `-tope-fichero` | 2G | Tamaño máximo de un fichero dentro de un lab (`ulimit -f`). Uno más grande falla al momento. |
 | `-disco-lab` | 2G | Disco que puede ocupar un lab abierto. Se mide cada 30 s y el que se pasa se cierra (motivo `disco`). |
 | `-disco-libre` | 3G | Si el disco de Docker baja de esto (se mira cada 2 s), se cierra en el acto el lab que más ocupa. |
+
+### Cuando llega mucha gente a la vez
+
+La contención va por capas, de la más barata a la más seria.
+
+1. **Por persona.** Tres máquinas a la vez y ocho nuevas por minuto. Nadie se queda el servidor para él.
+2. **Abandono.** Diez minutos sin nadie delante y la máquina se cierra sola.
+3. **Desalojo.** Con el tope alcanzado, la que lleva más de dos minutos sin nadie delante deja su sitio.
+4. **Tope de sesiones y de RAM.** Si aun así no cabe, la petición da 503 con `motivo: lleno` y `espera: 15`.
+5. **Sala de espera.** La lección no enseña un error. Dice que no queda máquina libre, que no hay que hacer nada, y vuelve a pedirla sola cada 15 a 23 segundos (con algo de azar para que no llamen todos a la vez). Mientras, la lección se lee, la chuleta se repasa y el arcade funciona, que no gastan máquina. El mapa avisa antes de entrar con `/api/aforo`.
+6. **El cgroup de los labs.** Pase lo que pase, a labd, a Caddy y a Docker les queda RAM y CPU.
+
+Cada vez que alguien se queda esperando sale en el log (`lleno: … se queda esperando`) y se cuenta en `llenos` de `/api/aforo`. Si ese número sube a menudo, toca subir `MAX_SESIONES` o poner otro servidor.
 
 Al cerrar una sesión, labd manda el evento `cerrada` con el motivo (`otra`, `tiempo`, `abandono`, `admin`, `expulsado` o `disco`). Si la página pierde la conexión y labd dice que la sesión ya no existe, la propia página se pone el motivo `perdida` y deja de reconectar. La lección tapa la terminal y ofrece abrir una máquina nueva (`web/src/curso/nucleo/panel-lab.ts`). La persona es su cuenta. Sin `-cuentas`, se reconoce por su IP, que labd lee de `X-Forwarded-For` solo cuando la conexión llega desde la propia máquina (Caddy). Coge la última IP de la lista, que es la que pone Caddy. Las de antes y `Cf-Connecting-Ip` las puede escribir cualquiera, así que no se usan.
 

@@ -120,9 +120,9 @@ function desdeDentro(lab, ctr, { sistema = false, memoria = 256, redPropia = fal
 }
 
 const SISTEMA = new Set(['j-contenedores']);
-const MEMORIA = { 'j-contenedores': 1024, 'n0-1b-red': 192, 'j-disco': 512, 'n0-1a-cuerpo': 512, 'n0-3-ficheros': 320 };
+const MEMORIA = { 'j-contenedores': 1024, 'n0-4a-red': 192, 'j-disco': 512, 'n0-3a-cuerpo': 512, 'n0-2-ficheros': 320 };
 // Uno de cada tipo: contenedor sin red, red propia, topologías (base, FRR, juego) y Sysbox.
-const LABS = ['n0-0-tutorial', 'n0-1b-red', 'm2-ping', 'm3-routing', 'j-asedio', 'j-disco', 'j-contenedores'];
+const LABS = ['n0-0-tutorial', 'n0-4a-red', 'm2-ping', 'm3-routing', 'j-asedio', 'j-disco', 'j-contenedores'];
 const solo = process.argv[2];
 
 for (const lab of LABS.filter((l) => !solo || l === solo)) {
@@ -162,7 +162,7 @@ for (const lab of LABS.filter((l) => !solo || l === solo)) {
     const r = en(ctrs.find((c) => c.endsWith('-servidor')), 'iptables -A INPUT -s 10.8.1.2 -j DROP && iptables -S | grep -c DROP && tc qdisc replace dev eth1 root netem delay 10ms && echo TC && ping -c1 -W2 10.8.1.2 >/dev/null; iptables -F; ping -c1 -W2 10.8.1.2 >/dev/null && echo RED');
     ok(lab, 'iptables, tc netem y su red funcionan', /TC/.test(r.out) && /RED/.test(r.out), r.out);
   }
-  if (lab === 'n0-1b-red') {
+  if (lab === 'n0-4a-red') {
     // Dos instancias del mismo lab, con la misma subred: cada una ve solo sus máquinas.
     let otra;
     try {

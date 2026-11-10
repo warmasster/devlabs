@@ -3,7 +3,7 @@ import { hashClave } from '../cripto';
 import { hayCorreo } from '../correo';
 import { ajustes, apuntar, exigir } from '../sesion';
 import { ahora, csv, cuerpo, dia, DIA, Fallo, origenValido, texto, type Ctx } from '../util';
-import { limpiarProgreso } from './cuenta';
+import { limpiarProgreso, migrar } from './cuenta';
 import { nodosVivos, ordenar, sesionesVivas, type SesionViva } from './nodos';
 
 const admin = (c: Ctx) => exigir(c, 'admin');
@@ -164,7 +164,7 @@ export async function usuario(c: Ctx) {
   const vivas = (await sesionesVivas(c)).filter((s) => s.usuario === id);
   return {
     usuario: u, sesiones: sesiones.results, clases: clases.results, clases_profe: propias.results,
-    progreso: prog ? { ...limpiarProgreso(JSON.parse(prog.datos)), actualizado: prog.actualizado } : null,
+    progreso: prog ? { ...migrar(limpiarProgreso(JSON.parse(prog.datos))), actualizado: prog.actualizado } : null,
     usos: usos.results, actividad: act.results, lab: resumenLab, vivas,
   };
 }

@@ -1,145 +1,136 @@
-// 0.4 · Permisos. Usuarios y grupos, rwx, chmod, chown, carpetas, octal y bits especiales.
+// 0.4 · La red. Desde cero: qué es una red, IP, ping y puertos, con tres máquinas de verdad.
 import type { Leccion } from './tipos';
 
-const L = 'n0-4a-rwx';
-const PRACTICA = 'n0-4-permisos';
-const siNo = { si: ['sí', 'ok'], no: ['no', 'mal'] };
+const RED = 'n0-4a-red';
+const PRACTICA = 'n0-4-red';
+const PUERTAS = { t: 'puertos', efecto: true, nodo: 'web', puertos: [[22, 'ssh'], [80, 'web'], [443, 'web segura'], [8080, '']] };
 
 export const leccion: Leccion = {
   id: '0.4',
-  titulo: 'Permisos',
-  minutos: 35,
-  resumen: 'Sabes leer y cambiar permisos con letras y con números, cambiar de dueño y de grupo, y que para llegar a un fichero hace falta poder entrar en cada carpeta del camino.',
+  titulo: 'La red',
+  minutos: 30,
+  resumen: 'Sabes qué es una IP, cómo comprobar con ping que otra máquina contesta, qué es un puerto, cómo ver los que hay abiertos y cómo llamar a uno.',
   pasos: [
     {
-      titulo: 'Una máquina, muchos usuarios',
-      lab: L,
+      titulo: 'Las máquinas hablan entre ellas',
+      lab: RED,
       w: [
-        { t: 'analogia', icono: 'users', de: 'Linux', es: 'es como un edificio con vecinos. Cada usuario tiene su casa y no entra en la de otro sin permiso.' },
-        { t: 'texto', md: 'En esta máquina viven **ana** y **luis**. Tú eres **root**, el administrador, que puede con todo.' },
-        { t: 'texto', md: 'Por eso a ti los permisos no te frenan. Las luces de esta lección miran lo que pueden hacer ana y luis. Para eso el lab lanza comandos como ellos, con `su ana -c "comando"`.' },
-        { t: 'haz', paso: 'whoami', md: 'Escribe `whoami`. Te dice quién eres.' },
+        { t: 'texto', md: 'Un servidor casi nunca está solo. Ahora tienes **tres máquinas** en la misma red. Cada una tiene su tarjeta y su terminal.' },
+        { t: 'analogia', icono: 'network', de: 'Una red', es: 'son máquinas unidas por cables o por wifi para mandarse datos.' },
+        { t: 'senala', zona: 'pestanas', md: 'Con estas pestañas cambias de una terminal a otra. Ahora estás en la de tu-pc.' },
+        { t: 'red', efecto: true, origen: 'tu-pc' },
+        { t: 'haz', paso: 'hostpc', nodo: 'tu-pc', md: 'Escribe `hostname` en la terminal de tu-pc. Cada máquina tiene su nombre.' },
       ],
     },
     {
-      titulo: 'Grupos',
+      titulo: 'Qué es una IP',
       w: [
-        { t: 'analogia', icono: 'users', de: 'Un grupo', es: 'es una lista de usuarios que comparten cosas, como los socios de un club.' },
-        { t: 'texto', md: 'En esta máquina hay un grupo **club**. luis es socio y ana no.' },
-        { t: 'haz', paso: 'id', md: 'Escribe `id luis` y luego `id ana`. Compara sus grupos.' },
+        { t: 'analogia', icono: 'house', de: 'Una IP', es: 'es la dirección de una máquina en la red. Como la dirección de una casa para el cartero.' },
+        { t: 'ip', ip: '10.0.0.20' },
+        { t: 'texto', md: 'Son cuatro números separados por puntos. Cada uno va de 0 a 255. Toca uno para ver por qué.' },
+        { t: 'comando', cmd: 'hostname', ops: [['-I', 'las IPs de la máquina, en una sola línea. Es una i mayúscula']] },
+        { t: 'haz', paso: 'hostI', nodo: 'tu-pc', md: 'Escribe `hostname -I`.' },
       ],
     },
     {
-      titulo: 'Leer los permisos',
+      titulo: 'Por qué hasta 255',
       w: [
-        { t: 'anatomia', partes: [['-', 'tipo'], ['rw-', 'el dueño', 'ok'], ['r--', 'el grupo', 'aviso'], ['r--', 'el resto', 'mal'], ['root', 'dueño', 'ok'], ['root', 'grupo', 'aviso'], ['socios.txt', 'nombre', 'suave']] },
-        { t: 'texto', md: 'Es lo que ves con `ls -l`. El primer carácter dice qué es. Un guion es un fichero y una d es una carpeta. Luego van tres bloques de tres letras.' },
-        { t: 'haz', paso: 'lsl', md: 'Escribe `ls -l /srv/club`.' },
+        { t: 'texto', md: 'Los ordenadores cuentan con **bits**, interruptores que están a 0 o a 1. Cada número de la IP son 8 bits. Cada bit vale el doble que el de su derecha. Con los 8 encendidos sale 255.' },
+        { t: 'texto', md: 'Enciende los bits que sumen 20, el último número de la IP de web.' },
+        { t: 'binario', objetivo: 20 },
       ],
     },
     {
-      titulo: 'r, w y x',
+      titulo: 'Tu IP',
       w: [
-        { t: 'tabla', cab: ['Letra', 'En un fichero', 'En una carpeta'], filas: [['**r**', 'leerlo', 'ver qué hay dentro'], ['**w**', 'cambiarlo', 'crear o borrar cosas dentro'], ['**x**', 'ejecutarlo como programa', 'entrar y pasar por ella']] },
-        { t: 'texto', md: 'Fíjate en la w de las carpetas. Borrar un fichero es quitar su nombre de la carpeta. Por eso poder borrarlo depende de la w de la carpeta, no de la del fichero.' },
-        { t: 'texto', md: 'Tócalos. Debajo ves cómo quedaría en `ls -l` y su número, que verás enseguida.' },
-        { t: 'rwx', inicial: '640' },
-        { t: 'haz', paso: 'lsd', md: 'Tu casa también tiene permisos. Míralos con `ls -ld /root`. Con `-d` ls enseña la carpeta en sí y no lo que hay dentro.' },
+        { t: 'comando', cmd: 'ip addr', hace: 'Enseña las tarjetas de red de la máquina y la IP de cada una.', uso: 'ip addr' },
+        { t: 'haz', paso: 'ipaddr', nodo: 'tu-pc', md: 'En la terminal de **tu-pc** escribe `ip addr`. Busca la línea que empieza por `inet` y no es la de 127.0.0.1.' },
+        { t: 'anatomia', partes: [['inet', 'dirección IPv4'], ['10.0.0.10', 'tu IP'], ['/24', 'el tamaño de la red']], nota: 'La de 127.0.0.1 es la máquina hablando consigo misma. El /24 lo verás en el nivel de redes.' },
+        { t: 'maquina', tras: 'ipaddr' },
+        { t: 'aviso', md: 'Tu IP también sale en la tarjeta de la máquina. En un servidor de verdad no hay tarjeta, por eso aprendes a buscarla.' },
       ],
     },
     {
-      titulo: 'ana quiere leer el diario',
+      titulo: 'ping',
       w: [
-        { t: 'estado', efecto: true, sonda: 'ana-lee', titulo: '¿ana puede leer diario.txt?', mapa: siNo },
-        { t: 'rwx', tras: 'lsl', sonda: 'perm-diario', fichero: 'diario.txt', inicial: '600' },
-        { t: 'anatomia', partes: [['chmod', 'cambia permisos'], ['o', 'a quién'], ['+r', 'qué'], ['/srv/club/diario.txt', 'qué fichero']] },
-        { t: 'texto', md: '**u** es el dueño, **g** el grupo y **o** el resto. Con `+` das y con `-` quitas. ana no es la dueña ni del club, así que para ella cuenta el resto.' },
-        { t: 'haz', paso: 'leer', md: 'Haz que el resto pueda leer el diario. Mira la luz.' },
+        { t: 'comando', cmd: 'ping', hace: 'Manda un mensajito a otra máquina y espera la respuesta. Si contesta, está ahí y la red funciona.', partes: [['ping', 'el programa'], ['-c 3', 'manda 3 y para'], ['10.0.0.20', 'a quién']], ops: [['-c 3', 'manda 3 mensajes y para. Sin esto no para nunca, y se corta con Ctrl+C']] },
+        { t: 'red', efecto: true, origen: 'tu-pc' },
+        { t: 'haz', paso: 'pingweb', nodo: 'tu-pc', md: 'Escribe `ping -c 3 10.0.0.20` y mira el mapa.' },
       ],
     },
     {
-      titulo: 'El diario, para ana',
+      titulo: 'Ahora a db',
       w: [
-        { t: 'estado', efecto: true, sonda: 'ana-escribe', titulo: '¿ana puede escribir en diario.txt?', mapa: siNo },
-        { t: 'anatomia', partes: [['chown', 'cambia el dueño'], ['ana', 'nueva dueña'], ['/srv/club/diario.txt', 'qué fichero']] },
-        { t: 'haz', paso: 'duena', md: 'Haz a ana dueña del diario. Como el dueño tiene rw, ahora puede escribir.' },
-        { t: 'rwx', tras: 'lsl', sonda: 'perm-diario', fichero: 'diario.txt', inicial: '644' },
+        { t: 'red', efecto: true, origen: 'tu-pc' },
+        { t: 'haz', paso: 'pingdb', nodo: 'tu-pc', md: 'Haz ping a **db**. Su IP está en su tarjeta.', pista: 'ping -c 3 10.0.0.30' },
+        { t: 'texto', md: 'En la terminal, cada línea con `time=` es una respuesta. El número es lo que tardó en ir y volver, en milisegundos.' },
       ],
     },
     {
-      titulo: 'Ejecutar',
+      titulo: 'Una IP que no es de nadie',
       w: [
-        { t: 'estado', efecto: true, sonda: 'ana-ejecuta', titulo: '¿ana puede ejecutar saluda.sh?', mapa: siNo },
-        { t: 'rwx', tras: 'lsl', sonda: 'perm-saluda', fichero: 'saluda.sh', inicial: '644' },
-        { t: 'texto', md: 'Un **script** es un fichero con comandos dentro. Para lanzarlo como programa necesita la x.' },
-        { t: 'haz', paso: 'ejecutar', md: 'Escribe `chmod +x /srv/club/saluda.sh`. Sin letra delante, se da a todos.' },
+        { t: 'red', efecto: true, origen: 'tu-pc' },
+        { t: 'haz', paso: 'pingnadie', nodo: 'tu-pc', md: 'Escribe `ping -c 2 10.0.0.99`. Ninguna máquina tiene esa IP.' },
+        { t: 'texto', md: 'Los mensajes salen y nadie contesta. Al final ping dice cuántos se perdieron.' },
+        { t: 'texto', md: 'Cuando pasa esto, puede ser que la dirección esté mal o que la red esté rota. También puede haber un cortafuegos que no deja pasar el ping. Que una máquina no conteste no siempre quiere decir que no esté.' },
       ],
     },
     {
-      titulo: 'Las carpetas también',
+      titulo: 'Los puertos',
       w: [
-        { t: 'texto', md: 'Para llegar a un fichero hay que poder **entrar** en cada carpeta del camino. Eso es la x de las carpetas.' },
-        { t: 'estado', efecto: true, sonda: 'ana-secreto', titulo: '¿ana puede leer /srv/secreto/clave.txt?', mapa: siNo },
-        { t: 'rwx', tras: 'lsl', sonda: 'perm-secreto', fichero: 'la carpeta /srv/secreto', inicial: '700' },
-        { t: 'texto', md: 'clave.txt deja leer a todos, pero la carpeta solo deja pasar a root.' },
-        { t: 'haz', paso: 'carpeta', md: 'Abre la carpeta con `chmod 755 /srv/secreto`. Ese número lo vas a entender en el paso siguiente.' },
+        { t: 'analogia', icono: 'door-open', de: 'Un puerto', es: 'es una puerta con número dentro de la máquina. La IP te lleva al edificio y el puerto, a la puerta concreta.' },
+        { t: 'tabla', cab: ['Puerto', 'Quién suele estar detrás'], filas: [['22', 'SSH, para entrar a la terminal de otra máquina'], ['80', 'webs sin cifrar'], ['443', 'webs con candado'], ['5432', 'la base de datos PostgreSQL']] },
+        { t: 'comando', cmd: 'ss', hace: 'Enseña las conexiones y las puertas abiertas de la máquina.', ops: [['-t', 'solo las de TCP, el tipo de conexión que usan las webs'], ['-l', 'solo las puertas que están escuchando'], ['-n', 'con números, sin cambiarlos por nombres']], uso: 'ss -tln' },
+        { t: 'haz', paso: 'ss', nodo: 'tu-pc', md: 'Escribe `ss -tln` en tu-pc. Las tres opciones van juntas detrás de un solo guion.' },
+        { t: 'texto', md: 'No sale ninguna puerta. tu-pc no tiene nada escuchando, y web tampoco. En el paso siguiente abres una.' },
       ],
     },
     {
-      titulo: 'Los números',
+      titulo: 'Abre una puerta',
       w: [
-        { t: 'texto', md: 'Cada letra vale un número. **r vale 4, w vale 2 y x vale 1**. Se suman por bloques y salen tres cifras.' },
-        { t: 'anatomia', partes: [['7', 'rwx = 4+2+1', 'ok'], ['5', 'r-x = 4+1', 'aviso'], ['5', 'r-x = 4+1', 'mal']], nota: 'Por eso 755 es todo para el dueño y leer y entrar para los demás.' },
-        { t: 'tabla', cab: ['Número', 'Letras', 'Para qué'], filas: [['644', 'rw-r--r--', 'un fichero normal'], ['600', 'rw-------', 'algo privado'], ['755', 'rwxr-xr-x', 'un programa o una carpeta'], ['700', 'rwx------', 'una carpeta privada']] },
-        { t: 'texto', md: '`stat -c %a fichero` te da el número directamente.' },
-        { t: 'huecos', md: '¿Qué número es `rw-r-----`?', plantilla: 'chmod ___ fichero', respuestas: ['640'], pista: 'rw- es 4+2, r-- es 4 y --- es 0.' },
-        { t: 'haz', paso: 'stat', md: 'Comprueba el número de diario.txt con `stat -c %a /srv/club/diario.txt`.' },
+        { t: 'comando', cmd: 'nc', hace: 'Abre una puerta o llama a una. Sirve para probar la red a mano.', partes: [['nc', 'el programa'], ['-lk', 'escucha y no te vayas'], ['8080', 'en qué puerto']], ops: [['-l', 'escucha en un puerto, como un servidor'], ['-k', 'sigue escuchando después de cada visita']] },
+        { t: 'senala', zona: 'pestanas', md: 'Cambia a la terminal de **web** con su pestaña.' },
+        { t: 'haz', paso: 'puerto', nodo: 'web', md: 'En web escribe `nc -lk 8080`. Se queda esperando y no te devuelve el control. Es normal, está escuchando en esa puerta.' },
+        PUERTAS,
+        { t: 'senala', zona: 'web', md: 'Mira la tarjeta de web. Le ha salido un puntito verde con el 8080.' },
       ],
     },
     {
-      titulo: 'La lista de socios',
+      titulo: 'Llama a esa puerta',
       w: [
-        { t: 'estado', efecto: true, sonda: 'luis-socios', titulo: '¿luis, del club, puede escribir en socios.txt?', mapa: siNo },
-        { t: 'estado', efecto: true, sonda: 'ana-socios', titulo: '¿ana puede leerla?', mapa: siNo },
-        { t: 'rwx', tras: 'lsl', sonda: 'perm-socios', fichero: 'socios.txt', inicial: '644' },
-        { t: 'texto', md: '`chgrp` cambia el grupo. También vale `chown root:club`, dueño y grupo a la vez.' },
-        { t: 'haz', paso: 'octal', md: 'Pon `socios.txt` en el grupo club y en 664. Así los del club escriben y el resto solo lee.', pista: 'chgrp club /srv/club/socios.txt && chmod 664 /srv/club/socios.txt' },
+        { t: 'comando', cmd: 'nc', ops: [['-z', 'solo comprueba si la puerta abre, sin mandar nada'], ['-v', 'cuenta lo que va pasando']], partes: [['nc', 'el programa'], ['-zv', 'solo comprueba y cuéntalo'], ['10.0.0.20', 'a qué máquina'], ['8080', 'a qué puerto']] },
+        { t: 'red', efecto: true, origen: 'tu-pc' },
+        { t: 'haz', paso: 'conectar', nodo: 'tu-pc', md: 'Vuelve a **tu-pc** y escribe `nc -zv 10.0.0.20 8080`. Mira el mapa.' },
+        { t: 'texto', md: 'Ha salido una conexión hacia web y nc dice que ha funcionado. Si la puerta estuviera cerrada, te diría que la conexión fue rechazada.' },
+        { t: 'aviso', md: 'El `nc` de web sigue escuchando. Si quieres cerrar la puerta, ve a su terminal y córtalo con Ctrl+C.' },
       ],
     },
     {
-      titulo: 'Tres bits especiales',
+      titulo: 'Repaso de red',
       w: [
-        { t: 'tabla', cab: ['Bit', 'Número', 'En la práctica'], filas: [['setgid en una carpeta', '2000', 'lo que se crea dentro hereda el grupo de la carpeta. Ideal para carpetas de equipo'], ['sticky', '1000', 'en una carpeta de todos, cada uno solo borra lo suyo. Así es /tmp'], ['setuid', '4000', 'el programa se ejecuta como su dueño. Así cambias tu contraseña con passwd']] },
-        { t: 'texto', md: 'Van delante de las otras tres cifras. `chmod 2770 carpeta` es setgid más rwx para dueño y grupo.' },
-        { t: 'haz', paso: 'lstmp', md: 'Mira /tmp con `ls -ld /tmp`. La t del final es el sticky.' },
-      ],
-    },
-    {
-      titulo: 'Contrarreloj',
-      w: [
-        { t: 'rapido', md: 'Escribe el número. Necesitas 3 aciertos.', segundos: 40, preguntas: [['rw-r--r--', ['644']], ['rwxr-xr-x', ['755']], ['rw-------', ['600']], ['rwx------', ['700']], ['rw-rw-r--', ['664']], ['rwxrwx---', ['770']], ['r--r--r--', ['444']]] },
+        { t: 'clasifica', md: '¿Cuáles pueden ser una IP de verdad?', cubos: ['Puede ser una IP', 'Imposible'], items: [['10.0.0.20', 0], ['192.168.1.1', 0], ['300.1.2.3', 1], ['10.0.0', 1], ['8.8.8.8', 0], ['10.0.0.256', 1]] },
+        { t: 'empareja', pares: [['IP', 'la dirección de la máquina'], ['puerto', 'la puerta dentro de la máquina'], ['`ping`', 'pregunta si otra máquina contesta'], ['`ss -tln`', 'enseña las puertas que escuchan'], ['`nc -lk`', 'abre una puerta y espera'], ['`nc -zv`', 'llama a una puerta']] },
       ],
     },
     {
       titulo: 'Práctica',
       lab: PRACTICA,
       w: [
-        { t: 'texto', md: 'Un equipo de trabajo con sus carpetas. Pon orden.' },
+        { t: 'texto', md: 'Otra red, con otras direcciones. Tres máquinas que no conoces. Las IPs están en sus tarjetas, pero compruébalas tú.' },
         { t: 'mision' },
       ],
     },
     {
       titulo: 'El boss',
       w: [
-        { t: 'texto', md: 'Un backup que se ejecuta cada noche ha dejado de funcionar. Arréglalo sin abrir permisos de escritura a todo el mundo.' },
+        { t: 'texto', md: 'La tienda no carga y los clientes se quejan. Averigua si falla la máquina o la puerta, y arréglalo.' },
         { t: 'boss' },
       ],
     },
     {
       titulo: 'Lo que te llevas',
       w: [
-        { t: 'chuleta', items: [['whoami · id usuario', 'quién soy y sus grupos'], ['ls -l', 'ver permisos'], ['chmod o+r · u+x · g-w', 'cambiar con letras'], ['chmod 640', 'cambiar con números'], ['chown ana · chgrp club', 'dueño y grupo'], ['stat -c %a f', 'el número de un fichero'], ['chmod 2770 · 1777', 'setgid y sticky'], ['su ana -c "cmd"', 'probar como otra persona']] },
-        { t: 'aviso', md: 'Nunca arregles un problema de permisos con `chmod 777`. Funciona porque se lo abre a todo el mundo.' },
+        { t: 'chuleta' },
       ],
     },
   ],

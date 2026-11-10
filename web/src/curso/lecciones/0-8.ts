@@ -1,127 +1,151 @@
-// 0.8 · Bash scripting. Del primer script a funciones, con códigos de salida y set -euo pipefail.
+// 0.8 · Editores. nano para empezar, vim con sus modos y su gramática, y JSON e INI para el boss.
 import type { Leccion } from './tipos';
 
-const L = 'n0-8a-guion';
-const PRACTICA = 'n0-8-scripts';
-const ejecutable = { t: 'estado', tras: 'lsl', sonda: 'ejecutable', titulo: '¿hola.sh se puede ejecutar?', mapa: { si: ['sí', 'ok'], no: ['no, le falta la x', 'mal'], falta: ['todavía no existe', 'aviso'] } };
-const script = { t: 'fichero', efecto: true, sonda: 'script', titulo: '`hola.sh`, tal como está guardado', vacio: 'Todavía no existe.' };
+const L = 'n0-8a-editor';
+const PRACTICA = 'n0-8-vim';
+const editor = { t: 'estado', efecto: true, sonda: 'editor', titulo: 'Editor abierto ahora', mapa: { vim: ['vim', 'aviso'], nano: ['nano', 'aviso'], ninguno: ['ninguno', 'ok'] } };
 
 export const leccion: Leccion = {
   id: '0.8',
-  titulo: 'Bash scripting',
-  minutos: 40,
-  resumen: 'Sabes escribir un script, darle permiso, pasarle argumentos, decidir con if, repetir con for, usar funciones y hacer que falle pronto y en voz alta.',
+  titulo: 'Editores',
+  minutos: 35,
+  resumen: 'Sabes editar con nano y con vim, salir de los dos sin perder nada, y leer JSON e INI sin miedo a una coma de más.',
   pasos: [
     {
-      titulo: 'Un script es una receta',
+      titulo: 'Editar sin ratón',
       lab: L,
       w: [
-        { t: 'analogia', icono: 'book', de: 'Un script', es: 'es un fichero con comandos, uno detrás de otro. Lo lanzas y los hace todos por ti.' },
-        { t: 'codigo', codigo: '#!/bin/bash\necho "Hola desde mi script"', notas: { 1: 'La primera línea dice qué programa lee el resto. Se llama **shebang**.', 2: 'Lo demás son comandos normales.' } },
-        { t: 'haz', paso: 'shebang', md: 'Muchos programas del sistema son scripts. Mira la primera línea de zcat con `head -1 /usr/bin/zcat`.' },
+        { t: 'texto', md: 'En un servidor no hay ventanas ni ratón. Para cambiar un fichero se usa un editor dentro de la terminal.' },
+        { t: 'comparar', a: { titulo: 'nano', icono: 'pencil', puntos: ['fácil', 'los atajos salen escritos abajo', 'no siempre está instalado'] }, b: { titulo: 'vim', icono: 'zap', puntos: ['está en todas partes', 'rapidísimo cuando lo dominas', 'al principio desconcierta'] } },
+        { t: 'comando', cmd: 'which', hace: 'Dice en qué carpeta está un programa. Si no dice nada, es que no está instalado.', uso: 'which nano vim' },
+        { t: 'haz', paso: 'which', md: 'Comprueba que tienes los dos con `which nano vim`.' },
       ],
     },
     {
-      titulo: 'Escríbelo',
+      titulo: 'nano',
       w: [
-        script,
-        { t: 'haz', paso: 'crear', md: 'Crea `hola.sh` con esas dos líneas. Con `nano hola.sh` vale.' },
+        { t: 'comando', cmd: 'nano', hace: 'Abre un fichero en un editor sencillo. Escribes y ya está.', partes: [['nano', 'el editor'], ['nota.txt', 'qué fichero']] },
+        { t: 'teclas', combos: [
+          { k: ['Ctrl', 'O'], que: 'en nano, guarda. Luego Enter para confirmar el nombre', seq: '\x0f' },
+          { k: ['Ctrl', 'X'], que: 'en nano, sale', seq: '\x18' },
+          { k: ['Ctrl', 'K'], que: 'en nano, corta la línea entera', seq: '\x0b' },
+          { k: ['Ctrl', 'W'], que: 'en nano, busca una palabra', seq: '\x17' },
+        ] },
+        { t: 'aviso', md: 'Abajo nano escribe `^X` en vez de Ctrl+X. El `^` es Ctrl. Las teclas se encienden aquí cuando las pulsas dentro de nano.' },
+        { t: 'senala', zona: 'inmersivo', md: 'Ctrl+W en el navegador cierra la pestaña. Para que llegue a nano, pon el lab en pantalla completa con este botón. Esc mantenido sale.' },
+        { t: 'haz', paso: 'vernota', md: 'Mira primero cómo está con `cat nota.txt`.' },
+        { t: 'fichero', tras: 'vernota', sonda: 'nota', titulo: '`nota.txt`, tal como está guardado' },
+        editor,
+        { t: 'haz', paso: 'nano', md: 'Escribe `nano nota.txt`, añade una línea, guarda con Ctrl+O y Enter, y sal con Ctrl+X.' },
       ],
     },
     {
-      titulo: 'Dale permiso',
+      titulo: 'vim tiene modos',
       w: [
-        { t: 'haz', paso: 'lsl', md: 'Mira sus permisos con `ls -l hola.sh`. No hay ninguna x.' },
-        ejecutable,
-        { t: 'texto', md: 'Ya lo viste en permisos. Para lanzarlo como programa necesita la x.' },
-        { t: 'texto', md: 'Sin la x también puedes lanzarlo con `bash hola.sh`. Ahí el programa que corre es bash, y a bash le basta con poder leer el fichero.' },
-        { t: 'haz', paso: 'permiso', md: 'Escribe `chmod +x hola.sh`.' },
+        { t: 'texto', md: 'En vim las teclas no siempre escriben. Depende del **modo**. Al abrirlo estás en NORMAL, donde las letras son órdenes. Mueve el estado con los botones hasta guardar y salir.' },
+        { t: 'estados', inicio: 'n', objetivo: ['n', 'i', 'n', 'c'], estados: [{ id: 'n', t: 'NORMAL', sub: 'órdenes' }, { id: 'i', t: 'INSERCIÓN', sub: 'escribes texto' }, { id: 'c', t: 'COMANDO', sub: 'abajo, tras `:`' }], trans: [['n', 'i', '`i`'], ['i', 'n', 'Esc'], ['n', 'c', '`:`'], ['c', 'n', 'Enter o Esc']] },
+        { t: 'teclas', combos: [
+          { k: ['i'], que: 'en vim, pasa a INSERCIÓN para escribir texto' },
+          { k: ['Esc'], que: 'en vim, vuelve a NORMAL' },
+          { k: [':w'], que: 'en vim, guarda' },
+          { k: [':q'], que: 'en vim, sale' },
+          { k: [':wq'], que: 'en vim, guarda y sale' },
+          { k: [':q!'], que: 'en vim, sale sin guardar' },
+        ] },
       ],
     },
     {
-      titulo: 'Lánzalo',
+      titulo: 'Prueba sin miedo',
       w: [
-        { t: 'texto', md: '`./` quiere decir el de esta carpeta. Sin eso, la shell solo busca programas en las carpetas de siempre, como `/usr/bin`.' },
-        { t: 'texto', md: 'Esa lista de carpetas está en la variable `PATH`. Si tienes curiosidad, mírala con `echo $PATH`.' },
-        { t: 'haz', paso: 'lanzar', md: 'Escribe `./hola.sh`.' },
-        { t: 'ultimo', nodo: 'lab' },
+        { t: 'vim', md: 'Este vim es de prácticas. Arregla la errata y guarda con `:wq`. Con `l` te mueves a la derecha, `x` borra una letra e `i` entra a escribir.', texto: 'Hlola mundo', objetivo: 'Hola mundo' },
       ],
     },
     {
-      titulo: 'Argumentos',
+      titulo: 'Ahora el de verdad',
       w: [
-        { t: 'codigo', codigo: '#!/bin/bash\necho "Hola, $1"', notas: { 2: '`$1` es lo primero que le pasas al script. `$2` lo segundo. `$#` cuántos hay y `"$@"` todos.' } },
-        script,
-        { t: 'haz', paso: 'argumento', md: 'Cambia `hola.sh` para que salude a quien le pases y pruébalo con `./hola.sh Ana`.' },
-        { t: 'texto', md: 'Un valor por defecto se escribe `${1:-mundo}`. Si no le pasas nada, usa mundo.' },
+        { t: 'comando', cmd: 'vim', hace: 'Abre un fichero en vim, el editor que está en todos los servidores.', partes: [['vim', 'el editor'], ['compra.txt', 'qué fichero']] },
+        editor,
+        { t: 'haz', paso: 'vimsal', md: 'Escribe `vim compra.txt`, mira y sal con `:q`.' },
+        { t: 'aviso', md: 'Si te lías, pulsa Esc dos veces y escribe `:q!`. Sales sin guardar nada.' },
       ],
     },
     {
-      titulo: 'Códigos de salida',
+      titulo: 'Moverse',
       w: [
-        { t: 'codigo-salida', nodo: 'lab' },
-        { t: 'texto', md: 'Ya lo viste en el tutorial. Cada comando acaba con un número, 0 si fue bien. `$?` guarda el del último.' },
-        { t: 'haz', paso: 'falso', md: 'Escribe `ls /nada` y después `echo $?`.' },
-        { t: 'tabla', cab: ['Escribes', 'Pasa'], filas: [['`a && b`', 'b solo si a fue bien'], ['`a || b`', 'b solo si a falló'], ['`exit 3`', 'el script acaba con el código 3']] },
+        { t: 'teclas', combos: [
+          { k: ['h', 'j', 'k', 'l'], que: 'en vim, izquierda, abajo, arriba y derecha' },
+          { k: ['w'], que: 'en vim, salta a la palabra siguiente. Con `b`, a la anterior' },
+          { k: ['0'], que: 'en vim, va al principio de la línea. Con `$`, al final' },
+          { k: ['gg'], que: 'en vim, va al principio del fichero. Con `G`, al final' },
+          { k: ['/palabra'], que: 'en vim, busca. Con `n` salta a la siguiente' },
+        ] },
+        { t: 'haz', paso: 'vimmove', md: 'Practica en el de verdad. Abre `vim compra.txt`, muévete con `h j k l`, `w`, `0` y `$`, y sal con `:q`.' },
       ],
     },
     {
-      titulo: 'Decidir con if',
+      titulo: 'Borrar, copiar y deshacer',
       w: [
-        { t: 'codigo', codigo: 'if [ -f hola.sh ]; then\n  echo "existe"\nelse\n  echo "no está"\nfi', notas: { 1: '`[ -f x ]` comprueba que x es un fichero. `-d` sería una carpeta. Los espacios dentro de los corchetes son obligatorios, porque `[` es un programa más, como ls, y sus partes van separadas por espacios.', 5: 'fi es if al revés. Cierra el bloque.' } },
-        { t: 'haz', paso: 'si', md: 'Escribe en una línea `if [ -f hola.sh ]; then echo existe; fi`.' },
+        { t: 'teclas', combos: [
+          { k: ['x'], que: 'en vim, borra una letra' },
+          { k: ['dd'], que: 'en vim, borra la línea entera. `3dd` borra tres' },
+          { k: ['yy'], que: 'en vim, copia la línea. `4yy` copia cuatro' },
+          { k: ['p'], que: 'en vim, pega debajo lo copiado o lo borrado' },
+          { k: ['o'], que: 'en vim, abre una línea debajo y te deja escribiendo. Con `O` mayúscula, encima' },
+          { k: ['u'], que: 'en vim, deshace' },
+        ] },
+        { t: 'haz', paso: 'vercompra', md: 'Mira primero cómo está con `cat compra.txt`.' },
+        { t: 'fichero', tras: 'vercompra', sonda: 'compra', titulo: '`compra.txt`, tal como está guardado' },
+        editor,
+        { t: 'haz', paso: 'dd', md: 'Abre `compra.txt` en vim, quita las dos líneas BORRAME con `dd` y guarda con `:wq`.' },
       ],
     },
     {
-      titulo: 'Repetir con for',
+      titulo: 'Reemplazar en todo el fichero',
       w: [
-        { t: 'codigo', codigo: 'for f in fotos/*; do\n  echo "$f"\ndone', notas: { 1: 'Para cada nombre que encaja con fotos/*, lo guarda en f.', 2: 'Y hace esto con él.' } },
-        { t: 'haz', paso: 'bucle', md: 'Escribe `for f in fotos/*; do echo $f; done`.' },
+        { t: 'anatomia', partes: [[':', 'modo comando'], ['%', 'en todas las líneas'], ['s/localhost/db/', 'sustituye'], ['g', 'todas las veces de cada línea']] },
+        { t: 'teclas', combos: [{ k: [':%s/viejo/nuevo/g'], que: 'en vim, cambia un texto por otro en todo el fichero' }] },
+        { t: 'texto', md: 'Es lo mismo que el `s` de sed, pero dentro de vim.' },
+        { t: 'haz', paso: 'verconfig', md: 'Mira primero cómo está con `cat config.ini`.' },
+        { t: 'fichero', tras: 'verconfig', sonda: 'config', titulo: '`config.ini`, tal como está guardado' },
+        { t: 'haz', paso: 'sust', md: 'Abre `config.ini` en vim, cambia todos los localhost por db y guarda.', pista: 'Dentro de vim escribe `:%s/localhost/db/g` y Enter. Luego `:wq`.' },
       ],
     },
     {
-      titulo: 'Funciones',
+      titulo: 'Ficheros de configuración',
       w: [
-        { t: 'codigo', codigo: 'suma() {\n  local total=0\n  for n in "$@"; do\n    total=$((total + n))\n  done\n  echo "$total"\n}\nsuma 2 3 10', notas: { 1: 'Una función es un trozo con nombre que puedes llamar varias veces.', 2: '`local` hace que la variable solo exista dentro.', 4: '`$(( ))` hace cuentas.', 8: 'Se llama como un comando. Imprime 15.' } },
-        { t: 'texto', md: 'Un script también puede leer lo que le llega por una tubería. Si dentro llamas a un programa que lee la entrada, como `tr a-z A-Z`, la recibe él.' },
-        { t: 'haz', paso: 'funcion', md: 'Las funciones también se escriben en la terminal. Escribe `saluda() { echo "Hola, $1"; }` y luego `saluda Ana`.' },
+        { t: 'texto', md: 'Lo que más vas a editar son configuraciones. Dos formatos muy comunes.' },
+        { t: 'codigo', codigo: '{\n  "nombre": "tienda",\n  "puerto": 8080,\n  "debug": false,\n  "backends": ["10.0.0.11", "10.0.0.12"]\n}', notas: { 2: 'Los textos van entre comillas dobles.', 3: 'Los números van sin comillas. "8080" sería un texto.', 4: 'true y false, sin comillas.', 5: 'Una lista va entre corchetes. Detrás del último elemento no va coma.', 6: 'JSON no admite comentarios.' } },
+        { t: 'codigo', codigo: '[servidor]\nworkers = 4\n\n[log]\nnivel = info', notas: { 1: 'Un INI se parte en secciones entre corchetes.', 2: 'Dentro, clave = valor. Sin repetir claves.' } },
+        { t: 'comando', cmd: 'jq', ops: [['.', 'un punto solo es el JSON entero. Si está bien, lo enseña ordenado. Si está mal, dice en qué línea']] },
+        { t: 'haz', paso: 'jsonok', md: 'Hay un `app.json` en tu carpeta. Compruébalo con `jq . app.json`.' },
       ],
     },
     {
-      titulo: 'Que falle pronto y alto',
+      titulo: 'Atajos de vim',
       w: [
-        { t: 'codigo', codigo: '#!/bin/bash\nset -euo pipefail\ncd "/srv/mis datos"\ntar czf /backups/hoy.tar.gz .', notas: { 2: '**-e** para en el primer error. **-u** es un error usar una variable que no existe. **pipefail** hace que una tubería falle si falla cualquiera de sus piezas.', 3: 'Sin `set -e`, si este cd falla el script sigue y el tar empaqueta la carpeta equivocada.' } },
-        { t: 'comparar', a: { titulo: 'Sin comillas', icono: 'triangle-alert', puntos: ['`cd $DIR`', 'con DIR="mis datos" recibe dos palabras', 'falla o hace otra cosa'] }, b: { titulo: 'Con comillas', icono: 'circle-check', puntos: ['`cd "$DIR"`', 'recibe una sola cosa', 'funciona siempre'] } },
-        { t: 'texto', md: 'Para ver qué hace un script línea a línea, lánzalo con `bash -x script.sh`.' },
-        { t: 'texto', md: '`tar czf copia.tar.gz carpeta` mete una carpeta entera en un solo fichero comprimido. Es lo que hacen casi todos los backups.' },
-        { t: 'haz', paso: 'bashx', md: 'Mira tu script por dentro mientras corre. Escribe `bash -x hola.sh Ana`. Cada línea que ejecuta sale con un + delante.' },
+        { t: 'empareja', pares: [['`dd`', 'borra la línea'], ['`u`', 'deshace'], ['`:wq`', 'guarda y sale'], ['`:q!`', 'sale sin guardar'], ['`i`', 'empieza a escribir'], ['Esc', 'vuelve a NORMAL']] },
       ],
     },
     {
-      titulo: 'Ordena el script',
-      w: [
-        { t: 'ordena', md: 'Pon en orden las líneas de un script que hace copia de una carpeta.', items: ['`#!/bin/bash`', '`set -euo pipefail`', '`ORIGEN="/srv/datos"`', '`tar czf copia.tar.gz -C "$ORIGEN" .`', '`echo "copia hecha"`'] },
-      ],
-    },
-    {
-      titulo: 'Práctica con tests',
+      titulo: 'Práctica contrarreloj',
       lab: PRACTICA,
       w: [
-        { t: 'texto', md: 'Cinco scripts que tienen que pasar unos tests. Escribe `prueba` en la terminal cuando quieras y te dice qué falla.' },
+        { t: 'aviso', md: 'vim necesita Esc y muchas teclas. En el móvil están en la barra de teclas, pero esta lección es más cómoda en un ordenador.' },
+        { t: 'texto', md: 'Cinco ficheros que arreglar en vim. Ve a por ellos.' },
         { t: 'mision' },
       ],
     },
     {
       titulo: 'El boss',
       w: [
-        { t: 'texto', md: 'Heredas un script de backup que dice que todo va bien. No es verdad.' },
+        { t: 'texto', md: 'Alguien editó la configuración a mano y la app ya no arranca. El programa `app-check` de ese lab te dice qué falla.' },
         { t: 'boss' },
       ],
     },
     {
       titulo: 'Lo que te llevas',
       w: [
-        { t: 'chuleta', items: [['#!/bin/bash', 'shebang'], ['chmod +x · ./script', 'permiso y lanzar'], ['$1 · "$@" · ${1:-x}', 'argumentos'], ['$? · && · ||', 'códigos de salida'], ['if [ -f x ]; then … fi', 'decidir'], ['for f in *; do … done', 'repetir'], ['f() { local x; }', 'funciones'], ['set -euo pipefail', 'fallar pronto'], ['bash -x', 'ver qué hace']] },
+        { t: 'chuleta' },
       ],
     },
   ],

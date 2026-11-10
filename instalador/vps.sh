@@ -46,7 +46,7 @@ cat > /etc/systemd/system/relavops.service.d/vps.conf <<EOF
 [Service]
 EnvironmentFile=/etc/relavops/labd.env
 ExecStart=
-ExecStart=/usr/local/bin/labd -addr 127.0.0.1:8080 -estado /var/lib/relavops -cuentas $CUENTAS -nodo $NODO -max-sesiones 30 -max-por-persona 3 -dura-sesion 2h -abandono 10m -max-nuevas-min 8 -cgroup-labs relavops-labs.slice -tope-fichero 2G -disco-lab 2G -disco-libre 3G
+ExecStart=/usr/local/bin/labd -addr 127.0.0.1:8080 -estado /var/lib/relavops -cuentas $CUENTAS -nodo $NODO -max-sesiones ${MAX_SESIONES:-30} -max-por-persona 3 -dura-sesion 2h -abandono 10m -desalojo 2m -ram-libre-min ${RAM_LIBRE_MIN:-600M} -max-nuevas-min 8 -cgroup-labs relavops-labs.slice -tope-fichero 2G -disco-lab 2G -disco-libre 3G
 EOF
 
 # Todos los labs van en un mismo cgroup con tope de memoria y CPU. Por muchos labs que haya y por mucho

@@ -1,6 +1,6 @@
 # widgets/
 
-Los bloques con los que se hace una lección. Hay 53. Cada uno es una función reutilizable `(el, props, ctx) => void` que pinta dentro de `el`.
+Los bloques con los que se hace una lección. Hay 54. Cada uno es una función reutilizable `(el, props, ctx) => void` que pinta dentro de `el`.
 
 - `basicos.ts`, `diagramas.ts`, `vivos.ts` y `juegos.ts` son las cuatro familias.
 - `index.ts` es el registro. Una lección pide un widget por su nombre, `{ t: 'red', origen: 'tu-pc' }`.
@@ -47,12 +47,13 @@ Columnas: **Lab** = escucha el lab en vivo. **Bloquea** = no deja seguir hasta c
 | `capas` | `capas: [{t, sub, info, icono}]` (la primera arriba) | | |
 | `anatomia` | `partes: [[texto, etiqueta, color?]], nota?` | | |
 | `tabla` | `cab, filas` | | |
-| `chuleta` | `items: [[comando, para qué]]` | | |
+| `comando` | `cmd, hace, uso?, partes?: [[texto, etiqueta]], ops?: [[opción, qué hace]], nota?, simbolo?` (la ficha de un comando nuevo. Va antes de pedirlo y lo apunta en la chuleta. Ver la regla de oro en lecciones/LEEME.md) | | |
+| `chuleta` | sin props sale sola de las fichas de la lección. `items?: [[comando, para qué]]` | | |
 | `codigo` | `codigo, notas: {línea: texto}` | | |
 | `linea` | `items: [{t, d, icono?}]` (se destapa paso a paso) | | |
 | `escala` | `items: [[etiqueta, valor, texto]], titulo?` (logarítmica) | | |
 | `teclas` | `combos: [{k: [], que, seq?}], obliga?` (se encienden al pulsarlas en la terminal) | teclado | si `obliga` |
-| `senala` | `zona, md` (`maquinas`, `terminal`, `pestanas`, `nuevo`, `inmersivo`, `xp`, `ajustes` o el nombre de un nodo) | | |
+| `senala` | `zona, md` (`maquinas`, `terminal`, `pestanas`, `nuevo`, `inmersivo`, `xp`, `chuleta`, `ajustes` o el nombre de un nodo. En el móvil marca además la pestaña donde está) | | |
 | `aviso` | `md, tipo?: ok \| aviso \| mal` | | |
 
 ### Diagramas
@@ -86,7 +87,7 @@ Columnas: **Lab** = escucha el lab en vivo. **Bloquea** = no deja seguir hasta c
 | `contador` | `sonda, txt, fn?` | sí | |
 | `estado` | `sonda, titulo, mapa: {valor: [texto, ok \| mal \| aviso]}` | sí | |
 | `codigo-salida` | `nodo` | sí, `rc@` | |
-| `haz` | `paso, md, pista?, nodo?, xp?` (tarea en la terminal, la comprueba labd) | sí | **sí** |
+| `haz` | `paso, md, pista?, nodo?, xp?` (tarea en la terminal, la comprueba labd. La pista sin comillas invertidas es un comando tal cual. Con ellas es una frase) | sí | **sí** |
 | `mision` | `opcional?` (la misión del lab de práctica) | sí | sí |
 | `boss` | `obliga?` | sí | si `obliga` |
 | `boton-lab` | `accion, md, hecho?, icono?` (lanza una acción del lab) | sí | |

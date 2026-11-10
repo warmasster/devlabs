@@ -349,3 +349,18 @@
 @keyframes esc-late { 50% { stroke-opacity: 0.35; fill-opacity: 0.26; } }
 :root[data-movimiento='0'] .esc-el { transition: none; }
 :root[data-movimiento='0'] .esc-nodo.luz .esc-halo { animation: none; }
+
+/* Ficha de comando: lo primero que se ve de un comando nuevo. */
+.w-comando { padding: 12px 14px; border-radius: var(--radio); border: 2px solid color-mix(in srgb, var(--xp) 55%, var(--borde)); background: color-mix(in srgb, var(--xp) 8%, var(--panel)); display: flex; flex-direction: column; gap: 9px; }
+.w-comando.mas { border-style: dashed; }
+.w-cmd-eti { font-size: 12px; font-weight: 700; color: var(--xp); letter-spacing: 0.05em; text-transform: uppercase; }
+.w-cmd-cab { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.w-cmd-cab > code { font-size: 22px; font-weight: 700; color: var(--acento); background: var(--term-fondo); padding: 2px 10px; white-space: nowrap; }
+.w-cmd-cab > span { font-size: 18px; flex: 1; min-width: 180px; }
+.w-cmd-uso { font-size: 15px; color: var(--suave); }
+.w-cmd-ops { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+.w-cmd-ops div { display: flex; gap: 10px; align-items: baseline; }
+.w-cmd-ops code { white-space: nowrap; flex: none; }
+.w-cmd-pie { font-size: 13px; color: var(--suave); }
+.w-comando .w-anatomia { padding: 10px 12px; }
+.w-chuleta-abrir { margin-top: 8px; }

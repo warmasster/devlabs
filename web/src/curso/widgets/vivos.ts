@@ -164,17 +164,24 @@ export const haz: Widget = (el, p, ctx) => {
   const lab = ctx.lab();
   const caja = h('div', 'w-haz', `<span class="w-haz-ic">${ic('terminal')}</span><div class="w-haz-txt">${md(p.md)}${p.nodo ? ` <span class="pildora">en ${esc(p.nodo)}</span>` : ''}</div><span class="w-haz-estado">${ic('square')}</span>`);
   el.append(caja);
-  if (!lab) { caja.classList.add('sin-lab'); return; }
+  // Sin máquina (aún no ha llegado, o no hay servidor de labs) la tarea no se puede hacer.
+  // El paso se queda esperando. Cuando llega la máquina, el reproductor vuelve a pintar el paso.
+  if (!lab) { caja.classList.add('sin-lab'); ctx.espera(); el.append(h('p', 'w-suave', 'Esta tarea se hace en tu máquina. En cuanto llegue, sigues desde aquí.')); return; }
   const liberar = ctx.espera();
   if (p.pista) {
     const b = h('button', 'btn w-pista-btn', `${ic('lightbulb')} Pista`);
-    const t = h('div', 'w-pista', `<code>${esc(p.pista)}</code>`);
+    const t = h('div', 'w-pista', p.pista.includes('`') ? md(p.pista) : `<code>${esc(p.pista)}</code>`);
     t.hidden = true;
     b.onclick = () => { t.hidden = false; b.remove(); };
     el.append(b, t);
   }
   if (p.nodo) ctx.terminal(p.nodo);
+  // En el móvil la terminal está en otra pestaña: un botón lleva hasta ella.
+  const ir = h('button', 'btn primario w-haz-ir solo-movil', 'Ir a la terminal');
+  ir.onclick = () => dispatchEvent(new CustomEvent('relavops:vista', { detail: 'terminal' }));
+  el.append(ir);
   ctx.alSalir(lab.paso(p.paso, () => {
+    ir.remove();
     caja.classList.add('hecho');
     caja.querySelector('.w-haz-estado')!.innerHTML = ic('circle-check');
     ctx.xp(p.xp ?? 10, caja);
@@ -185,7 +192,7 @@ export const haz: Widget = (el, p, ctx) => {
 /** Lista de la misión del lab de práctica. Obliga a completarla. { opcional? } */
 export const mision: Widget = (el, p, ctx) => {
   const lab = ctx.lab();
-  if (!lab) return;
+  if (!lab) { if (!p.opcional) ctx.espera(); el.append(h('p', 'w-suave', 'La práctica se hace en tu máquina. En cuanto llegue, aparece aquí.')); return; }
   const liberar = p.opcional ? null : ctx.espera();
   const caja = h('div', 'w-mision');
   const barra = h('div', 'barra', '<div style="width:0%"></div>');
@@ -194,7 +201,7 @@ export const mision: Widget = (el, p, ctx) => {
     const ps = lab.mision;
     const n = ps.filter((x) => lab.hecho(x.id)).length;
     (barra.firstElementChild as HTMLElement).style.width = `${(100 * n) / ps.length}%`;
-    caja.innerHTML = ps.map((x) => `<div class="w-mis ${lab.hecho(x.id) ? 'hecho' : ''}"><span>${ic(lab.hecho(x.id) ? 'circle-check' : 'square')}</span><div><b>${md(x.titulo)}</b><div class="w-suave">${md(x.texto)}</div>${x.pista && !lab.hecho(x.id) ? `<details><summary>pista</summary><code>${esc(x.pista)}</code></details>` : ''}</div><small>+${x.xp}</small></div>`).join('');
+    caja.innerHTML = ps.map((x) => `<div class="w-mis ${lab.hecho(x.id) ? 'hecho' : ''}"><span>${ic(lab.hecho(x.id) ? 'circle-check' : 'square')}</span><div><b>${md(x.titulo)}</b><div class="w-suave">${md(x.texto)}</div>${x.pista && !lab.hecho(x.id) ? `<details><summary>pista</summary>${x.pista.includes('`') ? `<span>${md(x.pista)}</span>` : `<code>${esc(x.pista)}</code>`}</details>` : ''}</div><small>+${x.xp}</small></div>`).join('');
     if (n === ps.length) liberar?.();
   };
   pintar();

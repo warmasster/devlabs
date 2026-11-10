@@ -1,0 +1,86 @@
+# 0.5 · Lab de lección. La lección prueba como la usuaria "ana" si puede leer, escribir o entrar, y lo enseña en luces.
+id: n0-5a-rwx
+titulo: Quién puede qué
+motor: contenedor
+pool: 1
+nodos:
+  - { nombre: lab, rol: un servidor con varios usuarios, imagen: "relavops/base:1", memoria: 256m, cpus: 1 }
+preparar:
+  - nodo: lab
+    script: |
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      groupadd club; useradd -m -s /bin/bash ana; useradd -m -s /bin/bash luis; usermod -aG club luis
+      mkdir -p /srv/club /srv/secreto
+      echo "Querido diario. Hoy he aprendido permisos." > /srv/club/diario.txt; chmod 600 /srv/club/diario.txt
+      printf '#!/bin/sh\necho "Hola, soy un script y me han dejado ejecutarme"\n' > /srv/club/saluda.sh; chmod 644 /srv/club/saluda.sh
+      echo "La clave de la caja fuerte es 4321" > /srv/secreto/clave.txt; chmod 644 /srv/secreto/clave.txt; chmod 700 /srv/secreto
+      echo "lista de socios" > /srv/club/socios.txt; chmod 644 /srv/club/socios.txt
+sondas:
+  - { id: ultimo@lab, nodo: lab, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
+  - { id: perm-diario, nodo: lab, script: "stat -c '%A %a %U %G' /srv/club/diario.txt 2>/dev/null" }
+  - { id: perm-saluda, nodo: lab, script: "stat -c '%A %a %U %G' /srv/club/saluda.sh 2>/dev/null" }
+  - { id: perm-secreto, nodo: lab, script: "stat -c '%A %a %U %G' /srv/secreto 2>/dev/null" }
+  - { id: perm-socios, nodo: lab, script: "stat -c '%A %a %U %G' /srv/club/socios.txt 2>/dev/null" }
+  - { id: ana-lee, nodo: lab, script: "su -s /bin/sh ana -c 'cat /srv/club/diario.txt' >/dev/null 2>&1 && echo si || echo no" }
+  - { id: ana-escribe, nodo: lab, script: "su -s /bin/sh ana -c 'test -w /srv/club/diario.txt' && echo si || echo no" }
+  - { id: ana-ejecuta, nodo: lab, script: "su -s /bin/sh ana -c '/srv/club/saluda.sh' >/dev/null 2>&1 && echo si || echo no" }
+  - { id: ana-secreto, nodo: lab, script: "su -s /bin/sh ana -c 'cat /srv/secreto/clave.txt' >/dev/null 2>&1 && echo si || echo no" }
+  - { id: luis-socios, nodo: lab, script: "su -s /bin/sh luis -c 'test -w /srv/club/socios.txt' && echo si || echo no" }
+  - { id: ana-socios, nodo: lab, script: "su -s /bin/sh ana -c 'cat /srv/club/socios.txt' >/dev/null 2>&1 && echo si || echo no" }
+mision:
+  - { id: whoami, titulo: Quién soy, texto: "`whoami`", xp: 5, check: { nodo: lab, script: "grep -qE '^whoami' /root/.bash_history" } }
+  - { id: id, titulo: Mis grupos, texto: "`id ana`", xp: 5, check: { nodo: lab, script: "grep -qE '^id' /root/.bash_history" } }
+  - { id: lsl, titulo: Ver permisos, texto: "`ls -l /srv/club`", xp: 5, check: { nodo: lab, script: "grep -qE '^ls +-[a-zA-Z]*l' /root/.bash_history" } }
+  - { id: leer, titulo: Que ana pueda leer, texto: "`chmod o+r`", xp: 15, check: { nodo: lab, script: "su -s /bin/sh ana -c 'cat /srv/club/diario.txt' >/dev/null 2>&1" } }
+  - { id: duena, titulo: El diario es de ana, texto: "`chown ana`", xp: 15, check: { nodo: lab, script: "[ \"$(stat -c %U /srv/club/diario.txt)\" = ana ]" } }
+  - { id: ejecutar, titulo: Que el script se ejecute, texto: "`chmod +x`", xp: 15, check: { nodo: lab, script: "su -s /bin/sh ana -c /srv/club/saluda.sh >/dev/null 2>&1" } }
+  - { id: carpeta, titulo: Abrir la carpeta, texto: "`chmod o+x /srv/secreto`", xp: 15, check: { nodo: lab, script: "su -s /bin/sh ana -c 'cat /srv/secreto/clave.txt' >/dev/null 2>&1" } }
+  - id: octal
+    titulo: socios en 664 con grupo club
+    texto: "`chgrp club` y `chmod 664`"
+    xp: 20
+    check: { nodo: lab, script: "[ \"$(stat -c '%a %G' /srv/club/socios.txt)\" = '664 club' ]" }
+  - id: comoana
+    titulo: Probar como ana
+    texto: ""
+    xp: 10
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^su +ana +-c' /root/.bash_history
+  - id: setgid
+    titulo: El setgid de la carpeta del club
+    texto: ""
+    xp: 10
+    check:
+      nodo: lab
+      script: |
+        [ "$(stat -c %a /srv/club)" = 2775 ]
+  - id: lsd
+    titulo: Permisos de una carpeta
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls +-[a-zA-Z]*d' /root/.bash_history
+  - id: stat
+    titulo: El número con stat
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^stat ' /root/.bash_history
+  - id: lstmp
+    titulo: El sticky de /tmp
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls .*/tmp' /root/.bash_history

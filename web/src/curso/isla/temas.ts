@@ -182,30 +182,32 @@ export const ADORNOS: Record<string, string> = {
   '0.0': `<rect x="-4" y="-34" width="8" height="32" fill="#a0784a" stroke="${LINEA}" stroke-width="3"/>
     <circle cx="0" cy="-50" r="24" fill="#ffd166" stroke="${LINEA}" stroke-width="4"/>
     <text x="0" y="-39" font-family="var(--sans), sans-serif" font-weight="800" font-size="32" fill="${LINEA}" text-anchor="middle">?</text>`,
-  '0.1': `<rect x="-20" y="-70" width="40" height="68" rx="6" fill="#4a3f8f" stroke="${LINEA}" stroke-width="3.5"/>
+  '0.3': `<rect x="-20" y="-70" width="40" height="68" rx="6" fill="#4a3f8f" stroke="${LINEA}" stroke-width="3.5"/>
     ${[-58, -38, -18].map((y, i) => `<rect x="-14" y="${y}" width="28" height="13" rx="3" fill="#2f2766" stroke="${LINEA}" stroke-width="2.5"/><circle class="mi-luz ${'abc'[i]}" cx="8" cy="${y + 6.5}" r="3" fill="${['#5ff2a8', '#ffd166', '#ff6f91'][i]}"/>`).join('')}`,
-  '0.2': `<rect x="-42" y="-72" width="84" height="66" rx="9" fill="#0e0b26" stroke="${LINEA}" stroke-width="4"/>
+  '0.1': `<rect x="-42" y="-72" width="84" height="66" rx="9" fill="#0e0b26" stroke="${LINEA}" stroke-width="4"/>
     <path d="M -42 -57 L -42 -63 Q -42 -72 -33 -72 L 33 -72 Q 42 -72 42 -63 L 42 -57 Z" fill="#8b84c9"/><line x1="-42" y1="-57" x2="42" y2="-57" stroke="${LINEA}" stroke-width="3"/>
     <circle cx="-32" cy="-64.5" r="3" fill="#ff6f91"/><circle cx="-23" cy="-64.5" r="3" fill="#ffd166"/><circle cx="-14" cy="-64.5" r="3" fill="#5ff2a8"/>
     ${t(-24, -27, '$', 22)}<rect class="mi-luz" x="-12" y="-34" width="14" height="5" fill="#5ff2a8"/>`,
-  '0.3': `<path d="M -36 -8 L -36 -46 L -18 -46 L -12 -40 L 18 -40 L 18 -8 Z" fill="#e0a83a" stroke="${LINEA}" stroke-width="3.5" stroke-linejoin="round"/>
+  '0.2': `<path d="M -36 -8 L -36 -46 L -18 -46 L -12 -40 L 18 -40 L 18 -8 Z" fill="#e0a83a" stroke="${LINEA}" stroke-width="3.5" stroke-linejoin="round"/>
     <path d="M -22 -2 L -22 -36 L -4 -36 L 2 -30 L 34 -30 L 34 -2 Z" fill="#ffd166" stroke="${LINEA}" stroke-width="3.5" stroke-linejoin="round"/>${t(6, -12, '/', 14, LINEA)}`,
-  '0.4': `<path d="M -14 -36 L -14 -50 Q -14 -66 0 -66 Q 14 -66 14 -50 L 14 -36" fill="none" stroke="${LINEA}" stroke-width="10" stroke-linecap="round"/>
+  '0.4': `<path d="M -30 -14 L 0 -54 L 30 -14 Z" fill="none" stroke="${LINEA}" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="0" cy="-54" r="12" fill="#5ff2a8" stroke="${LINEA}" stroke-width="3.5"/><circle cx="-30" cy="-14" r="12" fill="#7cc4ff" stroke="${LINEA}" stroke-width="3.5"/><circle class="mi-luz" cx="30" cy="-14" r="12" fill="#ffd166" stroke="${LINEA}" stroke-width="3.5"/>`,
+  '0.5': `<path d="M -14 -36 L -14 -50 Q -14 -66 0 -66 Q 14 -66 14 -50 L 14 -36" fill="none" stroke="${LINEA}" stroke-width="10" stroke-linecap="round"/>
     <path d="M -14 -36 L -14 -50 Q -14 -66 0 -66 Q 14 -66 14 -50 L 14 -36" fill="none" stroke="#b3abe6" stroke-width="5" stroke-linecap="round"/>
     <rect x="-24" y="-40" width="48" height="38" rx="8" fill="#ffd166" stroke="${LINEA}" stroke-width="3.5"/>${t(0, -15, 'rwx', 13, LINEA)}`,
-  '0.5': `<path d="M -40 -50 L -40 -24 L 10 -24 L 10 -6 L 40 -6" fill="none" stroke="${LINEA}" stroke-width="16" stroke-linejoin="round"/>
+  '0.6': `<path d="M -40 -50 L -40 -24 L 10 -24 L 10 -6 L 40 -6" fill="none" stroke="${LINEA}" stroke-width="16" stroke-linejoin="round"/>
     <path d="M -40 -50 L -40 -24 L 10 -24 L 10 -6 L 40 -6" fill="none" stroke="#7cc4ff" stroke-width="10" stroke-linejoin="round"/>
     <path class="mi-fluye" d="M -40 -50 L -40 -24 L 10 -24 L 10 -6 L 40 -6" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="4 8" stroke-linecap="round"/>
     <rect x="-50" y="-60" width="20" height="12" rx="3" fill="#7cc4ff" stroke="${LINEA}" stroke-width="3"/>${t(30, -16, '|', 16, LINEA)}`,
-  '0.6': `<line x1="12" y1="-18" x2="30" y2="-2" stroke="${LINEA}" stroke-width="10" stroke-linecap="round"/><line x1="12" y1="-18" x2="30" y2="-2" stroke="#c29bff" stroke-width="5" stroke-linecap="round"/>
+  '0.7': `<line x1="12" y1="-18" x2="30" y2="-2" stroke="${LINEA}" stroke-width="10" stroke-linecap="round"/><line x1="12" y1="-18" x2="30" y2="-2" stroke="#c29bff" stroke-width="5" stroke-linecap="round"/>
     <circle cx="-4" cy="-36" r="22" fill="#e6e1ff" fill-opacity="0.9" stroke="${LINEA}" stroke-width="4.5"/>${t(-4, -31, '.*', 16, LINEA)}`,
-  '0.7': `<rect x="-26" y="-58" width="46" height="56" rx="5" fill="#fffbe8" stroke="${LINEA}" stroke-width="3.5" transform="rotate(-6)"/>
+  '0.8': `<rect x="-26" y="-58" width="46" height="56" rx="5" fill="#fffbe8" stroke="${LINEA}" stroke-width="3.5" transform="rotate(-6)"/>
     <path d="M -18 -44 h 30 M -18 -34 h 24 M -18 -24 h 28" stroke="#b3abe6" stroke-width="3" stroke-linecap="round" transform="rotate(-6)"/>${t(2, -8, ':wq', 13, '#c2456b')}`,
   // Un script es un guion: un pergamino que empieza por #!
-  '0.8': `<rect x="-24" y="-58" width="48" height="48" fill="#fffbe8" stroke="${LINEA}" stroke-width="3.5"/>
+  '0.9': `<rect x="-24" y="-58" width="48" height="48" fill="#fffbe8" stroke="${LINEA}" stroke-width="3.5"/>
     <path d="M -15 -30 h 30 M -15 -22 h 22" stroke="#b3abe6" stroke-width="3" stroke-linecap="round"/>${t(-6, -38, '#!', 14, '#c2456b')}
     <rect x="-31" y="-66" width="62" height="13" rx="6.5" fill="#e9dcb0" stroke="${LINEA}" stroke-width="3.5"/><rect x="-31" y="-15" width="62" height="13" rx="6.5" fill="#e9dcb0" stroke="${LINEA}" stroke-width="3.5"/>`,
-  '0.9': `<path d="M 0 -2 L 0 -60 M 0 -30 Q 22 -34 22 -52 M 0 -18 Q -22 -22 -24 -40" fill="none" stroke="${LINEA}" stroke-width="9" stroke-linecap="round"/>
+  '0.10': `<path d="M 0 -2 L 0 -60 M 0 -30 Q 22 -34 22 -52 M 0 -18 Q -22 -22 -24 -40" fill="none" stroke="${LINEA}" stroke-width="9" stroke-linecap="round"/>
     <path d="M 0 -2 L 0 -60 M 0 -30 Q 22 -34 22 -52 M 0 -18 Q -22 -22 -24 -40" fill="none" stroke="#a0784a" stroke-width="4" stroke-linecap="round"/>
     ${[[0, -62, '#5ff2a8'], [22, -54, '#ff6f91'], [-24, -42, '#7cc4ff'], [0, -32, '#ffd166']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="7" fill="${c}" stroke="${LINEA}" stroke-width="3"/>`).join('')}`,
 };

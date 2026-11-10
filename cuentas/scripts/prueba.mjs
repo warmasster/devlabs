@@ -87,9 +87,13 @@ ver('entrar con usuario y contraseña', r.estado === 200);
 r = await alumno('/api/cuenta/yo');
 ver('yo con su clase', r.estado === 200 && r.j.clases[0]?.nombre === 'Redes 1º B');
 
-r = await alumno('/api/cuenta/progreso', { metodo: 'PUT', datos: { datos: { modulos: { '0.1': { teoria: 5, lab: 9 } }, xp: 120, dias: ['2026-11-04'], records: { tubo: 3 } } } });
-r = await alumno('/api/cuenta/progreso', { metodo: 'PUT', datos: { datos: { modulos: { '0.1': { teoria: 3, boss: 12 }, '0.2': { teoria: 7 } }, xp: 90, dias: ['2026-11-05'], records: { tubo: 5 } } } });
+r = await alumno('/api/cuenta/progreso', { metodo: 'PUT', datos: { datos: { v: 2, modulos: { '0.1': { teoria: 5, lab: 9 } }, xp: 120, dias: ['2026-11-04'], records: { tubo: 3 }, notas: { ls: { t: 'lista', c: 10 }, cd: { t: 'vieja', c: 5 } } } } });
+r = await alumno('/api/cuenta/progreso', { metodo: 'PUT', datos: { datos: { v: 2, modulos: { '0.1': { teoria: 3, boss: 12 }, '0.2': { teoria: 7 } }, xp: 90, dias: ['2026-11-05'], records: { tubo: 5 }, notas: { cd: { t: 'nueva', c: 9 } } } } });
 const p = r.j.datos;
+ver('notas: se queda la más reciente de cada una', p.notas?.ls?.t === 'lista' && p.notas?.cd?.t === 'nueva', JSON.stringify(p.notas));
+// Un navegador con la web de antes manda el progreso con la numeración vieja (sin v). Se pasa a la nueva.
+r = await alumno('/api/cuenta/progreso', { metodo: 'PUT', datos: { datos: { modulos: { '0.9': { boss: 40 }, '0.4': { teoria: 33 } }, pasos: { '0.1': 20, '0.3': 6 }, xp: 10, dias: [], records: {} } } });
+ver('progreso con la numeración de antes: se migra al mezclar', r.j.datos.v === 2 && r.j.datos.modulos['0.10']?.boss === 40 && r.j.datos.modulos['0.5']?.teoria === 33 && !r.j.datos.modulos['0.9'] && r.j.datos.pasos['0.3'] === 15 && r.j.datos.pasos['0.4'] === 4 && r.j.datos.pasos['0.2'] === 6, JSON.stringify(r.j.datos));
 ver('progreso mezclado', p.xp === 120 && p.modulos['0.1'].teoria === 3 && p.modulos['0.1'].lab === 9 && p.modulos['0.1'].boss === 12 && p.dias.length === 2 && p.records.tubo === 5, JSON.stringify(p));
 
 r = await alumno('/api/clases');
@@ -122,9 +126,9 @@ ver('latido con secreto malo', r.estado === 401);
 const latido = {
   nodo: 'prueba', version: 'test', arranque: Date.now() - 60_000,
   host: { cpus: 2, cpu_pct: 37.5, carga: [0.8, 0.6, 0.4], ram_total_mb: 1990, ram_usada_mb: 1100, disco_total_gb: 40, disco_usado_gb: 14, labd_mb: 30 },
-  pools: { 'n0-1-maquina': 2 }, limites: { total: 30, por_persona: 3 },
-  sesiones: [{ id: 's1', usuario: 'u_x', nombre: 'ana', lab: 'n0-1-maquina', creada: Date.now() - 300_000, cpu_pct: 4.2, ram_mb: 38, pasos: 3, total_pasos: 9, conectada: true }],
-  terminadas: [{ id: `t-${sufijo}`, usuario: 'u_x', lab: 'n0-2-shell', inicio: Date.now() - 1_800_000, fin: Date.now() - 60_000, cpu_s: 21, ram_max_mb: 60, pasos: 7, motivo: 'cerrada' }],
+  pools: { 'n0-3-maquina': 2 }, limites: { total: 30, por_persona: 3 },
+  sesiones: [{ id: 's1', usuario: 'u_x', nombre: 'ana', lab: 'n0-3-maquina', creada: Date.now() - 300_000, cpu_pct: 4.2, ram_mb: 38, pasos: 3, total_pasos: 9, conectada: true }],
+  terminadas: [{ id: `t-${sufijo}`, usuario: 'u_x', lab: 'n0-1-shell', inicio: Date.now() - 1_800_000, fin: Date.now() - 60_000, cpu_s: 21, ram_max_mb: 60, pasos: 7, motivo: 'cerrada' }],
 };
 r = await otro('/api/nodos/latido', { metodo: 'POST', datos: latido, cabeceras: { authorization: `Bearer ${SECRETO}` } });
 ver('latido aceptado', r.estado === 200 && Array.isArray(r.j.ordenes), JSON.stringify(r.j));

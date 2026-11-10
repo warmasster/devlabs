@@ -17,6 +17,9 @@ export interface Ctx {
   senalar(zona: string, si: boolean): void;
   /** Lleva el foco a la terminal de un nodo. */
   terminal(nodo?: string): void;
+  /** La lección y el paso (desde 0) en los que está el widget. */
+  leccion?: string;
+  paso?: number;
 }
 
 export type Widget = (el: HTMLElement, p: any, ctx: Ctx) => void;

@@ -12,72 +12,75 @@ const H = (cmds) => `printf '%s\\n' ${cmds.map((c) => `'${c.replace(/'/g, `'\\''
 // Cada etapa: [nodo, comando] o [nodo, comando, 'accion:nombre']
 const S = {
   'n0-0-tutorial': {
-    etapas: [[['mi-servidor', `cd /root; ${H(['echo hola', 'cat bienvenida.txt', 'ls', 'adios', 'echo Lucía', 'clear'])}; responde nombre Lucía`]]],
+    etapas: [[['mi-servidor', `cd /root; ${H(['echo hola', 'cat bienvenida.txt', 'ls', 'ls -a', 'ls cosas', 'cat cosas/lista.txt', 'adios', 'echo Lucía', 'clear'])}; responde nombre Lucía`]]],
     boss: { cadena: `responde codigo $(grep -o 'es .*' /root/tesoro/cofre.txt | cut -d' ' -f2)`, oculto: `responde codigo $(grep -o 'es .*' /root/tesoro/.escondido.txt | cut -d' ' -f2)` },
     sondas: ['ultimo@mi-servidor', 'rc@mi-servidor', 'cat@mi-servidor'],
   },
-  'n0-1a-cuerpo': {
+  'n0-3a-cuerpo': {
     etapas: [
       [['servidor', 'setsid nohup ocupado >/dev/null 2>&1 & setsid nohup tragon >/dev/null 2>&1 & sleep 1']],
-      [['servidor', `${H(['nproc', 'free -m', 'ps aux', 'ps -p 1', 'df -h', 'uname -r', 'cat /etc/os-release', 'hostname', 'uname', 'cat /etc/hostname', 'ls -lh /srv/web'])}; sleep 2; pkill -x ocupado; pkill -x tragon`]],
+      [['servidor', `${H(['nproc', 'free -m', 'ps aux', 'ps -p 1', 'df -h', 'uname -r', 'cat /etc/os-release', 'hostname', 'uname', 'cat /etc/hostname', 'ls -lh /srv/web', 'top', 'ps -ef'])}; sleep 2; pkill -x ocupado; pkill -x tragon`]],
     ],
     sondas: ['ram@servidor', 'cpu@servidor', 'procesos@servidor', 'nproc@servidor', 'disco@servidor'],
   },
-  'n0-1b-red': {
+  'n0-4a-red': {
     etapas: [
       [['tu-pc', `${H(['ip addr', 'ping -c 2 10.0.0.99', 'hostname', 'hostname -I', 'ss -tln'])}; ping -c 2 -W1 10.0.0.20; ping -c 2 -W1 10.0.0.30; ping -c 1 -W1 10.0.0.99`], ['web', 'setsid nohup nc -lk 8080 >/dev/null 2>&1 &']],
       [['tu-pc', 'nc -zv -w2 10.0.0.20 8080']],
     ],
     sondas: ['icmp@tu-pc', 'icmp@web', 'icmp@db', 'puertos@web', 'puertos@tu-pc'],
   },
-  'n0-2a-teclas': {
+  'n0-1a-teclas': {
     etapas: [
       [['lab', `${H(['ls --help', 'cat /srv/una-carpeta-con-un-nombre-larguisimo-de-verdad/fichero-escondido.txt', 'sleep 100', 'echo $SHELL', 'cd /tmp', 'cd', 'sleep 5', 'less /etc/services'])}; setsid nohup sleep 200 >/dev/null 2>&1 & sleep 0.3; pkill -STOP -f 'sleep 200'; PYTHONSTARTUP=/etc/pystart.py python3 -i </dev/null`]],
-      [['lab', `${H(['bg'])}; pkill -CONT -f 'sleep 200'`]],
+      [['lab', `${H(['bg', 'jobs'])}; pkill -CONT -f 'sleep 200'`]],
       [['lab', `${H(['kill %1'])}; pkill -f 'sleep 200'`]],
     ],
     sondas: ['procesos@lab', 'ultimo@lab'],
   },
-  'n0-3a-arbol': {
+  'n0-2a-arbol': {
     etapas: [
-      [['lab', `${H(['pwd', 'cd casa', 'ls', 'ls -F', 'ls /', 'ls /root/casa/documentos/*.log', 'ls -i /root/enlaces', 'ls -l /proc/1/fd'])}`]],
+      [['lab', `${H(['pwd', 'cd casa', 'ls', 'ls -F', 'ls /', 'ls /root/casa/documentos/*.log', 'ls -i /root/enlaces', 'ls -l /proc/1/fd', 'df -h'])}; kill $(ps -eo pid=,args= | awk '$2 == "acaparador" {print $1}')`]],
     ],
     // cd depende del cwd de la bash del alumno: se simula con una bash interactiva viva.
     cwd: true,
     sondas: ['arbol@lab', 'inodos@lab'],
   },
-  'n0-4a-rwx': {
-    etapas: [[['lab', `${H(['whoami', 'id ana', 'ls -l /srv/club', 'ls -ld /root', 'stat -c %a /srv/club/diario.txt', 'ls -ld /tmp'])}; chmod o+r /srv/club/diario.txt; chown ana /srv/club/diario.txt; chmod +x /srv/club/saluda.sh; chmod 755 /srv/secreto; chgrp club /srv/club/socios.txt; chmod 664 /srv/club/socios.txt`]]],
+  'n0-5a-rwx': {
+    etapas: [[['lab', `${H(['whoami', 'id ana', 'ls -l /srv/club', 'ls -ld /root', 'stat -c %a /srv/club/diario.txt', 'ls -ld /tmp', 'su ana -c "cat /srv/club/diario.txt"'])}; chmod o+r /srv/club/diario.txt; chown ana /srv/club/diario.txt; chmod +x /srv/club/saluda.sh; chmod o+x /srv/secreto; chmod 2775 /srv/club; chgrp club /srv/club/socios.txt; chmod 664 /srv/club/socios.txt`]]],
     sondas: ['ana-lee', 'ana-escribe', 'ana-ejecuta', 'ana-secreto', 'luis-socios', 'perm-diario'],
   },
-  'n0-5a-canales': {
+  'n0-6a-canales': {
     etapas: [
       [['lab', 'cd /root; ls /etc > salida.txt']],
-      [['lab', `cd /root; echo fin >> salida.txt; copia 2> errores.txt >/dev/null; ${H(['cat datos/ciudades.txt | wc -l', 'grep Madrid datos/ciudades.txt', 'sort datos/ciudades.txt | uniq -c | sort -rn', 'cut -d, -f2 datos/ventas.csv', 'ls /noexiste', 'ls /etc/ssl /noexiste > lista.txt', 'zcat datos/viejo.log.gz', "jq '[.[] | select(.activo)] | length' datos/usuarios.json"])}`]],
+      [['lab', `cd /root; echo fin >> salida.txt; copia 2> errores.txt >/dev/null; ${H(['cat datos/ciudades.txt | wc -l', 'grep Madrid datos/ciudades.txt', 'sort datos/ciudades.txt | uniq -c | sort -rn', 'cut -d, -f2 datos/ventas.csv', 'ls /noexiste', 'ls /etc/ssl /noexiste > lista.txt', 'zcat datos/viejo.log.gz', "jq '[.[] | select(.activo)] | length' datos/usuarios.json", 'sort datos/ciudades.txt | uniq -c | sort -rn | head -1', 'tail -2 datos/accesos.log', "awk '$4 == 404' datos/accesos.log"])}`]],
     ],
     sondas: ['salida', 'errores'],
   },
-  'n0-6a-patrones': {
+  'n0-7a-patrones': {
     etapas: [[['lab', `cd /root; grep '^ERROR' textos/log.txt > encontrado.txt; grep -oE '[a-z.]+@[a-z.]+' textos/contactos.txt > correos.txt; ${H(["grep -c '^ERROR' textos/log.txt", "grep 'segundos$' textos/log.txt", "grep '[0-9]' textos/log.txt", "grep -oE '[0-9]+' textos/log.txt", "grep -E '^(ERROR|WARN)' textos/log.txt", 'grep ERROR textos/log.txt', 'cat textos/web.txt', "echo 'Ana Pérez' | sed -E 's/(.*) (.*)/\\2, \\1/'"])}; sed -i 's#http://#https://#' textos/web.txt`]]],
     sondas: ['encontrado', 'correos', 'web'],
   },
-  'n0-7a-editor': {
+  'n0-8a-editor': {
     etapas: [[['lab', `cd /root; echo 'hola desde nano' >> nota.txt; ${H(['vim compra.txt'])}; sed -i '/BORRAME/d' compra.txt; sed -i 's/localhost/db/g' config.ini; ${H(['jq . app.json', 'which nano vim', 'cat nota.txt', 'cat compra.txt', 'cat config.ini', 'vim compra.txt'])}`]]],
     sondas: ['nota', 'compra', 'config', 'editor'],
   },
-  'n0-8a-guion': {
+  'n0-9a-guion': {
     etapas: [
       [['lab', `cd /root; printf '#!/bin/bash\\necho "Hola, \${1:-mundo}"\\n' > hola.sh`]],
-      [['lab', `cd /root; chmod +x hola.sh; ${H(['./hola.sh', 'ls /nada', 'echo $?', 'for f in fotos/*; do echo $f; done', 'if [ -f hola.sh ]; then echo existe; fi', 'head -1 /usr/bin/zcat', 'ls -l hola.sh', 'saluda Ana', 'bash -x hola.sh Ana'])}`]],
+      [['lab', `cd /root; chmod +x hola.sh; ${H(['./hola.sh', 'ls /nada', 'echo $?', 'for f in fotos/*; do echo $f; done', 'if [ -f hola.sh ]; then echo existe; fi', 'head -1 /usr/bin/zcat', 'ls -l hola.sh', 'saluda Ana', 'bash -x hola.sh Ana', 'QUIEN=Ana', 'echo "Hola, $QUIEN"', 'echo $((7 % 2))', 'echo hola | tr a-z A-Z'])}`]],
     ],
     sondas: ['script', 'ejecutable', 'rc@lab'],
   },
-  'n0-9a-historia': {
+  'n0-10a-historia': {
     etapas: [
       [['lab', 'cd /root/proyecto && git init -q']],
       [['lab', 'cd /root/proyecto && git add .']],
       [['lab', 'cd /root/proyecto && git commit -qm "Primera versión" && echo "<p>9</p>" >> index.html && git commit -qam Horario && git switch -qc ofertas && echo "<p>Ofertas</p>" >> index.html && git commit -qam Ofertas && git switch -q main && git merge -q ofertas && git remote add origin /srv/git/tienda.git && git push -q -u origin main && echo roto >> index.html && git restore index.html && git clone -q /srv/git/tienda.git /root/copia']],
-      [['lab', `${H(['git restore index.html', 'git --version', 'git status', 'git diff'])}`]],
+      [['lab', `${H(['git restore index.html', 'git --version', 'git status', 'git diff', 'git log --oneline'])}`]],
+      [['lab', 'cd /root/proyecto && git switch -qc horario && echo "<p>De 9 a 14</p>" > horario.html && git add . && git commit -qm "Horario de mañana" && git switch -q main && echo "<p>De 16 a 20</p>" > horario.html && git add . && git commit -qm "Horario de tarde"; git merge -q horario; printf "<p>De 9 a 14</p>\\n<p>De 16 a 20</p>\\n" > horario.html; git add . && git commit -qm "Horario completo"']],
+      [['lab', `cd /root/proyecto && echo clave=1234 > secreto.txt && git add . && git commit -qm Ajustes && git rm -q --cached secreto.txt && echo secreto.txt >> .gitignore && git add . && git commit -q --amend -m Ajustes; ${H(['git rm --cached secreto.txt', 'git commit --amend -m "Ajustes"'])}`]],
+      [['lab', 'cd /root/proyecto && git branch pruebas && git reset -q --hard origin/main']],
     ],
     sondas: ['zonas', 'grafo'],
   },

@@ -20,6 +20,28 @@ Instala Docker y los motores, construye las imágenes, deja labd en 127.0.0.1:80
 
 Para actualizar labd después, vuelve a subir `dist/labd` y lanza lo mismo, o solo `bash instalador/actualizar.sh`.
 
+## Al actualizar, primero el Worker
+
+Si la versión nueva cambia el progreso de los alumnos (la numeración de las lecciones o las notas de la chuleta), despliega **antes el Worker de cuentas** y después labd.
+
+```
+cd cuentas && npm run desplegar
+```
+
+El Worker nuevo entiende el progreso de antes y lo pasa al formato nuevo al mezclar. Al revés no vale. Una web nueva contra el Worker viejo mezclaría números de lección de dos épocas.
+
+La web no se corta al actualizar. `instalador/actualizar.sh` cambia labd y las sesiones abiertas se pierden, así que mejor a una hora tranquila.
+
+## Si llega mucha gente
+
+Los topes están en `vps.sh` y se cambian sin tocar el script.
+
+```
+MAX_SESIONES=40 RAM_LIBRE_MIN=1G bash instalador/vps.sh
+```
+
+Cada sesión abierta gasta entre 100 y 500 MB de RAM según la lección. Con 2 GB de RAM caben unas 8. Con 8 GB, unas 30. Cuando no cabe nadie más, el alumno ve una sala de espera amable y su máquina llega sola en cuanto se libera una (ver [labd/LEEME.md](../labd/LEEME.md#cuando-llega-mucha-gente-a-la-vez)). En el log, cada espera sale como `lleno:`. Si salen muchas, sube `MAX_SESIONES` si queda RAM, o pon otro servidor.
+
 ## En Cloudflare, el DNS
 
 Un registro A de `relavops.org` a la IP del VPS. Lo más sencillo es con la nube gris (solo DNS), como estaba lab.crafthosts.org. Caddy saca el certificado solo.

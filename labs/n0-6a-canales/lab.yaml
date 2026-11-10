@@ -1,0 +1,103 @@
+# 0.6 · Lab de lección. La lección enseña en vivo lo que cae en salida.txt y en errores.txt mientras rediriges.
+id: n0-6a-canales
+titulo: Por dónde sale cada cosa
+motor: contenedor
+pool: 1
+nodos:
+  - { nombre: lab, rol: tu máquina, imagen: "relavops/base:1", memoria: 256m, cpus: 1 }
+preparar:
+  - nodo: lab
+    script: |
+      # Guarda el código del último comando y el historial, y avisa a labd de que ha vuelto el prompt.
+      cat >> /etc/bash.bashrc <<'EOF'
+      PROMPT_COMMAND='echo $? > /run/.rc; history -a; printf "\033]6973;\007"'
+      EOF
+      : > /root/.bash_history
+      mkdir -p /root/datos
+      printf '%s\n' Madrid Sevilla Bilbao Madrid Valencia Sevilla Madrid Cádiz Bilbao Madrid Zaragoza Sevilla > /root/datos/ciudades.txt
+      cat > /root/datos/ventas.csv <<'EOF'
+      tienda,ciudad,euros
+      norte,Bilbao,120
+      sur,Sevilla,340
+      centro,Madrid,560
+      este,Valencia,210
+      sur2,Cádiz,90
+      EOF
+      cat > /usr/local/bin/copia <<'EOF'
+      #!/bin/sh
+      # Copia de mentira: dice cosas por stdout y se queja por stderr.
+      for i in 1 2 3 4 5 6; do
+        case $i in 2|5) echo "ERROR: no pude copiar la foto $i" >&2 ;; *) echo "foto $i copiada" ;; esac
+      done
+      EOF
+      chmod +x /usr/local/bin/copia
+      printf '%s\n' '10.0.0.5 GET /inicio 200' '10.0.0.7 GET /oferta 404' '10.0.0.5 POST /login 401' '10.0.0.9 GET /inicio 200' '10.0.0.7 GET /nada 404' '10.0.0.5 GET /cesta 200' > /root/datos/accesos.log
+      printf '%s\n' 'enero Madrid 3' 'enero Sevilla 5' 'febrero Madrid 7' | gzip > /root/datos/viejo.log.gz
+      cat > /root/datos/usuarios.json <<'EOF'
+      [
+        {"nombre": "ana", "rol": "admin", "activo": true},
+        {"nombre": "luis", "rol": "dev", "activo": false},
+        {"nombre": "eva", "rol": "admin", "activo": false}
+      ]
+      EOF
+sondas:
+  - { id: ultimo@lab, nodo: lab, script: "tail -n 1 /root/.bash_history 2>/dev/null" }
+  - { id: salida, nodo: lab, script: "head -c 3000 /root/salida.txt 2>/dev/null" }
+  - { id: errores, nodo: lab, script: "head -c 3000 /root/errores.txt 2>/dev/null" }
+  - id: cat@lab
+    nodo: lab
+    script: |
+      c=$(tail -n 1 /root/.bash_history 2>/dev/null)
+      case "$c" in *[\;\|\&\>\<\$\`]*) exit 0 ;; "cat "*) ;; *) exit 0 ;; esac
+      d=$(readlink /proc/$(pgrep -n -x bash)/cwd 2>/dev/null); cd "${d:-/root}" || exit 0
+      head -c 3000 -- $(printf '%s' "${c#cat }" | sed 's#~#/root#g') 2>&1
+mision:
+  - { id: mayor, titulo: Guardar con >, texto: "`ls /etc > salida.txt`", xp: 10, check: { nodo: lab, script: "grep -qx hosts /root/salida.txt 2>/dev/null" } }
+  - { id: anadir, titulo: Añadir con >>, texto: "`echo fin >> salida.txt`", xp: 10, check: { nodo: lab, script: "grep -qx hosts /root/salida.txt && [ \"$(tail -n 1 /root/salida.txt)\" = fin ]" } }
+  - { id: errores, titulo: Solo los errores, texto: "`copia 2> errores.txt`", xp: 15, check: { nodo: lab, script: "[ \"$(grep -c ERROR /root/errores.txt 2>/dev/null)\" = 2 ] && ! grep -q copiada /root/errores.txt" } }
+  - { id: tubo, titulo: Una tubería, texto: "`cat datos/ciudades.txt | wc -l`", xp: 10, check: { nodo: lab, script: "grep -qE '\\| *wc' /root/.bash_history" } }
+  - { id: grep, titulo: Filtrar con grep, texto: "`grep Madrid datos/ciudades.txt`", xp: 10, check: { nodo: lab, script: "grep -qE '^grep ' /root/.bash_history" } }
+  - { id: cuenta, titulo: La más repetida, texto: "`sort | uniq -c | sort -rn`", xp: 20, check: { nodo: lab, script: "grep -qE 'uniq +-c' /root/.bash_history" } }
+  - { id: zcat, titulo: Leer un comprimido, texto: "`zcat datos/viejo.log.gz`", xp: 10, check: { nodo: lab, script: "grep -qE '^zcat ' /root/.bash_history" } }
+  - { id: jq, titulo: Filtrar JSON, texto: "`jq`", xp: 15, check: { nodo: lab, script: "grep -qE '^jq .*select' /root/.bash_history" } }
+  - { id: columna, titulo: Una columna, texto: "`cut -d, -f2`", xp: 15, check: { nodo: lab, script: "grep -qE '(cut +-d|awk +-F)' /root/.bash_history" } }
+  - id: cabeza
+    titulo: Solo la primera
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '\| *head +-' /root/.bash_history
+  - id: cola
+    titulo: Las últimas líneas
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '(^|\| *)tail +-' /root/.bash_history
+  - id: awk
+    titulo: Filtrar por una columna
+    texto: ""
+    xp: 10
+    check:
+      nodo: lab
+      script: |
+        grep -qE '(^|\| *)awk .*404' /root/.bash_history
+  - id: queja
+    titulo: Una queja
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls +/noexiste *$' /root/.bash_history
+  - id: canales
+    titulo: Cada cosa a su sitio
+    texto: ""
+    xp: 5
+    check:
+      nodo: lab
+      script: |
+        grep -qE '^ls .*noexiste.*>' /root/.bash_history
